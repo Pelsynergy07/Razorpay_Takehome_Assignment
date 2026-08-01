@@ -159,6 +159,7 @@
      LAYOUT
      =================================================================== */
   --container-max: 1200px;
+  --container-chat-max: 480px;      /* product extension: full-page chat routes (e.g. /plan) */
   --bp-mobile: 768px;
   --bp-tablet: 1024px;
 }

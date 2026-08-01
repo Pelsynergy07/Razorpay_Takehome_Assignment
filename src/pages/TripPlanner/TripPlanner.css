@@ -1,0 +1,374 @@
+/* ===== Shared secondary button (outline, no fill) =====
+   Used for every non-primary CTA in the trip-planner flow (Launch sync
+   mode, Create trip session, Enter live aggregation hub) so they read as
+   one consistent family instead of competing filled-gradient buttons
+   popping up mid-conversation. Deliberately excludes the main search
+   widget's SEARCH button, which keeps its own filled/uppercase treatment. */
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--mmt-white);
+  color: var(--mmt-blue);
+  border: 1.5px solid var(--mmt-blue);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  font-weight: var(--fw-bold);
+  transition: background var(--duration-base);
+}
+
+.btn-secondary:hover {
+  background: var(--mmt-blue-tint);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--mmt-white);
+}
+
+/* ===== Tertiary button (text-only, lowest emphasis) ===== */
+.btn-tertiary {
+  padding: var(--space-sm) var(--space-lg);
+  background: transparent;
+  color: var(--mmt-text-secondary);
+  border: none;
+  font-size: var(--text-md);
+  font-weight: var(--fw-semibold);
+  transition: color var(--duration-base);
+}
+
+.btn-tertiary:hover {
+  color: var(--mmt-text-primary);
+}
+
+/* ===== Screen 1.1 — Launch sync mode CTA ===== */
+.launch-sync-btn {
+  align-self: flex-start;
+}
+
+/* ===== Screen 1.2 — intent form card ===== */
+.intent-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+}
+
+.intent-form-row {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.intent-form-row .intent-form-field {
+  flex: 1;
+}
+
+.intent-form-field label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-secondary);
+  margin-bottom: var(--space-2xs);
+}
+
+.intent-form-field input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  color: var(--mmt-text-primary);
+  transition: border-color var(--duration-base);
+}
+
+.intent-form-field input:focus {
+  border-color: var(--mmt-blue);
+}
+
+.budget-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.budget-pill {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--mmt-white);
+  color: var(--mmt-text-secondary);
+  border: 1.5px solid var(--mmt-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  transition: all var(--duration-base);
+}
+
+.budget-pill.active {
+  border-color: var(--mmt-blue);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+}
+
+.intent-form-submit {
+  width: 100%;
+}
+
+/* ===== Screen 2.1 — link share card ===== */
+.link-share-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+}
+
+.link-share-label {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-secondary);
+}
+
+.link-share-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--mmt-bg-page);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.link-share-url {
+  flex: 1;
+  font-size: var(--text-md);
+  color: var(--mmt-text-primary);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.link-share-copy-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--mmt-white);
+  color: var(--mmt-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+}
+
+/* ===== Screens 2.2-2.6 — participant flow ===== */
+.participant-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.participant-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.participant-banner .myra-label-text {
+  font-size: var(--text-xl);
+}
+
+.participant-banner p {
+  font-size: var(--text-lg);
+  line-height: var(--leading-base);
+  color: var(--mmt-text-primary);
+}
+
+.participant-start-btn {
+  width: 220px;
+}
+
+.option-card-title {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+}
+
+.option-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.option-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  height: 120px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.option-tile--gradient {
+  color: var(--mmt-white);
+}
+
+.option-tile--plain {
+  background: var(--mmt-white);
+  border: 1.5px solid var(--mmt-border);
+  color: var(--mmt-text-primary);
+  transition: border-color var(--duration-base), background var(--duration-base);
+}
+
+.option-tile--plain:hover {
+  border-color: var(--mmt-blue);
+  background: var(--mmt-blue-tint);
+}
+
+.option-tile-icon--light {
+  color: var(--mmt-white);
+}
+
+.option-tile-icon--dark {
+  color: var(--mmt-blue);
+}
+
+.option-tile-label {
+  font-size: var(--text-md);
+  font-weight: var(--fw-bold);
+}
+
+.option-note-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+  text-align: left;
+}
+
+.option-note-card label {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-secondary);
+}
+
+.option-note-card textarea {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  color: var(--mmt-text-primary);
+  font-family: inherit;
+  resize: none;
+  transition: border-color var(--duration-base);
+}
+
+.option-note-card textarea:focus {
+  border-color: var(--mmt-blue);
+}
+
+.option-note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+/* ===== Screen 3.1 — live aggregation hub ===== */
+.hub-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.hub-avatar-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.hub-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hub-avatar--responded {
+  background: var(--mmt-success);
+  color: var(--mmt-white);
+}
+
+.hub-avatar--pending {
+  border: 1.5px dashed var(--mmt-border);
+}
+
+.hub-response-count {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+}
+
+.hub-signal-line {
+  background: var(--mmt-bg-page);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  width: 100%;
+}
+
+.hub-signal-empty {
+  color: var(--mmt-text-tertiary);
+}
+
+.hub-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.hub-actions .btn-secondary {
+  width: 100%;
+}
+
+.hub-actions .btn-tertiary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.hub-toast {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  background: var(--mmt-blue-tint);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
+}

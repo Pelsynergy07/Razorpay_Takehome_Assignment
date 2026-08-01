@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { X, Bot, Sparkles } from 'lucide-react';
-import ChatHeader from './ChatHeader';
+import ChatFlowShell from './ChatFlowShell';
 import ChatRedirectState from './ChatRedirectState';
-import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions } from './ChatMessages';
+import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock } from './ChatMessages';
+import TypingIndicator from './TypingIndicator';
 import ScrollHintButton from './ScrollHintButton';
 import ChatInputBar from './ChatInputBar';
+import IntentFormCard from '../../pages/TripPlanner/IntentFormCard';
+import LinkShareCard from '../../pages/TripPlanner/LinkShareCard';
+import LiveAggregationHub from '../../pages/TripPlanner/LiveAggregationHub';
+import { useTripPlannerFlow } from '../../pages/TripPlanner/useTripPlannerFlow';
+import '../../pages/TripPlanner/TripPlanner.css';
 import './AIChatbotWidget.css';
 
 const promptSuggestions = [
@@ -73,6 +80,7 @@ const generateBotResponse = (userMsg) => {
 };
 
 const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
+  const flow = useTripPlannerFlow();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -109,15 +117,31 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
+  // Every bot turn "thinks" briefly before landing, instead of popping in
+  // instantly.
+  const thinkThen = (kind, text, delay) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: kind, text }]);
+      setIsTyping(false);
+    }, delay);
+  };
+
   const handleSend = (text) => {
     const msg = text || inputValue.trim();
-    if (!msg) return;
+    if (!msg || isTyping) return;
 
     const userMsg = { id: Date.now(), role: 'user', type: 'text', text: msg };
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
-    setIsTyping(true);
 
+    if (flow.tripStep === 'intro' && flow.detectsTripIntent(msg)) {
+      const { kind, text: launchText } = flow.launchMessage();
+      thinkThen(kind, launchText, 800);
+      return;
+    }
+
+    setIsTyping(true);
     setTimeout(() => {
       const response = generateBotResponse(msg);
       const botMsg = { id: Date.now() + 1, role: 'bot', ...response };
@@ -125,6 +149,18 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       setIsTyping(false);
     }, 1200 + Math.random() * 800);
   };
+
+  const handleLaunchSyncMode = () => {
+    const { kind, text } = flow.startForm();
+    thinkThen(kind, text, 600);
+  };
+
+  const handleTripFormSubmit = (formValues) => {
+    const { message } = flow.submitForm(formValues);
+    thinkThen(message.kind, message.text, 1100); // a touch longer — "creates" the session
+  };
+
+  const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -149,62 +185,73 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     if (el) el.scrollBy({ top: 220, behavior: 'smooth' });
   };
 
-  const chatBody = (
-    <>
-      <ChatHeader onClose={closeChat} />
+  const renderChatBody = (rootClassName) => {
+    if (chatOpen && !showRedirect && flow.tripStep === 'hub') {
+      return (
+        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
+          <LiveAggregationHub session={flow.session} />
+        </ChatFlowShell>
+      );
+    }
 
-      {showRedirect ? (
-        <ChatRedirectState label="Myra" />
-      ) : (
-        <>
-          <div className="chat-sheet-messages" ref={messagesScrollRef}>
-            {messages.map((msg) => (
-              <div key={msg.id} className="chat-sheet-msg-block">
-                {msg.role === 'user' ? (
-                  <UserBubble text={msg.text} />
-                ) : (
-                  <>
-                    <BotTextResponse text={msg.text} />
-                    {msg.type === 'destinations' && msg.destinations && (
-                      <DestinationCarousel destinations={msg.destinations} />
-                    )}
-                    <MessageActions />
-                  </>
-                )}
-              </div>
-            ))}
+    return (
+      <ChatFlowShell
+        rootClassName={rootClassName}
+        onClose={closeChat}
+        messagesRef={messagesScrollRef}
+        belowMessages={!showRedirect && <ScrollHintButton onClick={scrollMessagesDown} />}
+        footer={flow.tripStep !== 'form' && (
+          <ChatInputBar
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onSend={() => handleSend()}
+            onKeyDown={handleKeyDown}
+            inputRef={inputRef}
+          />
+        )}
+      >
+        {showRedirect ? (
+          <ChatRedirectState label="Myra" />
+        ) : (
+          <>
+            <AnimatePresence initial={false}>
+              {messages.map((msg) => (
+                <MessageBlock key={msg.id}>
+                  {msg.role === 'user' ? (
+                    <UserBubble text={msg.text} />
+                  ) : (
+                    <>
+                      <BotTextResponse text={msg.text} />
+                      {msg.type === 'destinations' && msg.destinations && (
+                        <DestinationCarousel destinations={msg.destinations} />
+                      )}
+                      {msg.type === 'launch' && (
+                        <button type="button" className="btn-secondary launch-sync-btn" onClick={handleLaunchSyncMode}>
+                          Launch sync mode
+                        </button>
+                      )}
+                      {msg.type === 'form' && <IntentFormCard onSubmit={handleTripFormSubmit} />}
+                      {msg.type === 'share' && flow.session && (
+                        <LinkShareCard joinUrl={tripJoinUrl} onEnterHub={flow.enterHub} />
+                      )}
+                      {msg.type !== 'launch' && msg.type !== 'form' && msg.type !== 'share' && <MessageActions />}
+                    </>
+                  )}
+                </MessageBlock>
+              ))}
 
-            {isTyping && (
-              <div className="chat-sheet-msg-block">
-                <div className="bot-response">
-                  <div className="myra-label">
-                    <span className="myra-label-text">Myra</span>
-                    <Sparkles size={13} className="myra-sparkle" />
-                  </div>
-                  <div className="typing-indicator">
-                    <span className="typing-dot" />
-                    <span className="typing-dot" />
-                    <span className="typing-dot" />
-                  </div>
-                </div>
-              </div>
-            )}
+              {isTyping && (
+                <MessageBlock key="typing">
+                  <TypingIndicator />
+                </MessageBlock>
+              )}
+            </AnimatePresence>
             <div ref={messagesEndRef} />
-          </div>
-
-          <ScrollHintButton onClick={scrollMessagesDown} />
-        </>
-      )}
-
-      <ChatInputBar
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onSend={() => handleSend()}
-        onKeyDown={handleKeyDown}
-        inputRef={inputRef}
-      />
-    </>
-  );
+          </>
+        )}
+      </ChatFlowShell>
+    );
+  };
 
   return (
     <>
@@ -235,14 +282,12 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       {chatOpen && isMobile && (
         <>
           <div className="chat-sheet-backdrop" onClick={closeChat} />
-          <div className="chat-sheet">{chatBody}</div>
+          {renderChatBody('chat-sheet')}
         </>
       )}
 
       {/* Desktop Chat Panel — same MyRA components, docked panel shell */}
-      {chatOpen && !isMobile && (
-        <div className="chatbot-panel">{chatBody}</div>
-      )}
+      {chatOpen && !isMobile && renderChatBody('chatbot-panel')}
     </>
   );
 };

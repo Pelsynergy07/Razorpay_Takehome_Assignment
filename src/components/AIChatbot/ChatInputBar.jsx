@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 
 const ChatInputBar = ({ value, onChange, onSend, onKeyDown, inputRef }) => (
@@ -13,14 +14,15 @@ const ChatInputBar = ({ value, onChange, onSend, onKeyDown, inputRef }) => (
         onKeyDown={onKeyDown}
         className="chat-sheet-input"
       />
-      <button
+      <motion.button
         className={`chat-sheet-send-btn ${value.trim() ? 'active' : ''}`}
         onClick={onSend}
         disabled={!value.trim()}
         aria-label="Send message"
+        whileTap={value.trim() ? { scale: 0.9 } : undefined}
       >
         <ArrowUp size={18} />
-      </button>
+      </motion.button>
     </div>
   </div>
 );

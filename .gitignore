@@ -1,7 +1,6 @@
 # Logs
 logs
-*.log
-npm-debug.log*
+*.lognpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
@@ -52,3 +51,7 @@ MakeMyTrip - #1 Travel Website 50% OFF on Hotels, Flights & Holiday_files/
 MakeMyTrip - #1 Travel Website 50% OFF on Hotels, Flights & Holiday_Mobile breakpoint_PWA*.mht
 /Logo.png
 Makemytrip_logo.svg
+
+# Local runtime lock files
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks.lock.json

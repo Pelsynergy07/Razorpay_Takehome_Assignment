@@ -1,5 +1,24 @@
 import React, { useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Sparkles, Bookmark, MapPin, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
+
+const blockTransition = { duration: 0.35, ease: [0.16, 1, 0.3, 1] };
+
+/**
+ * Every chat turn (user bubble, bot response, typing indicator) mounts
+ * through this so new messages settle in with one consistent, subtle
+ * fade + rise instead of popping in instantly.
+ */
+export const MessageBlock = ({ children }) => (
+  <motion.div
+    className="chat-sheet-msg-block"
+    initial={{ opacity: 0, y: 14 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={blockTransition}
+  >
+    {children}
+  </motion.div>
+);
 
 const parseBold = (line) => {
   const parts = line.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
