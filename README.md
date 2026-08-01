@@ -41,13 +41,17 @@ npm run preview   # preview the production build
 │   │   ├── Mobile/                 # Mobile home & bottom nav
 │   │   ├── Promos/                 # Offers section
 │   │   └── Footer.jsx              # Footer
-│   ├── pages/                      # Design system page
+│   ├── pages/
+│   │   ├── DesignSystem.jsx        # Design system reference page
+│   │   └── TripPlanner/            # Group Trip Planner flow (organizer + participant)
+│   ├── lib/                        # Mock data layer (trip sessions, synthesis logic)
 │   ├── styles/                     # tokens, base, global CSS
 │   └── App.jsx                     # App shell
 ├── public/                         # Static assets
+├── docs/                           # Design/product/spec documentation
 └── index.html
 ```
 
 ## Notes
 
-- Reference pages downloaded during development are intentionally **not** committed to the repository.
+- Reference material gathered during development (downloaded pages, screenshots, extraction sources) lives locally under `reference/` and is intentionally **not** committed to the repository.

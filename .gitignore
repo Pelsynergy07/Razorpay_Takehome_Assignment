@@ -45,12 +45,7 @@ src/lib/impeccable/[0-9a-f]*/
 # impeccable-live-ignore-end
 
 # Local reference/downloaded materials (not part of the app source)
-Ref images/
-MakeMyTrip - #1 Travel Website 50% OFF on Hotels, Flights & Holiday.html
-MakeMyTrip - #1 Travel Website 50% OFF on Hotels, Flights & Holiday_files/
-MakeMyTrip - #1 Travel Website 50% OFF on Hotels, Flights & Holiday_Mobile breakpoint_PWA*.mht
-/Logo.png
-Makemytrip_logo.svg
+/reference/
 
 # Local runtime lock files
 .claude/scheduled_tasks.lock
