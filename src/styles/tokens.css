@@ -1,0 +1,161 @@
+/**
+ * MakeMyTrip Design Tokens
+ * Single source of truth. Every component must consume these — never hardcode
+ * a hex/px value that already has a token. Values marked "verified" were read
+ * directly out of MakeMyTrip's production CSS (reference: Flights search page).
+ * Values marked "derived" extend the verified palette using the same logic
+ * (tints/shades/scale) where the reference didn't expose an exact value.
+ */
+
+:root {
+  /* ===================================================================
+     COLOR — BRAND
+     =================================================================== */
+  --mmt-blue: #008cff;              /* verified: --color-primary */
+  --mmt-blue-light: #53b2fe;        /* verified: btn gradient start */
+  --mmt-blue-mid: #065af3;          /* verified: btn gradient end */
+  --mmt-blue-deep: #003b95;         /* derived: deep shade for text-on-light emphasis */
+  --mmt-navy: #051322;              /* verified: hero gradient start */
+  --mmt-navy-light: #15457c;        /* verified: hero gradient end */
+  --mmt-red: #eb2226;               /* verified: "my" badge / wishlist accent */
+  --mmt-red-dark: #c81d21;          /* derived: hover shade */
+
+  /* ===================================================================
+     COLOR — GRADIENTS
+     =================================================================== */
+  --gradient-btn-primary: linear-gradient(93deg, var(--mmt-blue-light) 0%, var(--mmt-blue-mid) 100%); /* verified */
+  --gradient-hero: linear-gradient(180deg, var(--mmt-navy) 0%, var(--mmt-navy-light) 100%);           /* verified */
+  --gradient-tint: linear-gradient(99deg, #eaf5ff 0%, #ffffff 97%);                                    /* verified */
+  --gradient-price-drop: linear-gradient(120deg, #ffffff 0%, #ffffff 70%, #f5faff 70%, #f5faff 78%, #eaf5ff 78%, #eaf5ff 86%, #d4ebff 86%, #d4ebff 100%); /* verified from screenshot: diagonal stepped band, white left -> pale blue right */
+  --gradient-myra: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);                     /* product extension: AI assistant, intentionally off-brand to read as "smart" */
+
+  /* ===================================================================
+     COLOR — SURFACE
+     =================================================================== */
+  --mmt-blue-tint: #eaf5ff;         /* verified */
+  --mmt-blue-tint-hover: #d4ebff;   /* derived */
+  --mmt-white: #ffffff;
+  --mmt-bg-page: #f2f2f2;           /* derived: standard MMT page background */
+  --mmt-bg-warm: #e8e8e8;           /* derived */
+  --mmt-border: #e0e0e0;            /* derived: general UI border */
+  --mmt-border-subtle: #e6e6e6;     /* derived: card-internal divider (search grid) */
+  --mmt-border-light: #f0f0f0;      /* derived */
+
+  /* ===================================================================
+     COLOR — TEXT
+     =================================================================== */
+  --mmt-text-primary: #1a1a1a;      /* derived: near-black body copy */
+  --mmt-text-secondary: #4a4a4a;    /* verified */
+  --mmt-text-tertiary: #737373;     /* derived */
+  --mmt-text-light: #9b9b9b;        /* derived */
+  --mmt-text-white: #ffffff;
+
+  /* ===================================================================
+     COLOR — SEMANTIC
+     =================================================================== */
+  --mmt-success: #1a7a2e;           /* derived */
+  --mmt-success-tint: #cff7d3;      /* derived */
+  --mmt-warning: #f5a623;           /* derived */
+  --mmt-purple: #9c27b0;            /* derived: "new" feature tag accent (GST fare, cruise category) */
+  --mmt-online: #4ade80;            /* derived: presence/online status dot */
+  --mmt-magenta: #c2185b;           /* screenshot-estimated: myBiz nav badge */
+  --mmt-magenta-light: #ff5c9c;     /* screenshot-estimated: myBiz nav badge gradient start */
+  --mmt-rose: #e8637a;              /* screenshot-estimated: wishlist nav badge */
+  --mmt-pink-new: #ff2c55;          /* derived: brighter pink for the "NEW" pill (cruise tab / GST fare) */
+  --mmt-bg-page-alt: #f8f9fa;       /* derived: slightly lighter panel background (chat surfaces) */
+  --mmt-text-nav: #2a2a2a;          /* derived: darker than --mmt-text-secondary for nav labels/icons */
+
+  /* ===================================================================
+     TYPOGRAPHY
+     =================================================================== */
+  --font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* verified */
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;     /* verified: search-grid "From/To" city + date numerals */
+  --text-4xl: 36px;
+  --text-5xl: 42px;     /* derived: larger date numerals in the departure field */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+  --fw-heavy: 900;       /* MMT's emphatic numeral/label weight (city names, dates, badges) */
+
+  --leading-tight: 1.2;
+  --leading-base: 1.5;
+  --leading-loose: 1.7;
+
+  /* ===================================================================
+     SPACING (4px base unit)
+     =================================================================== */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 40px;
+  --space-4xl: 48px;
+  --space-5xl: 64px;
+
+  /* ===================================================================
+     RADIUS
+     =================================================================== */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-btn: 34px;    /* verified: --btn-border-radius on primary buttons (Search, Continue) */
+  --radius-pill: 999px;  /* fully circular / stadium shapes (avatars, chips, nav pills) */
+
+  /* ===================================================================
+     ELEVATION
+     =================================================================== */
+  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 40px rgba(0, 0, 0, 0.16);
+  --shadow-btn-primary: 0 4px 16px rgba(0, 140, 255, 0.35);
+  --shadow-bottom-nav: 0 -2px 16px rgba(0, 0, 0, 0.1);
+  --shadow-chatbot: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  /* ===================================================================
+     MOTION
+     =================================================================== */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.33, 1, 0.68, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 350ms;
+
+  /* ===================================================================
+     Z-INDEX SCALE
+     =================================================================== */
+  --z-header: 100;
+  --z-dropdown: 200;
+  --z-widget: 300;
+  --z-chat-panel: 500;
+  --z-overlay: 900;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  /* ===================================================================
+     LAYOUT
+     =================================================================== */
+  --container-max: 1200px;
+  --bp-mobile: 768px;
+  --bp-tablet: 1024px;
+}

@@ -1,0 +1,161 @@
+/* ===== FOOTER ===== */
+.mmt-footer {
+  background: var(--mmt-navy);
+  color: rgba(255, 255, 255, 0.75);
+  padding: var(--space-4xl) 0 var(--space-xl);
+}
+
+.footer-top {
+  padding-bottom: var(--space-xl);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-2xl);
+}
+
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Footer Grid */
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-section-title {
+  font-size: var(--text-md);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-white);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-links li {
+  margin-bottom: var(--space-xs);
+}
+
+.footer-links a {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.6);
+  transition: color var(--duration-base);
+  line-height: var(--leading-base);
+}
+
+.footer-links a:hover {
+  color: var(--mmt-white);
+}
+
+/* Social & Download */
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xl) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: var(--space-xl);
+}
+
+.footer-social-label,
+.footer-download-label {
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-white);
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.social-icons {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.social-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-md);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-white);
+  transition: all var(--duration-base);
+}
+
+.social-icon:hover {
+  background: var(--mmt-blue);
+  transform: translateY(-2px);
+}
+
+.download-badges {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.download-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-base);
+}
+
+.download-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.badge-icon {
+  font-size: var(--text-xl);
+}
+
+.badge-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-small {
+  font-size: var(--text-2xs);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-big {
+  font-size: var(--text-md);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-white);
+}
+
+/* Copyright */
+.footer-copyright {
+  padding-top: var(--space-lg);
+  text-align: center;
+}
+
+.footer-copyright p {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .mmt-footer {
+    display: none; /* Hidden on mobile — the PWA footer/accordion pattern lives in MobileHome */
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,460 @@
+/* ===== DESKTOP TRANSPARENT HEADER ===== */
+/* Verified from screenshot: not fully transparent — a dark scrim sits behind
+   the nav so it reads over any hero imagery, fading out toward the bottom. */
+.header-desktop-transparent {
+  background: transparent;
+  height: 60px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-header);
+  width: 100%;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 30px;
+}
+
+/* Brand Logo */
+.header-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: var(--space-2xl);
+}
+
+.brand-logo-img {
+  display: block;
+  width: auto;
+}
+
+.mobile-logo-img {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+
+/* Nav Transparent Bar — clustered close to the logo with a fixed gap, thin
+   dotted dividers between each group, neutral icon badges (color lives in the
+   glyph, not the circle) */
+.header-nav-transparent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-divider {
+  width: 0;
+  height: 24px;
+  border-right: 1px dotted rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.header-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--mmt-white);
+  text-decoration: none;
+  transition: opacity var(--duration-base);
+  flex-shrink: 0;
+}
+
+.header-nav-link:hover {
+  opacity: 0.9;
+}
+
+.nav-icon-circle {
+  width: 31px;
+  height: 31px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mybiz-link {
+  gap: var(--space-2xs);
+}
+
+.mybiz-icon {
+  height: 29px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  display: flex;
+  flex-direction: column;
+  line-height: var(--leading-tight);
+}
+
+.nav-title {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-white);
+  white-space: nowrap;
+}
+
+.nav-sub {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: var(--fw-regular);
+  white-space: nowrap;
+}
+
+/* Right Actions */
+.header-right-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: var(--space-xl);
+}
+
+/* Account Avatar Button */
+.mmt-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.mmt-avatar-circle {
+  width: 27px;
+  height: 27px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #4ecb71 0%, #1e8e5a 100%);
+  color: var(--mmt-white);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.login-chevron {
+  opacity: 0.85;
+  color: var(--mmt-white);
+}
+
+/* Language & Currency Pill */
+.mmt-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  background: rgba(20, 24, 32, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--mmt-white);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  transition: background var(--duration-base);
+}
+
+.mmt-lang-btn:hover {
+  background: rgba(20, 24, 32, 0.65);
+}
+
+.flag-icon {
+  width: 15px;
+  height: 11px;
+  border-radius: 2px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.lang-text {
+  color: var(--mmt-white);
+  white-space: nowrap;
+}
+
+.lang-currency {
+  font-weight: var(--fw-bold);
+}
+
+.lang-pipe {
+  margin: 0 4px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: var(--fw-regular);
+}
+
+.lang-locale {
+  font-weight: var(--fw-regular);
+}
+
+/* ===== MOBILE HEADER ===== */
+.header-mobile {
+  display: none;
+  background: var(--mmt-white);
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  box-shadow: var(--shadow-xs);
+}
+
+.header-mobile-inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--space-sm);
+  gap: var(--space-xs);
+}
+
+.hamburger-btn {
+  padding: var(--space-2xs);
+  flex-shrink: 0;
+}
+
+.header-mobile-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: auto;
+}
+
+.mycash-btn {
+  display: flex;
+  align-items: center;
+}
+
+.mycash-label {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.mycash-badge {
+  font-size: var(--text-md);
+  font-weight: var(--fw-bold);
+  font-style: italic;
+  color: var(--mmt-blue);
+}
+
+.mycash-suffix {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+}
+
+.mobile-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2xs) var(--space-sm) var(--space-2xs) var(--space-2xs);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-pill);
+}
+
+.avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--mmt-blue);
+  color: var(--mmt-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-base);
+  font-weight: var(--fw-bold);
+}
+
+.avatar-name {
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-primary);
+}
+
+/* ===== LOGIN MODAL ===== */
+.login-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  width: 420px;
+  max-width: 90vw;
+  z-index: var(--z-modal);
+  box-shadow: var(--shadow-xl);
+  animation: scaleIn var(--duration-slow) var(--ease-decelerate);
+  overflow: hidden;
+}
+
+.login-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-xl) var(--space-xl) var(--space-md);
+  background: var(--gradient-hero);
+  color: var(--mmt-white);
+}
+
+.login-modal-header h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+}
+
+.login-modal-header p {
+  font-size: var(--text-base);
+  opacity: 0.85;
+  margin-top: var(--space-2xs);
+}
+
+.login-close {
+  color: var(--mmt-white);
+  padding: var(--space-2xs);
+  border-radius: var(--radius-pill);
+  transition: background var(--duration-base);
+}
+
+.login-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.login-modal-body {
+  padding: var(--space-xl);
+}
+
+.login-input-group {
+  margin-bottom: var(--space-md);
+}
+
+.login-input-group label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-input-group input {
+  width: 100%;
+  padding: var(--space-sm) 14px;
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  transition: border-color var(--duration-base);
+}
+
+.login-input-group input:focus {
+  border-color: var(--mmt-blue);
+}
+
+.login-continue-btn {
+  width: 100%;
+  padding: var(--space-sm);
+  background: var(--gradient-btn-primary);
+  color: var(--mmt-white);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-lg);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: box-shadow var(--duration-base);
+}
+
+.login-continue-btn:hover {
+  box-shadow: var(--shadow-btn-primary);
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  margin: var(--space-lg) 0;
+  gap: var(--space-md);
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--mmt-border);
+}
+
+.login-divider span {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-tertiary);
+  white-space: nowrap;
+}
+
+.social-login-btns {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.social-btn {
+  flex: 1;
+  padding: var(--space-sm);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  font-weight: var(--fw-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  transition: all var(--duration-base);
+}
+
+.social-btn:hover {
+  background: var(--mmt-bg-page);
+  border-color: var(--mmt-text-light);
+}
+
+.google-btn span {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+  background: linear-gradient(135deg, #4285f4, #ea4335, #fbbc05, #34a853);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== RESPONSIVE ===== */
+/* Tablet: keep the transparent nav but drop sublabels so 4 items + actions fit */
+@media (max-width: 1140px) and (min-width: 769px) {
+  .nav-sub {
+    display: none;
+  }
+  .header-nav-transparent {
+    gap: var(--space-sm);
+  }
+  .login-btn-text {
+    display: none;
+  }
+  .mmt-login-btn {
+    padding: var(--space-xs);
+  }
+}
+
+@media (max-width: 768px) {
+  .header-desktop-transparent {
+    display: none;
+  }
+  .header-mobile {
+    display: block;
+  }
+  .login-modal {
+    width: 100%;
+    max-width: 100%;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    animation: slideUp var(--duration-slow) var(--ease-spring);
+  }
+}

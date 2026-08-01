@@ -1,0 +1,655 @@
+/* ===== FLOATING WIDGET ===== */
+.chatbot-floating-widget {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  width: 320px;
+  z-index: var(--z-widget);
+  cursor: pointer;
+  animation: bounceIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.widget-mascot {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gradient-myra);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+  position: absolute;
+  top: -28px;
+  right: var(--space-md);
+  z-index: 2;
+  animation: floatMascot 3s ease-in-out infinite;
+}
+
+.widget-prompts {
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  padding-top: 36px;
+  box-shadow: var(--shadow-chatbot);
+  margin-bottom: var(--space-xs);
+}
+
+.widget-prompt-pill {
+  padding: 10px 14px;
+  background: var(--mmt-blue-tint);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  color: var(--mmt-text-secondary);
+  margin-bottom: var(--space-xs);
+  transition: background var(--duration-base);
+}
+
+.widget-prompt-pill:last-child {
+  margin-bottom: 0;
+}
+
+.widget-prompt-pill:hover {
+  background: var(--mmt-blue-tint-hover);
+}
+
+.widget-input-preview {
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-md);
+  color: var(--mmt-text-light);
+  transition: box-shadow var(--duration-base);
+}
+
+.widget-input-preview:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.widget-close {
+  position: absolute;
+  top: -32px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: var(--mmt-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: background var(--duration-base);
+}
+
+.widget-close:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+/* ===== CHAT PANEL ===== */
+.chatbot-panel {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  width: 400px;
+  height: 600px;
+  max-height: calc(100vh - 48px);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-chatbot);
+  z-index: var(--z-chat-panel);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleIn 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chatbot-panel.mobile-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  animation: slideUp 350ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* ===== HEADER ===== */
+.chatbot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px var(--space-md);
+  background: var(--gradient-myra);
+  flex-shrink: 0;
+}
+
+.chatbot-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatbot-back-btn {
+  padding: var(--space-2xs);
+  border-radius: 50%;
+  transition: background var(--duration-base);
+}
+
+.chatbot-back-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.chatbot-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+
+.chatbot-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-name {
+  color: var(--mmt-white);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-style: italic;
+}
+
+.chatbot-status {
+  color: rgba(255,255,255,0.8);
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mmt-online);
+}
+
+.chatbot-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-base);
+}
+
+.chatbot-close-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* ===== MESSAGES ===== */
+.chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--mmt-bg-page-alt);
+}
+
+.chat-message {
+  display: flex;
+  gap: var(--space-xs);
+  animation: fadeIn 300ms ease;
+}
+
+.chat-message.user {
+  justify-content: flex-end;
+}
+
+.bot-avatar-sm {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--gradient-myra);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: var(--space-2xs);
+}
+
+.message-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: var(--radius-xl);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+.bot-bubble {
+  background: var(--mmt-white);
+  color: var(--mmt-text-primary);
+  border-radius: var(--radius-xs) var(--radius-xl) var(--radius-xl) var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.user-bubble {
+  background: var(--mmt-blue);
+  color: var(--mmt-white);
+  border-radius: var(--radius-xl) var(--radius-xs) var(--radius-xl) var(--radius-xl);
+}
+
+.message-text {
+  margin: 0;
+  word-wrap: break-word;
+}
+
+/* ===== TYPING INDICATOR ===== */
+.typing-bubble {
+  padding: var(--space-sm) 18px;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mmt-text-light);
+  animation: typingDots 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ===== FLIGHT CARDS IN CHAT ===== */
+.chat-results-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.chat-flight-card {
+  background: var(--mmt-bg-page);
+  border-radius: var(--radius-sm);
+  padding: 10px var(--space-sm);
+  border: 1px solid var(--mmt-border-light);
+}
+
+.flight-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.flight-logo {
+  font-size: 18px;
+}
+
+.flight-airline-info {
+  flex: 1;
+}
+
+.flight-airline {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--mmt-text-primary);
+  display: block;
+}
+
+.flight-code {
+  font-size: var(--text-xs);
+  color: var(--mmt-text-tertiary);
+}
+
+.flight-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--mmt-blue);
+}
+
+.flight-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.flight-time {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--mmt-text-primary);
+}
+
+.flight-duration-bar {
+  flex: 1;
+  text-align: center;
+}
+
+.flight-duration {
+  font-size: var(--text-2xs);
+  color: var(--mmt-text-tertiary);
+  display: block;
+  margin-bottom: var(--space-2xs);
+}
+
+.duration-line {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.duration-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--mmt-text-light);
+  flex-shrink: 0;
+}
+
+.duration-track {
+  flex: 1;
+  height: 1px;
+  background: var(--mmt-text-light);
+}
+
+.flight-stops {
+  font-size: var(--text-2xs);
+  color: var(--mmt-green);
+  font-weight: 600;
+  margin-top: var(--space-3xs);
+  display: block;
+}
+
+.flight-book-btn {
+  width: 100%;
+  padding: 7px;
+  background: var(--mmt-blue);
+  color: var(--mmt-white);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  transition: background var(--duration-base);
+}
+
+.flight-book-btn:hover {
+  background: var(--mmt-blue-mid);
+}
+
+/* ===== HOTEL CARDS IN CHAT ===== */
+.chat-hotel-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--mmt-bg-page);
+  border-radius: var(--radius-sm);
+  padding: 10px var(--space-sm);
+  border: 1px solid var(--mmt-border-light);
+}
+
+.hotel-card-icon {
+  font-size: 28px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mmt-white);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.hotel-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hotel-name {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--mmt-text-primary);
+  display: block;
+}
+
+.hotel-location {
+  font-size: var(--text-xs);
+  color: var(--mmt-text-tertiary);
+  display: block;
+}
+
+.hotel-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin-top: var(--space-3xs);
+}
+
+.rating-badge {
+  background: var(--mmt-green);
+  color: var(--mmt-white);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.rating-count {
+  font-size: var(--text-2xs);
+  color: var(--mmt-text-light);
+}
+
+.hotel-card-price {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.hotel-price {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--mmt-text-primary);
+  display: block;
+}
+
+.hotel-per-night {
+  font-size: var(--text-2xs);
+  color: var(--mmt-text-tertiary);
+  display: block;
+}
+
+.hotel-view-btn {
+  margin-top: var(--space-2xs);
+  padding: 3px var(--space-sm);
+  background: var(--mmt-blue);
+  color: var(--mmt-white);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+/* ===== ITINERARY ===== */
+.chat-itinerary {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itinerary-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-xs) 10px;
+  background: var(--mmt-bg-page);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--mmt-blue);
+}
+
+.itinerary-icon {
+  font-size: 18px;
+}
+
+.itinerary-info {
+  flex: 1;
+}
+
+.itinerary-day {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--mmt-blue);
+  display: block;
+}
+
+.itinerary-activity {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+}
+
+/* ===== QUICK PROMPTS ===== */
+.chatbot-quick-prompts {
+  padding: var(--space-xs) var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: var(--mmt-bg-page-alt);
+  border-top: 1px solid var(--mmt-border-light);
+}
+
+.quick-prompt-pill {
+  padding: 7px var(--space-sm);
+  background: var(--mmt-white);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--duration-base);
+  white-space: nowrap;
+}
+
+.quick-prompt-pill:hover {
+  border-color: var(--mmt-blue);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+}
+
+.prompt-emoji {
+  font-size: var(--text-md);
+}
+
+/* ===== INPUT AREA ===== */
+.chatbot-input-area {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--mmt-white);
+  border-top: 1px solid var(--mmt-border-light);
+  flex-shrink: 0;
+}
+
+.chatbot-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--mmt-bg-page);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--mmt-border);
+  transition: border-color var(--duration-base);
+}
+
+.chatbot-input-wrapper:focus-within {
+  border-color: var(--mmt-blue);
+  background: var(--mmt-white);
+}
+
+.chatbot-input {
+  flex: 1;
+  font-size: var(--text-md);
+  color: var(--mmt-text-primary);
+  background: transparent;
+}
+
+.chatbot-input::placeholder {
+  color: var(--mmt-text-light);
+}
+
+.chatbot-mic-btn {
+  color: var(--mmt-text-light);
+  padding: var(--space-2xs);
+  border-radius: 50%;
+  transition: color var(--duration-base);
+}
+
+.chatbot-mic-btn:hover {
+  color: var(--mmt-blue);
+}
+
+.chatbot-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--mmt-border);
+  color: var(--mmt-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-base);
+  flex-shrink: 0;
+}
+
+.chatbot-send-btn.active {
+  background: var(--mmt-blue);
+  box-shadow: 0 2px 8px rgba(0, 140, 255, 0.3);
+}
+
+.chatbot-send-btn.active:hover {
+  background: var(--mmt-blue-mid);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .chatbot-floating-widget {
+    display: none;
+  }
+
+  .chatbot-panel {
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+
+  .chatbot-input-area {
+    padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
+  }
+}

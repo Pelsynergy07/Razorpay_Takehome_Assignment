@@ -1,0 +1,115 @@
+/* ===== APP LAYOUT ===== */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== HERO SECTION ===== */
+/* Reference background verified from MMT homepage (#top-banner): warm blurred
+   travel photograph (bg4.jpg) layered over a deep navy->blue gradient. The
+   photo is softened so the brown/orange tones read without fighting the card. */
+.hero-section {
+  position: relative;
+  min-height: 640px;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-hero);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background-image: url('https://imgak.mmtcdn.com/pwa_v3/pwa_commons_assets/desktop/bg3.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  filter: saturate(0.9) contrast(0.95) brightness(1.05);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(5, 19, 34, 0.35) 0%, rgba(5, 19, 34, 0.12) 45%, rgba(5, 19, 34, 0) 70%, rgba(5, 19, 34, 0.35) 100%);
+}
+
+/* Padding to clear transparent header */
+.hero-content-padding {
+  height: 96px;
+}
+
+/* ===== EXPLORE SECTION ===== */
+.explore-section {
+  padding: var(--space-5xl) 0 var(--space-4xl);
+  background: var(--mmt-bg-page);
+}
+
+.explore-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+
+.explore-card {
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl) var(--space-xl);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-slow) var(--ease-standard);
+}
+
+.explore-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.explore-icon {
+  font-size: var(--text-4xl);
+  margin-bottom: var(--space-md);
+}
+
+.explore-card h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.explore-card p {
+  font-size: var(--text-base);
+  color: var(--mmt-text-tertiary);
+  line-height: var(--leading-base);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero-section {
+    display: none;
+  }
+
+  .explore-section {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .hero-section {
+    min-height: 560px;
+  }
+
+  .explore-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

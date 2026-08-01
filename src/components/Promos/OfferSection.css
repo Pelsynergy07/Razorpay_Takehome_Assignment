@@ -1,0 +1,196 @@
+/* ===== OFFER SECTION ===== */
+.offer-section {
+  padding: var(--space-4xl) 0 var(--space-2xl);
+  background: var(--mmt-white);
+}
+
+.offer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.offer-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+}
+
+.offer-category-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.offer-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px var(--space-md);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-base);
+  font-weight: var(--fw-medium);
+  color: var(--mmt-text-secondary);
+  transition: all var(--duration-base);
+}
+
+.offer-cat-btn:hover {
+  border-color: var(--mmt-blue);
+  color: var(--mmt-blue);
+}
+
+.offer-cat-btn.active {
+  background: var(--mmt-blue);
+  color: var(--mmt-white);
+  border-color: var(--mmt-blue);
+}
+
+/* Carousel */
+.offer-carousel-wrapper {
+  position: relative;
+}
+
+.offer-carousel {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: var(--space-2xs) 0;
+}
+
+.offer-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.offer-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--mmt-white);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mmt-text-secondary);
+  z-index: 5;
+  transition: all var(--duration-base);
+}
+
+.offer-scroll-btn:hover {
+  box-shadow: var(--shadow-md);
+  color: var(--mmt-blue);
+}
+
+.offer-scroll-btn.left {
+  left: -18px;
+}
+
+.offer-scroll-btn.right {
+  right: -18px;
+}
+
+/* Offer Card — campaign gradients are intentionally outside the brand palette
+   (promotional content, not chrome), one bespoke gradient per offer. */
+.offer-card {
+  min-width: 300px;
+  max-width: 300px;
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  color: var(--mmt-white);
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 180px;
+  transition: transform var(--duration-base);
+  cursor: pointer;
+}
+
+.offer-card:hover {
+  transform: translateY(-4px);
+}
+
+.offer-card-title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-bold);
+  line-height: 1.3;
+  margin-bottom: var(--space-xs);
+}
+
+.offer-card-subtitle {
+  font-size: var(--text-base);
+  opacity: 0.9;
+  line-height: 1.4;
+  margin-bottom: var(--space-md);
+}
+
+.offer-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.offer-code-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2xs) var(--space-sm);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-xs);
+  backdrop-filter: blur(4px);
+}
+
+.offer-code-label {
+  font-size: var(--text-2xs);
+  opacity: 0.8;
+}
+
+.offer-code-value {
+  font-size: var(--text-base);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.5px;
+}
+
+.offer-valid {
+  font-size: var(--text-2xs);
+  opacity: 0.7;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .offer-section {
+    padding: var(--space-xl) 0;
+    display: none; /* Hidden on mobile, shown in mobile home */
+  }
+
+  .offer-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .offer-category-tabs {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .offer-card {
+    min-width: 260px;
+    max-width: 260px;
+    min-height: 160px;
+    padding: var(--space-lg);
+  }
+
+  .offer-scroll-btn {
+    display: none;
+  }
+}

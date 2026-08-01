@@ -1,0 +1,108 @@
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--mmt-white);
+  box-shadow: var(--shadow-bottom-nav);
+  z-index: var(--z-dropdown);
+  align-items: stretch;
+  justify-content: space-around;
+}
+
+.bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--mmt-text-light);
+  position: relative;
+  transition: color var(--duration-fast);
+  padding-top: var(--space-2xs);
+}
+
+.bottom-tab.active {
+  color: var(--mmt-blue);
+}
+
+.active-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  background: var(--mmt-blue);
+  border-radius: 0 0 3px 3px;
+}
+
+.bottom-tab-label {
+  font-size: var(--text-2xs);
+  font-weight: var(--fw-medium);
+  line-height: 1;
+}
+
+.bottom-tab.active .bottom-tab-label {
+  font-weight: var(--fw-bold);
+}
+
+/* Home Logo Icon */
+.home-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-logo-my {
+  background: var(--mmt-blue);
+  color: var(--mmt-white);
+  font-size: var(--text-2xs);
+  font-weight: 900;
+  padding: 2px 5px;
+  border-radius: var(--radius-xs);
+}
+
+/* Center MyRA Tab — icon-only, no label, matching the reference footer nav */
+.center-tab {
+  position: relative;
+  flex: 1;
+}
+
+.myra-bubble {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-myra);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -20px;
+  box-shadow: var(--shadow-chatbot);
+  position: relative;
+  transition: all var(--duration-base) var(--ease-standard);
+}
+
+.center-tab:active .myra-bubble {
+  transform: scale(0.92);
+}
+
+.myra-mascot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: floatMascot 3s ease-in-out infinite;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+}
