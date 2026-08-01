@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Mic, Bot, Sparkles, ChevronRight } from 'lucide-react';
+import { X, Bot, Sparkles } from 'lucide-react';
 import ChatHeader from './ChatHeader';
 import ChatRedirectState from './ChatRedirectState';
 import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions } from './ChatMessages';
@@ -28,15 +28,15 @@ const hotelResults = [
 ];
 
 const destinationResults = [
-  { id: 1, name: 'Thailand', location: 'Thailand', gradient: 'var(--gradient-hero)' },
-  { id: 2, name: 'Bangkok', location: 'Phuket, Thailand', gradient: 'var(--gradient-btn-primary)' },
-  { id: 3, name: 'Bali', location: 'Indonesia', gradient: 'var(--gradient-myra)' },
-  { id: 4, name: 'Vietnam', location: 'Vietnam', gradient: 'linear-gradient(160deg, #003b95 0%, #008cff 100%)' },
-  { id: 5, name: 'Singapore', location: 'Singapore', gradient: 'linear-gradient(160deg, var(--mmt-red-dark) 0%, var(--mmt-red) 100%)' },
-  { id: 6, name: 'Maldives', location: 'Maldives', gradient: 'linear-gradient(160deg, #14b8c4 0%, #065af3 100%)' },
-  { id: 7, name: 'Sri Lanka', location: 'Sri Lanka', gradient: 'linear-gradient(160deg, #764ba2 0%, #667eea 100%)' },
-  { id: 8, name: 'Dubai', location: 'UAE', gradient: 'linear-gradient(160deg, #051322 0%, #15457c 100%)' },
-  { id: 9, name: 'Malaysia', location: 'Malaysia', gradient: 'linear-gradient(160deg, #f093fb 0%, #764ba2 100%)' },
+  { id: 1, name: 'Thailand', location: 'Thailand', image: 'https://picsum.photos/seed/thailand-trip/400/300' },
+  { id: 2, name: 'Bangkok', location: 'Phuket, Thailand', image: 'https://picsum.photos/seed/bangkok-trip/400/300' },
+  { id: 3, name: 'Bali', location: 'Indonesia', image: 'https://picsum.photos/seed/bali-trip/400/300' },
+  { id: 4, name: 'Vietnam', location: 'Vietnam', image: 'https://picsum.photos/seed/vietnam-trip/400/300' },
+  { id: 5, name: 'Singapore', location: 'Singapore', image: 'https://picsum.photos/seed/singapore-trip/400/300' },
+  { id: 6, name: 'Maldives', location: 'Maldives', image: 'https://picsum.photos/seed/maldives-trip/400/300' },
+  { id: 7, name: 'Sri Lanka', location: 'Sri Lanka', image: 'https://picsum.photos/seed/srilanka-trip/400/300' },
+  { id: 8, name: 'Dubai', location: 'UAE', image: 'https://picsum.photos/seed/dubai-trip/400/300' },
+  { id: 9, name: 'Malaysia', location: 'Malaysia', image: 'https://picsum.photos/seed/malaysia-trip/400/300' },
 ];
 
 const generateBotResponse = (userMsg) => {
@@ -98,12 +98,12 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if (chatOpen && isMobile) {
+    if (chatOpen) {
       setShowRedirect(true);
       const t = setTimeout(() => setShowRedirect(false), 1300);
       return () => clearTimeout(t);
     }
-  }, [chatOpen, isMobile]);
+  }, [chatOpen]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -149,9 +149,66 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     if (el) el.scrollBy({ top: 220, behavior: 'smooth' });
   };
 
+  const chatBody = (
+    <>
+      <ChatHeader onClose={closeChat} />
+
+      {showRedirect ? (
+        <ChatRedirectState label="Myra" />
+      ) : (
+        <>
+          <div className="chat-sheet-messages" ref={messagesScrollRef}>
+            {messages.map((msg) => (
+              <div key={msg.id} className="chat-sheet-msg-block">
+                {msg.role === 'user' ? (
+                  <UserBubble text={msg.text} />
+                ) : (
+                  <>
+                    <BotTextResponse text={msg.text} />
+                    {msg.type === 'destinations' && msg.destinations && (
+                      <DestinationCarousel destinations={msg.destinations} />
+                    )}
+                    <MessageActions />
+                  </>
+                )}
+              </div>
+            ))}
+
+            {isTyping && (
+              <div className="chat-sheet-msg-block">
+                <div className="bot-response">
+                  <div className="myra-label">
+                    <span className="myra-label-text">Myra</span>
+                    <Sparkles size={13} className="myra-sparkle" />
+                  </div>
+                  <div className="typing-indicator">
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <ScrollHintButton onClick={scrollMessagesDown} />
+        </>
+      )}
+
+      <ChatInputBar
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onSend={() => handleSend()}
+        onKeyDown={handleKeyDown}
+        inputRef={inputRef}
+      />
+    </>
+  );
+
   return (
     <>
-      {/* Floating Widget (Desktop only) */}
+      {/* Floating Widget (Desktop only, collapsed state) */}
       {showWidget && !isMobile && (
         <div className="chatbot-floating-widget" onClick={openChat}>
           <div className="widget-mascot">
@@ -178,215 +235,13 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       {chatOpen && isMobile && (
         <>
           <div className="chat-sheet-backdrop" onClick={closeChat} />
-          <div className="chat-sheet">
-            <ChatHeader onClose={closeChat} />
-
-            {showRedirect ? (
-              <ChatRedirectState label="Myra" />
-            ) : (
-              <>
-                <div className="chat-sheet-messages" ref={messagesScrollRef}>
-                  {messages.map((msg) => (
-                    <div key={msg.id} className="chat-sheet-msg-block">
-                      {msg.role === 'user' ? (
-                        <UserBubble text={msg.text} />
-                      ) : (
-                        <>
-                          <BotTextResponse text={msg.text} />
-                          {msg.type === 'destinations' && msg.destinations && (
-                            <DestinationCarousel destinations={msg.destinations} />
-                          )}
-                          <MessageActions />
-                        </>
-                      )}
-                    </div>
-                  ))}
-
-                  {isTyping && (
-                    <div className="chat-sheet-msg-block">
-                      <div className="bot-response">
-                        <div className="myra-label">
-                          <span className="myra-label-text">Myra</span>
-                          <Sparkles size={13} className="myra-sparkle" />
-                        </div>
-                        <div className="typing-indicator">
-                          <span className="typing-dot" />
-                          <span className="typing-dot" />
-                          <span className="typing-dot" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <ScrollHintButton onClick={scrollMessagesDown} />
-              </>
-            )}
-
-            <ChatInputBar
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onSend={() => handleSend()}
-              onKeyDown={handleKeyDown}
-              inputRef={inputRef}
-            />
-          </div>
+          <div className="chat-sheet">{chatBody}</div>
         </>
       )}
 
-      {/* Desktop Chat Panel */}
+      {/* Desktop Chat Panel — same MyRA components, docked panel shell */}
       {chatOpen && !isMobile && (
-        <div className="chatbot-panel">
-          {/* Header */}
-          <div className="chatbot-header">
-            <div className="chatbot-header-left">
-              <div className="chatbot-avatar">
-                <Bot size={22} className="icon-white" />
-              </div>
-              <div className="chatbot-header-info">
-                <span className="chatbot-name">myra.AI</span>
-                <span className="chatbot-status">
-                  <span className="status-dot" />
-                  Online
-                </span>
-              </div>
-            </div>
-            <button className="chatbot-close-btn" onClick={closeChat}>
-              <X size={18} className="icon-white" />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="chatbot-messages">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`chat-message ${msg.role}`}>
-                {msg.role === 'bot' && (
-                  <div className="bot-avatar-sm">
-                    <Bot size={14} className="icon-white" />
-                  </div>
-                )}
-                <div className={`message-bubble ${msg.role}-bubble`}>
-                  <p className="message-text">{msg.text}</p>
-
-                  {/* Flight Results */}
-                  {msg.type === 'flights' && msg.results && (
-                    <div className="chat-results-list">
-                      {msg.results.map((f, i) => (
-                        <div key={i} className="chat-flight-card">
-                          <div className="flight-card-top">
-                            <span className="flight-logo">{f.logo}</span>
-                            <div className="flight-airline-info">
-                              <span className="flight-airline">{f.airline}</span>
-                              <span className="flight-code">{f.code}</span>
-                            </div>
-                            <span className="flight-price">{f.price}</span>
-                          </div>
-                          <div className="flight-card-bottom">
-                            <span className="flight-time">{f.depart}</span>
-                            <div className="flight-duration-bar">
-                              <span className="flight-duration">{f.duration}</span>
-                              <div className="duration-line">
-                                <span className="duration-dot start" />
-                                <span className="duration-track" />
-                                <span className="duration-dot end" />
-                              </div>
-                              <span className="flight-stops">{f.stops}</span>
-                            </div>
-                            <span className="flight-time">{f.arrive}</span>
-                          </div>
-                          <button className="flight-book-btn">Book Now <ChevronRight size={14} /></button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Hotel Results */}
-                  {msg.type === 'hotels' && msg.results && (
-                    <div className="chat-results-list">
-                      {msg.results.map((h, i) => (
-                        <div key={i} className="chat-hotel-card">
-                          <div className="hotel-card-icon">{h.image}</div>
-                          <div className="hotel-card-info">
-                            <span className="hotel-name">{h.name}</span>
-                            <span className="hotel-location">{h.location}</span>
-                            <div className="hotel-rating">
-                              <span className="rating-badge">★ {h.rating}</span>
-                              <span className="rating-count">({h.reviews} reviews)</span>
-                            </div>
-                          </div>
-                          <div className="hotel-card-price">
-                            <span className="hotel-price">{h.price}</span>
-                            <span className="hotel-per-night">{h.perNight}</span>
-                            <button className="hotel-view-btn">View</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {isTyping && (
-              <div className="chat-message bot">
-                <div className="bot-avatar-sm">
-                  <Bot size={14} className="icon-white" />
-                </div>
-                <div className="message-bubble bot-bubble typing-bubble">
-                  <div className="typing-indicator">
-                    <span className="typing-dot" />
-                    <span className="typing-dot" />
-                    <span className="typing-dot" />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Quick Prompts */}
-          {messages.length <= 1 && (
-            <div className="chatbot-quick-prompts">
-              {promptSuggestions.map((s, i) => (
-                <button
-                  key={i}
-                  className="quick-prompt-pill"
-                  onClick={() => handleSend(s.text)}
-                >
-                  <span className="prompt-emoji">{s.icon}</span>
-                  <span>{s.text}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Input Area */}
-          <div className="chatbot-input-area">
-            <div className="chatbot-input-wrapper">
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Where do you want to go?"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="chatbot-input"
-              />
-              <button className="chatbot-mic-btn" aria-label="Voice input">
-                <Mic size={18} />
-              </button>
-              <button
-                className={`chatbot-send-btn ${inputValue.trim() ? 'active' : ''}`}
-                onClick={() => handleSend()}
-                disabled={!inputValue.trim()}
-                aria-label="Send message"
-              >
-                <Send size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
+        <div className="chatbot-panel">{chatBody}</div>
       )}
     </>
   );

@@ -46,7 +46,7 @@ export const BotTextResponse = ({ text }) => (
 
 const DestinationCard = ({ destination, isSaved, onToggleSave }) => (
   <div className="destination-card">
-    <div className="destination-card-image">
+    <div className="destination-card-photo">
       <img src={destination.image} alt={destination.name} className="destination-card-img" loading="lazy" />
       <button
         className={`destination-bookmark-btn ${isSaved ? 'active' : ''}`}

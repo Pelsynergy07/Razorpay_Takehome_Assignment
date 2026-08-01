@@ -3,7 +3,7 @@ import { Menu, ChevronDown, X } from 'lucide-react';
 import Logo from './Logo';
 import SpriteIcon from './SpriteIcon';
 import myBizIcon from '../assets/mybiz-icon.png';
-import mmtLogo from '../assets/logo.png';
+import mmtMobileLogo from '../assets/mmt-logo.svg';
 import { NAV_ICONS, FLAG_ICON } from '../styles/spriteIcons.js';
 import { colors } from '../styles/tokens.js';
 import './Header.css';
@@ -18,7 +18,7 @@ const Header = () => {
         <div className="header-inner container">
           {/* Logo */}
           <a href="/" className="header-logo" aria-label="MakeMyTrip Home">
-            <Logo size={29} />
+            <Logo size={32} />
           </a>
 
           {/* Nav Items */}
@@ -101,7 +101,7 @@ const Header = () => {
             <Menu size={24} color={colors.textSecondary} />
           </button>
           <a href="/" className="header-logo mobile-logo" aria-label="MakeMyTrip Home">
-            <img src={mmtLogo} alt="MakeMyTrip" className="mobile-logo-img" />
+            <img src={mmtMobileLogo} alt="MakeMyTrip" className="mobile-logo-img" />
           </a>
           <div className="header-mobile-right">
             <a href="#" className="mycash-btn">
