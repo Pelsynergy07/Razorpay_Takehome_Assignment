@@ -8,6 +8,9 @@ import ChatInputBar from '../../components/AIChatbot/ChatInputBar';
 import IntentFormCard from './IntentFormCard';
 import LinkShareCard from './LinkShareCard';
 import LiveAggregationHub from './LiveAggregationHub';
+import ProcessingScreen from './ProcessingScreen';
+import SynthesisResult from './SynthesisResult';
+import TripSummaryCard from './TripSummaryCard';
 import { useTripPlannerFlow } from './useTripPlannerFlow';
 import './TripPlanner.css';
 
@@ -78,7 +81,35 @@ const OrganizerEntry = () => {
   if (flow.tripStep === 'hub') {
     return (
       <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
-        <LiveAggregationHub session={flow.session} />
+        <LiveAggregationHub session={flow.session} onProceed={flow.startSynthesis} />
+      </ChatFlowShell>
+    );
+  }
+
+  if (flow.tripStep === 'processing') {
+    return (
+      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
+        <ProcessingScreen onComplete={flow.completeSynthesis} />
+      </ChatFlowShell>
+    );
+  }
+
+  if (flow.tripStep === 'result') {
+    return (
+      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
+        <SynthesisResult
+          recommendation={flow.recommendation}
+          onUpdate={flow.updateRecommendation}
+          onApprove={flow.approve}
+        />
+      </ChatFlowShell>
+    );
+  }
+
+  if (flow.tripStep === 'closed') {
+    return (
+      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
+        <TripSummaryCard recommendation={flow.recommendation} />
       </ChatFlowShell>
     );
   }

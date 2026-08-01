@@ -10,6 +10,9 @@ import ChatInputBar from './ChatInputBar';
 import IntentFormCard from '../../pages/TripPlanner/IntentFormCard';
 import LinkShareCard from '../../pages/TripPlanner/LinkShareCard';
 import LiveAggregationHub from '../../pages/TripPlanner/LiveAggregationHub';
+import ProcessingScreen from '../../pages/TripPlanner/ProcessingScreen';
+import SynthesisResult from '../../pages/TripPlanner/SynthesisResult';
+import TripSummaryCard from '../../pages/TripPlanner/TripSummaryCard';
 import { useTripPlannerFlow } from '../../pages/TripPlanner/useTripPlannerFlow';
 import '../../pages/TripPlanner/TripPlanner.css';
 import './AIChatbotWidget.css';
@@ -189,7 +192,35 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     if (chatOpen && !showRedirect && flow.tripStep === 'hub') {
       return (
         <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
-          <LiveAggregationHub session={flow.session} />
+          <LiveAggregationHub session={flow.session} onProceed={flow.startSynthesis} />
+        </ChatFlowShell>
+      );
+    }
+
+    if (chatOpen && !showRedirect && flow.tripStep === 'processing') {
+      return (
+        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
+          <ProcessingScreen onComplete={flow.completeSynthesis} />
+        </ChatFlowShell>
+      );
+    }
+
+    if (chatOpen && !showRedirect && flow.tripStep === 'result') {
+      return (
+        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
+          <SynthesisResult
+            recommendation={flow.recommendation}
+            onUpdate={flow.updateRecommendation}
+            onApprove={flow.approve}
+          />
+        </ChatFlowShell>
+      );
+    }
+
+    if (chatOpen && !showRedirect && flow.tripStep === 'closed') {
+      return (
+        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
+          <TripSummaryCard recommendation={flow.recommendation} />
         </ChatFlowShell>
       );
     }
