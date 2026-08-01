@@ -64,6 +64,8 @@
   --mmt-pink-new: #ff2c55;          /* derived: brighter pink for the "NEW" pill (cruise tab / GST fare) */
   --mmt-bg-page-alt: #f8f9fa;       /* derived: slightly lighter panel background (chat surfaces) */
   --mmt-text-nav: #2a2a2a;          /* derived: darker than --mmt-text-secondary for nav labels/icons */
+  --mmt-teal: #14b8c4;              /* product extension: MyRA "Destination Overview" pin icon accent */
+  --mmt-chat-user-bubble: #eceefb;  /* product extension: MyRA user message bubble, pale lavender */
 
   /* ===================================================================
      TYPOGRAPHY
@@ -130,6 +132,7 @@
   --shadow-btn-primary: 0 4px 16px rgba(0, 140, 255, 0.35);
   --shadow-bottom-nav: 0 -2px 16px rgba(0, 0, 0, 0.1);
   --shadow-chatbot: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --shadow-sheet: 0 -8px 30px rgba(0, 0, 0, 0.12); /* MyRA bottom-sheet top-edge lift */
 
   /* ===================================================================
      MOTION

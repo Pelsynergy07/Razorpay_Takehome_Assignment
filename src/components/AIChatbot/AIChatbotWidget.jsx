@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Mic, Bot, Sparkles, Plane, ChevronRight, ArrowLeft } from 'lucide-react';
+import { X, Send, Mic, Bot, Sparkles, ChevronRight } from 'lucide-react';
+import ChatHeader from './ChatHeader';
+import ChatRedirectState from './ChatRedirectState';
+import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions } from './ChatMessages';
+import ScrollHintButton from './ScrollHintButton';
+import ChatInputBar from './ChatInputBar';
 import './AIChatbotWidget.css';
 
 const promptSuggestions = [
@@ -20,6 +25,18 @@ const flightResults = [
 const hotelResults = [
   { name: 'Taj Holiday Village', location: 'Candolim, Goa', rating: 4.5, reviews: 2841, price: '₹4,200', perNight: '/night', image: '🏨' },
   { name: 'The Leela Goa', location: 'Cavelossim, Goa', rating: 4.7, reviews: 3102, price: '₹6,800', perNight: '/night', image: '🏖️' },
+];
+
+const destinationResults = [
+  { id: 1, name: 'Thailand', location: 'Thailand', gradient: 'var(--gradient-hero)' },
+  { id: 2, name: 'Bangkok', location: 'Phuket, Thailand', gradient: 'var(--gradient-btn-primary)' },
+  { id: 3, name: 'Bali', location: 'Indonesia', gradient: 'var(--gradient-myra)' },
+  { id: 4, name: 'Vietnam', location: 'Vietnam', gradient: 'linear-gradient(160deg, #003b95 0%, #008cff 100%)' },
+  { id: 5, name: 'Singapore', location: 'Singapore', gradient: 'linear-gradient(160deg, var(--mmt-red-dark) 0%, var(--mmt-red) 100%)' },
+  { id: 6, name: 'Maldives', location: 'Maldives', gradient: 'linear-gradient(160deg, #14b8c4 0%, #065af3 100%)' },
+  { id: 7, name: 'Sri Lanka', location: 'Sri Lanka', gradient: 'linear-gradient(160deg, #764ba2 0%, #667eea 100%)' },
+  { id: 8, name: 'Dubai', location: 'UAE', gradient: 'linear-gradient(160deg, #051322 0%, #15457c 100%)' },
+  { id: 9, name: 'Malaysia', location: 'Malaysia', gradient: 'linear-gradient(160deg, #f093fb 0%, #764ba2 100%)' },
 ];
 
 const generateBotResponse = (userMsg) => {
@@ -43,15 +60,9 @@ const generateBotResponse = (userMsg) => {
 
   if (lower.includes('plan') || lower.includes('getaway') || lower.includes('vacation') || lower.includes('trip')) {
     return {
-      type: 'itinerary',
-      text: "I'd love to help plan that! Here's a suggested itinerary:",
-      itinerary: [
-        { day: 'Day 1', activity: 'Arrival & check-in at a beachfront resort', icon: '🏨' },
-        { day: 'Day 2', activity: 'Sightseeing tour & local cuisine experience', icon: '🍽️' },
-        { day: 'Day 3', activity: 'Adventure activities or spa relaxation', icon: '🧘' },
-        { day: 'Day 4', activity: 'Shopping & cultural exploration', icon: '🛍️' },
-        { day: 'Day 5', activity: 'Departure with beautiful memories', icon: '✈️' },
-      ],
+      type: 'destinations',
+      text: "Southeast Asia offers a fantastic blend of vibrant culture, stunning landscapes, and delicious food, all within your budget. The key is to choose a destination that balances affordability with unique experiences.\n\n1. **Thailand**: The Classic Choice\n- **What makes it great:** Thailand is renowned for its incredible value, from street food to luxury resorts, offering something for every traveller in your group.",
+      destinations: destinationResults,
     };
   }
 
@@ -74,7 +85,9 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [showWidget, setShowWidget] = useState(!isOpen);
   const [chatOpen, setChatOpen] = useState(isOpen || false);
+  const [showRedirect, setShowRedirect] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesScrollRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -83,6 +96,14 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       setShowWidget(!isOpen);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (chatOpen && isMobile) {
+      setShowRedirect(true);
+      const t = setTimeout(() => setShowRedirect(false), 1300);
+      return () => clearTimeout(t);
+    }
+  }, [chatOpen, isMobile]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -123,6 +144,11 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     if (onClose) onClose();
   };
 
+  const scrollMessagesDown = () => {
+    const el = messagesScrollRef.current;
+    if (el) el.scrollBy({ top: 220, behavior: 'smooth' });
+  };
+
   return (
     <>
       {/* Floating Widget (Desktop only) */}
@@ -148,17 +174,73 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
         </div>
       )}
 
-      {/* Chat Panel */}
-      {chatOpen && (
-        <div className={`chatbot-panel ${isMobile ? 'mobile-fullscreen' : ''}`}>
+      {/* Mobile Chat Sheet */}
+      {chatOpen && isMobile && (
+        <>
+          <div className="chat-sheet-backdrop" onClick={closeChat} />
+          <div className="chat-sheet">
+            <ChatHeader onClose={closeChat} />
+
+            {showRedirect ? (
+              <ChatRedirectState label="Myra" />
+            ) : (
+              <>
+                <div className="chat-sheet-messages" ref={messagesScrollRef}>
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="chat-sheet-msg-block">
+                      {msg.role === 'user' ? (
+                        <UserBubble text={msg.text} />
+                      ) : (
+                        <>
+                          <BotTextResponse text={msg.text} />
+                          {msg.type === 'destinations' && msg.destinations && (
+                            <DestinationCarousel destinations={msg.destinations} />
+                          )}
+                          <MessageActions />
+                        </>
+                      )}
+                    </div>
+                  ))}
+
+                  {isTyping && (
+                    <div className="chat-sheet-msg-block">
+                      <div className="bot-response">
+                        <div className="myra-label">
+                          <span className="myra-label-text">Myra</span>
+                          <Sparkles size={13} className="myra-sparkle" />
+                        </div>
+                        <div className="typing-indicator">
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <ScrollHintButton onClick={scrollMessagesDown} />
+              </>
+            )}
+
+            <ChatInputBar
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onSend={() => handleSend()}
+              onKeyDown={handleKeyDown}
+              inputRef={inputRef}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Desktop Chat Panel */}
+      {chatOpen && !isMobile && (
+        <div className="chatbot-panel">
           {/* Header */}
           <div className="chatbot-header">
             <div className="chatbot-header-left">
-              {isMobile && (
-                <button className="chatbot-back-btn" onClick={closeChat}>
-                  <ArrowLeft size={20} className="icon-white" />
-                </button>
-              )}
               <div className="chatbot-avatar">
                 <Bot size={22} className="icon-white" />
               </div>
@@ -170,11 +252,9 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                 </span>
               </div>
             </div>
-            {!isMobile && (
-              <button className="chatbot-close-btn" onClick={closeChat}>
-                <X size={18} className="icon-white" />
-              </button>
-            )}
+            <button className="chatbot-close-btn" onClick={closeChat}>
+              <X size={18} className="icon-white" />
+            </button>
           </div>
 
           {/* Messages */}
@@ -239,21 +319,6 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                             <span className="hotel-price">{h.price}</span>
                             <span className="hotel-per-night">{h.perNight}</span>
                             <button className="hotel-view-btn">View</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Itinerary */}
-                  {msg.type === 'itinerary' && msg.itinerary && (
-                    <div className="chat-itinerary">
-                      {msg.itinerary.map((item, i) => (
-                        <div key={i} className="itinerary-item">
-                          <span className="itinerary-icon">{item.icon}</span>
-                          <div className="itinerary-info">
-                            <span className="itinerary-day">{item.day}</span>
-                            <span className="itinerary-activity">{item.activity}</span>
                           </div>
                         </div>
                       ))}

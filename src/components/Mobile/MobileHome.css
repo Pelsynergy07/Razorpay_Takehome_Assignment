@@ -5,6 +5,10 @@
   padding-bottom: 88px;
   background: var(--mmt-bg-page);
   min-height: calc(100vh - 56px - 64px);
+  /* Card elevation on mobile reads flatter than the desktop tokens — a
+     touch of shadow to lift off the page background, not a deep drop. */
+  --shadow-mobile-card: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-mobile-card-pressed: 0 1px 1px rgba(0, 0, 0, 0.02);
 }
 
 /* ===== PRIMARY CATEGORIES ===== */
@@ -23,13 +27,13 @@
   padding: var(--space-md) var(--space-xs);
   background: var(--mmt-white);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-mobile-card);
   transition: all var(--duration-fast) var(--ease-standard);
 }
 
 .primary-card:active {
   transform: scale(0.96);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-mobile-card-pressed);
 }
 
 .primary-icon-wrapper {
@@ -54,7 +58,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-lg) var(--space-md);
   margin-bottom: var(--space-md);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-mobile-card-pressed);
 }
 
 .secondary-grid {
@@ -172,7 +176,7 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: 2px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-mobile-card);
 }
 
 .offer-card-title {
@@ -229,7 +233,7 @@
   height: 100%;
   background: var(--mmt-white);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-mobile-card);
   display: flex;
   flex-direction: column;
   align-items: center;
