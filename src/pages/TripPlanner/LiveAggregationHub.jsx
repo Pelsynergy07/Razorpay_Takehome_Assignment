@@ -3,6 +3,13 @@ import { motion } from 'framer-motion';
 import { Check, Users2, PartyPopper } from 'lucide-react';
 import { getResponses, subscribeToResponses } from '../../lib/tripApi';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
+import {
+  blockVariants,
+  BLOCK_STAGGER,
+  peerContainerVariants,
+  peerItemVariants,
+  sequenceDelays,
+} from '../../components/AIChatbot/motionConfig';
 
 const VIBE_META = {
   mountains: { label: 'Mountains', emoji: '⛰️' },
@@ -46,8 +53,12 @@ const FunAvatarFace = ({ index = 0, muted = false }) => {
  * Screen 3.1 — organizer's live view. Subscribes to tripApi's cross-tab
  * "realtime" so it updates the moment a participant submits, without a
  * page refresh.
+ *
+ * Entrance: header, progress bar, avatar row, status row, and vibe pills
+ * reveal top to bottom, each waiting for the one above it to finish before
+ * it starts — then the CTA at the very end.
  */
-const LiveAggregationHub = ({ session, onProceed }) => {
+const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
   const [responses, setResponses] = useState([]);
   const [proceeded, setProceeded] = useState(false);
 
@@ -75,9 +86,16 @@ const LiveAggregationHub = ({ session, onProceed }) => {
     onProceed?.();
   };
 
+  const blockCount = 4 + (vibeTally.length > 0 ? 1 : 0); // header, progress, avatars, status, (vibes)
+  const [headerDelay, progressDelay, avatarDelay, statusDelay, vibeDelay] = sequenceDelays(
+    Array(blockCount).fill(BLOCK_STAGGER),
+    startDelay,
+  );
+  const buttonDelay = startDelay + blockCount * BLOCK_STAGGER;
+
   return (
     <div className="hub-screen">
-      <div className="hub-header">
+      <motion.div className="hub-header" variants={blockVariants} custom={headerDelay} initial="hidden" animate="visible">
         <span className="hub-header-icon">
           <Users2 size={16} className="icon-white" />
         </span>
@@ -85,26 +103,15 @@ const LiveAggregationHub = ({ session, onProceed }) => {
           <h3 className="hub-title">Live responses</h3>
           <p className="hub-subtitle">{respondedCount} of {session.group_size} friends have chimed in</p>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="hub-progress-track">
-        <motion.div
-          className="hub-progress-fill"
-          initial={{ width: 0 }}
-          animate={{ width: `${progressPct}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
-      </div>
+      <motion.div className="hub-progress-track" variants={blockVariants} custom={progressDelay} initial="hidden" animate="visible">
+        <div className="hub-progress-fill" style={{ width: `${progressPct}%` }} />
+      </motion.div>
 
-      <div className="hub-avatar-row">
+      <motion.div className="hub-avatar-row" variants={peerContainerVariants(avatarDelay)} initial="hidden" animate="visible">
         {Array.from({ length: Math.min(respondedCount, 8) }).map((_, i) => (
-          <motion.span
-            key={`in-${i}`}
-            className="hub-avatar hub-avatar--responded"
-            initial={{ scale: 0, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 14 }}
-          >
+          <motion.span key={`in-${i}`} className="hub-avatar hub-avatar--responded" variants={peerItemVariants}>
             <FunAvatarFace index={i} />
             <span className="hub-avatar-badge">
               <Check size={9} strokeWidth={3} />
@@ -112,14 +119,14 @@ const LiveAggregationHub = ({ session, onProceed }) => {
           </motion.span>
         ))}
         {Array.from({ length: Math.min(pendingCount, 8) }).map((_, i) => (
-          <span key={`out-${i}`} className="hub-avatar hub-avatar--pending">
+          <motion.span key={`out-${i}`} className="hub-avatar hub-avatar--pending" variants={peerItemVariants}>
             <FunAvatarFace index={respondedCount + i} muted />
-          </span>
+          </motion.span>
         ))}
-      </div>
+      </motion.div>
 
       {pendingCount > 0 ? (
-        <div className="hub-status-row">
+        <motion.div className="hub-status-row" variants={blockVariants} custom={statusDelay} initial="hidden" animate="visible">
           <span className="hub-wait-spinner" />
           <div className="hub-status-copy">
             <span className="hub-status-text">
@@ -127,24 +134,24 @@ const LiveAggregationHub = ({ session, onProceed }) => {
             </span>
             <span className="hub-status-hint">This can take a while, feel free to come back later.</span>
           </div>
-        </div>
+        </motion.div>
       ) : (
-        <div className="hub-status-row hub-status-row--done">
+        <motion.div className="hub-status-row hub-status-row--done" variants={blockVariants} custom={statusDelay} initial="hidden" animate="visible">
           <PartyPopper size={15} />
           <span className="hub-status-text">Everyone's in — nice!</span>
-        </div>
+        </motion.div>
       )}
 
       {vibeTally.length > 0 && (
-        <div className="hub-vibe-pills">
+        <motion.div className="hub-vibe-pills" variants={peerContainerVariants(vibeDelay)} initial="hidden" animate="visible">
           {vibeTally.map(({ vibe, count, label, emoji }) => (
-            <span key={vibe} className="hub-vibe-pill">
+            <motion.span key={vibe} className="hub-vibe-pill" variants={peerItemVariants}>
               <span className="hub-vibe-pill-emoji">{emoji}</span>
               {label}
               <span className="hub-vibe-pill-count">×{count}</span>
-            </span>
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <GradientSweepButton
@@ -152,7 +159,7 @@ const LiveAggregationHub = ({ session, onProceed }) => {
         className="hub-proceed-btn"
         onClick={handleProceed}
         disabled={proceeded}
-        whileTap={proceeded ? undefined : { scale: 0.98 }}
+        startDelay={buttonDelay}
       >
         Alright, let's cook this trip
       </GradientSweepButton>

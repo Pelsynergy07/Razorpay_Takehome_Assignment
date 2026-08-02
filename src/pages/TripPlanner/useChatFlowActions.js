@@ -108,7 +108,7 @@ export function useChatAutoScroll({ messages, isTyping, containerRef, kindField 
         const containerRect = container.getBoundingClientRect();
         const dayRect = dayEl.getBoundingClientRect();
         const target = container.scrollTop + (dayRect.top - containerRect.top) - 16;
-        smoothScrollTo(container, target, 1400);
+        smoothScrollTo(container, target, 1680);
       });
       return;
     }
@@ -125,10 +125,10 @@ export function useChatAutoScroll({ messages, isTyping, containerRef, kindField 
         const containerRect = container.getBoundingClientRect();
         const resultRect = resultEl.getBoundingClientRect();
         const target = container.scrollTop + (resultRect.top - containerRect.top) - 16;
-        smoothScrollTo(container, target, 1400);
+        smoothScrollTo(container, target, 1680);
       });
       return;
     }
-    smoothScrollToBottom(container, 1400);
+    smoothScrollToBottom(container, 1680);
   }, [messages, isTyping]);
 }

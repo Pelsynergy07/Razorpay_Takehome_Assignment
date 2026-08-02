@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
+import { blockVariants, BLOCK_STAGGER } from '../../components/AIChatbot/motionConfig';
 
 const budgetOptions = [
   { label: '₹5,000', value: 5000 },
@@ -16,41 +17,12 @@ const formatDateRange = (startIso, endIso) => {
   return `${start} - ${end}`;
 };
 
-const formContainerVariants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.24, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-const formItemVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-// Each step slides in from whichever direction it's travelling — forward
-// steps enter from the right, going back enters from the left — so this
-// reads as one guided conversation moving forward, not a form with jumping
-// sections.
-const stepVariants = {
-  enter: (direction) => ({ opacity: 0, x: direction > 0 ? 28 : -28 }),
-  center: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.26, ease: [0.16, 1, 0.3, 1], staggerChildren: 0.03 },
-  },
-  exit: (direction) => ({
-    opacity: 0,
-    x: direction > 0 ? -28 : 28,
-    transition: { duration: 0.16, ease: [0.16, 1, 0.3, 1] },
-  }),
-};
+// Fixed delay slots for each step's always-present fields — the field
+// below always waits for the one above to finish. Fields that only appear
+// after a user answers (e.g. the "Where to?" input) pop in on their own at
+// delay 0 instead — the click that revealed them is already the cue, no
+// need to make them wait too.
+const STEP_FIELD_DELAY = (index) => index * BLOCK_STAGGER;
 
 // Brief skeleton before the card's real content mounts, so it reads as
 // content loading in rather than popping in instantly.
@@ -67,7 +39,7 @@ const IntentFormSkeleton = () => (
   </div>
 );
 
-const SKELETON_DELAY_MS = 400;
+const SKELETON_DELAY_MS = 600;
 
 /**
  * Screen 1.2 — asked as two short, sequential turns (who + where, then
@@ -75,15 +47,16 @@ const SKELETON_DELAY_MS = 400;
  * once. Only the current turn is on screen; answering it is what reveals
  * the next one.
  */
-const IntentFormCard = ({ onSubmit }) => {
+const IntentFormCard = ({ onSubmit, startDelay = 0 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState(1); // 1 | 2
-  const [direction, setDirection] = useState(1);
 
+  // The skeleton (and everything after it) waits for whatever bot text is
+  // above this card to finish revealing, on top of its own minimum show time.
   useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), SKELETON_DELAY_MS);
+    const t = setTimeout(() => setIsLoading(false), SKELETON_DELAY_MS + startDelay * 1000);
     return () => clearTimeout(t);
-  }, []);
+  }, [startDelay]);
 
   const [groupSize, setGroupSize] = useState('5');
   const [knowsDestination, setKnowsDestination] = useState(null); // null | true | false
@@ -104,14 +77,10 @@ const IntentFormCard = ({ onSubmit }) => {
 
   const goToStep2 = () => {
     if (!canContinue) return;
-    setDirection(1);
     setStep(2);
   };
 
-  const goBackToStep1 = () => {
-    setDirection(-1);
-    setStep(1);
-  };
+  const goBackToStep1 = () => setStep(1);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -127,12 +96,7 @@ const IntentFormCard = ({ onSubmit }) => {
   };
 
   return (
-    <motion.div
-      className="intent-form-card"
-      variants={formContainerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <div className="intent-form-card">
       {isLoading ? (
         <IntentFormSkeleton />
       ) : (
@@ -149,214 +113,183 @@ const IntentFormCard = ({ onSubmit }) => {
             </div>
           </div>
 
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            {step === 1 ? (
-          <motion.div
-            key="step1"
-            className="intent-form-step"
-            custom={direction}
-            variants={stepVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-          >
-            <motion.div className="intent-form-field" variants={formItemVariants}>
-              <label htmlFor="groupSize">How many of you?</label>
-              <input
-                id="groupSize"
-                type="number"
-                min="2"
-                max="30"
-                value={groupSize}
-                onChange={(e) => setGroupSize(e.target.value)}
-                required
-              />
-            </motion.div>
-
-            <motion.div className="intent-form-field" variants={formItemVariants}>
-              <label>Have you decided on the destination?</label>
-              <div className="budget-pill-group">
-                <motion.button
-                  type="button"
-                  className={`budget-pill ${knowsDestination === true ? 'active' : ''}`}
-                  onClick={() => setKnowsDestination(true)}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  Yes
-                </motion.button>
-                <motion.button
-                  type="button"
-                  className={`budget-pill ${knowsDestination === false ? 'active' : ''}`}
-                  onClick={() => { setKnowsDestination(false); setDestination(''); }}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  No
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {knowsDestination === true && (
-              <motion.div className="intent-form-field" variants={formItemVariants}>
-                <label htmlFor="destination">Where to?</label>
+          {step === 1 ? (
+            <div className="intent-form-step">
+              <motion.div className="intent-form-field" variants={blockVariants} custom={STEP_FIELD_DELAY(0)} initial="hidden" animate="visible">
+                <label htmlFor="groupSize">How many of you?</label>
                 <input
-                  id="destination"
-                  type="text"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  placeholder="e.g. Goa, Manali, Bali..."
-                  required
-                />
-              </motion.div>
-            )}
-
-            <motion.div variants={formItemVariants}>
-              <GradientSweepButton
-                type="button"
-                className="intent-form-submit"
-                disabled={!canContinue}
-                onClick={goToStep2}
-              >
-                Continue
-              </GradientSweepButton>
-            </motion.div>
-          </motion.div>
-        ) : (
-          <motion.form
-            key="step2"
-            className="intent-form-step"
-            onSubmit={handleSubmit}
-            custom={direction}
-            variants={stepVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-          >
-            <motion.div className="intent-form-field" variants={formItemVariants}>
-              <label>Do you already know the dates of travel?</label>
-              <div className="budget-pill-group">
-                <motion.button
-                  type="button"
-                  className={`budget-pill ${knowsDates === true ? 'active' : ''}`}
-                  onClick={() => setKnowsDates(true)}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  Yes
-                </motion.button>
-                <motion.button
-                  type="button"
-                  className={`budget-pill ${knowsDates === false ? 'active' : ''}`}
-                  onClick={() => setKnowsDates(false)}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  No
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {knowsDates === true ? (
-              <div className="intent-form-row">
-                <motion.div className="intent-form-field" variants={formItemVariants}>
-                  <label htmlFor="startDate">Start date</label>
-                  <input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                  />
-                </motion.div>
-                <motion.div className="intent-form-field" variants={formItemVariants}>
-                  <label htmlFor="endDate">End date</label>
-                  <input
-                    id="endDate"
-                    type="date"
-                    min={startDate || undefined}
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                  />
-                </motion.div>
-              </div>
-            ) : knowsDates === false ? (
-              <motion.div className="intent-form-field" variants={formItemVariants}>
-                <label htmlFor="numberOfDays">How many days?</label>
-                <input
-                  id="numberOfDays"
+                  id="groupSize"
                   type="number"
-                  min="1"
+                  min="2"
                   max="30"
-                  value={numberOfDays}
-                  onChange={(e) => setNumberOfDays(e.target.value)}
-                  placeholder="No. of days"
+                  value={groupSize}
+                  onChange={(e) => setGroupSize(e.target.value)}
                   required
                 />
               </motion.div>
-            ) : null}
 
-            <motion.div className="intent-form-field" variants={formItemVariants}>
-              <label>What's the budget looking like per head?</label>
-              <div className="budget-pill-group">
-                {budgetOptions.map((opt) => (
-                  <motion.button
-                    key={opt.value}
+              <motion.div className="intent-form-field" variants={blockVariants} custom={STEP_FIELD_DELAY(1)} initial="hidden" animate="visible">
+                <label>Have you decided on the destination?</label>
+                <div className="budget-pill-group">
+                  <button
                     type="button"
-                    className={`budget-pill ${!isCustomBudget && budget === opt.value ? 'active' : ''}`}
-                    onClick={() => { setIsCustomBudget(false); setBudget(opt.value); }}
-                    whileTap={{ scale: 0.94 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    className={`budget-pill ${knowsDestination === true ? 'active' : ''}`}
+                    onClick={() => setKnowsDestination(true)}
                   >
-                    {opt.label}
-                  </motion.button>
-                ))}
-                <motion.button
-                  type="button"
-                  className={`budget-pill ${isCustomBudget ? 'active' : ''}`}
-                  onClick={() => { setIsCustomBudget(true); setBudget(customBudget ? Number(customBudget) : null); }}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  Add custom
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {isCustomBudget && (
-              <motion.div className="intent-form-field" variants={formItemVariants}>
-                <label htmlFor="customBudget">Enter amount per head</label>
-                <input
-                  id="customBudget"
-                  type="number"
-                  min="1"
-                  value={customBudget}
-                  onChange={(e) => {
-                    setCustomBudget(e.target.value);
-                    setBudget(e.target.value ? Number(e.target.value) : null);
-                  }}
-                  placeholder="e.g. 25000"
-                  required
-                />
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    className={`budget-pill ${knowsDestination === false ? 'active' : ''}`}
+                    onClick={() => { setKnowsDestination(false); setDestination(''); }}
+                  >
+                    No
+                  </button>
+                </div>
               </motion.div>
-            )}
 
-            <motion.div variants={formItemVariants}>
-              <GradientSweepButton
-                type="submit"
-                className="intent-form-submit"
-                disabled={!canSubmit}
-              >
-                Create trip session
-              </GradientSweepButton>
-            </motion.div>
-          </motion.form>
-            )}
-          </AnimatePresence>
+              {knowsDestination === true && (
+                <motion.div className="intent-form-field" variants={blockVariants} custom={0} initial="hidden" animate="visible">
+                  <label htmlFor="destination">Where to?</label>
+                  <input
+                    id="destination"
+                    type="text"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    placeholder="e.g. Goa, Manali, Bali..."
+                    required
+                  />
+                </motion.div>
+              )}
+
+              <motion.div variants={blockVariants} custom={STEP_FIELD_DELAY(2)} initial="hidden" animate="visible">
+                <GradientSweepButton
+                  type="button"
+                  className="intent-form-submit"
+                  disabled={!canContinue}
+                  onClick={goToStep2}
+                >
+                  Continue
+                </GradientSweepButton>
+              </motion.div>
+            </div>
+          ) : (
+            <form className="intent-form-step" onSubmit={handleSubmit}>
+              <motion.div className="intent-form-field" variants={blockVariants} custom={STEP_FIELD_DELAY(0)} initial="hidden" animate="visible">
+                <label>Do you already know the dates of travel?</label>
+                <div className="budget-pill-group">
+                  <button
+                    type="button"
+                    className={`budget-pill ${knowsDates === true ? 'active' : ''}`}
+                    onClick={() => setKnowsDates(true)}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    className={`budget-pill ${knowsDates === false ? 'active' : ''}`}
+                    onClick={() => setKnowsDates(false)}
+                  >
+                    No
+                  </button>
+                </div>
+              </motion.div>
+
+              {knowsDates === true ? (
+                <motion.div className="intent-form-row" variants={blockVariants} custom={0} initial="hidden" animate="visible">
+                  <div className="intent-form-field">
+                    <label htmlFor="startDate">Start date</label>
+                    <input
+                      id="startDate"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="intent-form-field">
+                    <label htmlFor="endDate">End date</label>
+                    <input
+                      id="endDate"
+                      type="date"
+                      min={startDate || undefined}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </motion.div>
+              ) : knowsDates === false ? (
+                <motion.div className="intent-form-field" variants={blockVariants} custom={0} initial="hidden" animate="visible">
+                  <label htmlFor="numberOfDays">How many days?</label>
+                  <input
+                    id="numberOfDays"
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={numberOfDays}
+                    onChange={(e) => setNumberOfDays(e.target.value)}
+                    placeholder="No. of days"
+                    required
+                  />
+                </motion.div>
+              ) : null}
+
+              <motion.div className="intent-form-field" variants={blockVariants} custom={STEP_FIELD_DELAY(1)} initial="hidden" animate="visible">
+                <label>What's the budget looking like per head?</label>
+                <div className="budget-pill-group">
+                  {budgetOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`budget-pill ${!isCustomBudget && budget === opt.value ? 'active' : ''}`}
+                      onClick={() => { setIsCustomBudget(false); setBudget(opt.value); }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className={`budget-pill ${isCustomBudget ? 'active' : ''}`}
+                    onClick={() => { setIsCustomBudget(true); setBudget(customBudget ? Number(customBudget) : null); }}
+                  >
+                    Add custom
+                  </button>
+                </div>
+              </motion.div>
+
+              {isCustomBudget && (
+                <motion.div className="intent-form-field" variants={blockVariants} custom={0} initial="hidden" animate="visible">
+                  <label htmlFor="customBudget">Enter amount per head</label>
+                  <input
+                    id="customBudget"
+                    type="number"
+                    min="1"
+                    value={customBudget}
+                    onChange={(e) => {
+                      setCustomBudget(e.target.value);
+                      setBudget(e.target.value ? Number(e.target.value) : null);
+                    }}
+                    placeholder="e.g. 25000"
+                    required
+                  />
+                </motion.div>
+              )}
+
+              <motion.div variants={blockVariants} custom={STEP_FIELD_DELAY(2)} initial="hidden" animate="visible">
+                <GradientSweepButton
+                  type="submit"
+                  className="intent-form-submit"
+                  disabled={!canSubmit}
+                >
+                  Create trip session
+                </GradientSweepButton>
+              </motion.div>
+            </form>
+          )}
         </>
       )}
-    </motion.div>
+    </div>
   );
 };
 

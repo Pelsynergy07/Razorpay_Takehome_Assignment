@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { blockVariants } from './motionConfig';
 
 /**
  * Reusable CTA button featuring a subtle animated gradient sweep that
  * signals an "AI moment" (Launch Sync Mode, Create Trip Session, Enter Hub).
- * Respects user's reduced motion setting, and stops sweeping once clicked
- * (it becomes a past chat-history action at that point, not an active nudge).
+ * Stops sweeping once clicked (it becomes a past chat-history action at
+ * that point, not an active nudge). Entrance is delayed by `startDelay` so
+ * it only appears once whatever is above it in the turn has finished.
  */
 const GradientSweepButton = ({
   children,
@@ -13,10 +15,9 @@ const GradientSweepButton = ({
   type = 'button',
   disabled = false,
   className = '',
-  whileTap = { scale: 0.98 },
+  startDelay = 0,
   ...props
 }) => {
-  const shouldReduceMotion = useReducedMotion();
   const [hasBeenClicked, setHasBeenClicked] = useState(false);
 
   const handleClick = (e) => {
@@ -27,10 +28,13 @@ const GradientSweepButton = ({
   return (
     <motion.button
       type={type}
-      className={`btn-gradient-sweep ${shouldReduceMotion || hasBeenClicked ? 'reduced-motion' : ''} ${className}`}
+      className={`btn-gradient-sweep ${hasBeenClicked ? 'reduced-motion' : ''} ${className}`}
       onClick={handleClick}
       disabled={disabled}
-      whileTap={disabled ? undefined : whileTap}
+      variants={blockVariants}
+      custom={startDelay}
+      initial="hidden"
+      animate="visible"
       {...props}
     >
       {children}

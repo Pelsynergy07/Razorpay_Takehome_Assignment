@@ -1,15 +1,8 @@
-/* ===== AI Moment Gradient Sweep Button =====
+/* ===== "AI Moment" CTA button =====
    A diagonal light band glides across the button every ~7s — a quiet
-   "the AI is nudging you toward this" cue — instead of an animated border.
-   Band reuses --gradient-btn-primary's own blue-on-blue tones (the
-   button's own border/text color), so it reads as a soft glow of the
-   button's own accent rather than an unrelated rainbow. The band is an
-   actual skewed (skewX) parallelogram, not a gradient-angle trick, so its
-   edges stay hard/crisp (no fade to transparent) while still reading as
-   diagonal. Fixed 24px width (not a % of the button) so it stays a slim
-   highlight even on wide CTAs, and it stops entirely once the button has
-   been clicked (see GradientSweepButton.jsx's hasBeenClicked →
-   reduced-motion class). */
+   "the AI is nudging you toward this" cue. Stops once the button has been
+   clicked (see GradientSweepButton.jsx's hasBeenClicked → reduced-motion
+   class), and respects prefers-reduced-motion. */
 .btn-gradient-sweep {
   position: relative;
   overflow: hidden;
@@ -26,7 +19,7 @@
   font-size: var(--text-md);
   font-weight: var(--fw-bold);
   cursor: pointer;
-  transition: background var(--duration-base), box-shadow var(--duration-base);
+  transition: background var(--duration-base);
 }
 
 .btn-gradient-sweep::after {
@@ -48,14 +41,12 @@
 
 .btn-gradient-sweep:hover {
   background: var(--mmt-blue-tint);
-  box-shadow: 0 2px 8px rgba(0, 140, 255, 0.15);
 }
 
 .btn-gradient-sweep:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background: var(--mmt-white);
-  box-shadow: none;
 }
 
 .btn-gradient-sweep:disabled::after {
@@ -72,6 +63,13 @@
   0% { left: -40px; }
   20% { left: calc(100% + 40px); }
   100% { left: calc(100% + 40px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gradient-sweep::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 /* ===== Shared secondary button (outline, no fill) =====
@@ -817,11 +815,6 @@
   border-radius: 50%;
   border: 2px solid var(--mmt-border);
   border-top-color: var(--mmt-blue);
-  animation: hubSpin 1.8s linear infinite;
-}
-
-@keyframes hubSpin {
-  to { transform: rotate(360deg); }
 }
 
 .hub-vibe-pills {
@@ -1459,7 +1452,7 @@
 
 .confidence-reasoning-list li {
   font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   color: var(--mmt-text-secondary);
   line-height: var(--leading-base);
 }
@@ -1479,29 +1472,55 @@
   box-shadow: var(--shadow-xs);
 }
 
+/* Shared header row for every accordion — icon/title button, optional Edit
+   button, then the expand/collapse chevron always last. Keeping the
+   chevron in its own fixed-width slot (rather than trailing inside the
+   same button as the title) is what keeps its position identical whether
+   or not a category has an Edit control. */
 .accordion-header-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding-right: var(--space-sm);
+  gap: var(--space-xs);
+  padding: var(--space-md);
 }
 
-.accordion-header {
-  width: 100%;
+.accordion-header-main {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-md);
+  gap: var(--space-sm);
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
+  padding: 0;
 }
 
-.accordion-title-group {
+.accordion-title-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.accordion-chevron-btn {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--mmt-text-tertiary);
+  cursor: pointer;
+  transition: background var(--duration-base), color var(--duration-base);
+}
+
+.accordion-chevron-btn:hover {
+  background: var(--mmt-bg-page);
+  color: var(--mmt-text-primary);
 }
 
 /* One consistent icon treatment for every category — no per-category
@@ -1571,7 +1590,7 @@
 
 .dates-reasoning-text {
   font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   color: var(--mmt-text-secondary);
   line-height: var(--leading-base);
   margin: var(--space-2xs) 0 0;
@@ -1626,11 +1645,37 @@
   color: var(--mmt-blue);
 }
 
-.voted-by-text {
+/* Tooltip that floats over a tag (e.g. "Reconciled Effort") instead of
+   pushing the card's layout down when tapped. */
+.badge-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.badge-tooltip {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  z-index: 20;
+  background: var(--mmt-text-primary);
+  color: var(--mmt-white);
   font-size: var(--text-xs);
   font-weight: var(--fw-semibold);
-  color: var(--mmt-text-tertiary);
-  margin: var(--space-3xs) 0 0;
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  max-width: 220px;
+  width: max-content;
+  box-shadow: var(--shadow-sm);
+  line-height: var(--leading-base);
+}
+
+.badge-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 14px;
+  border: 5px solid transparent;
+  border-bottom-color: var(--mmt-text-primary);
 }
 
 .active-item-title {
@@ -1642,7 +1687,7 @@
 
 .active-item-desc {
   font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   color: var(--mmt-text-secondary);
   margin: 0;
   line-height: var(--leading-base);
@@ -1666,7 +1711,7 @@
 
 .activity-list-items li {
   font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   color: var(--mmt-text-secondary);
   line-height: var(--leading-base);
 }
@@ -1680,12 +1725,25 @@
   gap: var(--space-sm);
 }
 
-.resolved-summary-text {
+.resolved-summary-list {
+  margin: 0;
+  padding-left: 1.1em;
+  list-style: disc;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.resolved-summary-list li {
   font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   color: var(--mmt-text-secondary);
   line-height: var(--leading-base);
-  margin: 0;
+}
+
+.resolved-summary-list li strong {
+  color: var(--mmt-text-primary);
+  font-weight: var(--fw-bold);
 }
 
 .resolved-attributions {

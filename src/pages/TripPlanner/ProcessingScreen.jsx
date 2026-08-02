@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const STAGES = [
@@ -51,18 +50,7 @@ const ProcessingScreen = ({ onComplete }) => {
         autoplay
         style={{ width: 140, height: 140 }}
       />
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={stageIndex}
-          className="processing-stage-text"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.32, ease: 'easeInOut' }}
-        >
-          {STAGES[stageIndex]}
-        </motion.p>
-      </AnimatePresence>
+      <p className="processing-stage-text">{STAGES[stageIndex]}</p>
     </div>
   );
 };

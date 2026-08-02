@@ -47,12 +47,12 @@ function animateScrollTop(container, from, to, duration) {
 }
 
 /** Scrolls to an arbitrary target scrollTop instead of all the way down. */
-export function smoothScrollTo(container, targetTop, duration = 1400) {
+export function smoothScrollTo(container, targetTop, duration = 1680) {
   if (!container) return;
   animateScrollTop(container, container.scrollTop, targetTop, duration);
 }
 
-export function smoothScrollToBottom(container, duration = 1400) {
+export function smoothScrollToBottom(container, duration = 1680) {
   if (!container) return;
   const end = container.scrollHeight - container.clientHeight;
   animateScrollTop(container, container.scrollTop, end, duration);

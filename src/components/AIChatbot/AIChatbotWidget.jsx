@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
+import { EASE } from './motionConfig';
 import ChatFlowShell from './ChatFlowShell';
 import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock, FollowUpReveal } from './ChatMessages';
 import TypingIndicator from './TypingIndicator';
@@ -21,6 +22,19 @@ import MyraAvatar from './MyraAvatar';
 import ChatLandingScreen from './ChatLandingScreen';
 import { listConversations, getConversation, saveConversation, createConversationId, clearAllConversations } from '../../lib/chatHistory';
 import './AIChatbotWidget.css';
+
+// Widget entrance: the mascot lottie scales up and starts playing first,
+// then the card (bubbles + input) scales up right after it — not both at once.
+const WIDGET_MASCOT_DURATION = 0.55;
+const WIDGET_CARD_DURATION = 0.6;
+
+// Myra always "thinks" for at least this long before a reply lands, even
+// when the underlying response (AI call or offline fallback) resolves
+// almost instantly — otherwise it reads as an obviously canned response.
+// Randomized per message so it doesn't feel like a fixed canned delay.
+const MIN_THINKING_MS_RANGE = [1500, 3000];
+const randomThinkingMs = () =>
+  Math.round(MIN_THINKING_MS_RANGE[0] + Math.random() * (MIN_THINKING_MS_RANGE[1] - MIN_THINKING_MS_RANGE[0]));
 
 const promptSuggestions = [
   { text: 'Cheapest flight from Delhi to Spain', icon: '✈️' },
@@ -189,66 +203,76 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     setInputValue('');
 
     setIsTyping(true);
+    const thinkStart = Date.now();
+    const minThinkingMs = randomThinkingMs();
+
+    // Whatever branch below resolves the reply, Myra shows "thinking" for at
+    // least minThinkingMs before it lands — a near-instant response (fast
+    // API, or the synchronous fallback branches) reads as fake otherwise.
+    const waitOutMinThinkTime = async () => {
+      const elapsed = Date.now() - thinkStart;
+      if (elapsed < minThinkingMs) {
+        await new Promise((resolve) => setTimeout(resolve, minThinkingMs - elapsed));
+      }
+    };
 
     // 1. Try OpenRouter AI first
     const aiResult = await generateMyraAIResponse(msg, messages);
 
     if (aiResult) {
+      await waitOutMinThinkTime();
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'bot', type: 'text', text: aiResult.text }]);
       setIsTyping(false);
 
       if (aiResult.hasLaunchIntent) {
         setSyncStage('confirmed');
         const { kind, text: launchText } = flow.launchMessage();
-        thinkThen({ type: kind, text: launchText }, 200);
+        thinkThen({ type: kind, text: launchText }, minThinkingMs);
       } else if (aiResult.isAwaitingConfirmation) {
         setSyncStage('awaiting_confirmation');
       }
       return;
     }
 
-    // 2. Offline Smart Fallback Engine (Lightning fast <200ms)
+    // 2. Offline Smart Fallback Engine
     // Step 2: User confirms after AI asked to try sync mode
     if (syncStage === 'awaiting_confirmation' && isConfirmationReply(msg)) {
       setSyncStage('confirmed');
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          role: 'bot',
-          type: 'text',
-          text: "Awesome! Let's set up your group trip session...",
-        }]);
-        const { kind, text: launchText } = flow.launchMessage();
-        thinkThen({ type: kind, text: launchText }, 250);
-      }, 150);
+      await waitOutMinThinkTime();
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'bot',
+        type: 'text',
+        text: "Awesome! Let's set up your group trip session...",
+      }]);
+      const { kind, text: launchText } = flow.launchMessage();
+      thinkThen({ type: kind, text: launchText }, minThinkingMs);
       return;
     }
 
     // Step 1: User expresses trip intent
     if (syncStage === 'idle' && isTripIntent(msg)) {
       setSyncStage('awaiting_confirmation');
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          role: 'bot',
-          type: 'text',
-          text: "Group trips are fantastic, but coordinating budgets, dates, and preferences across everyone can be tricky! 🏖️\n\nWould you like to enable **Group Sync Mode** so your friends can easily share their preferences via a quick 2-minute share link?",
-        }]);
-        setIsTyping(false);
-      }, 200);
-      return;
-    }
-
-    // Off-topic / Irrelevant prompt fallback
-    setTimeout(() => {
+      await waitOutMinThinkTime();
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'bot',
         type: 'text',
-        text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (MyRA).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
+        text: "Group trips are fantastic, but coordinating budgets, dates, and preferences across everyone can be tricky! 🏖️\n\nWould you like to enable **Group Sync Mode** so your friends can easily share their preferences via a quick 2-minute share link?",
       }]);
       setIsTyping(false);
-    }, 200);
+      return;
+    }
+
+    // Off-topic / Irrelevant prompt fallback
+    await waitOutMinThinkTime();
+    setMessages(prev => [...prev, {
+      id: crypto.randomUUID(),
+      role: 'bot',
+      type: 'text',
+      text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (MyRA).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
+    }]);
+    setIsTyping(false);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -307,8 +331,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
           />
         ) : (
           <>
-            <AnimatePresence initial={false}>
-              {messages.map((msg) => (
+            {messages.map((msg) => (
                 <MessageBlock key={msg.id}>
                   {msg.role === 'user' ? (
                     <UserBubble text={msg.text} />
@@ -372,14 +395,13 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                     </>
                   )}
                 </MessageBlock>
-              ))}
+            ))}
 
-              {isTyping && (
-                <MessageBlock key="typing">
-                  <TypingIndicator />
-                </MessageBlock>
-              )}
-            </AnimatePresence>
+            {isTyping && (
+              <MessageBlock key="typing">
+                <TypingIndicator />
+              </MessageBlock>
+            )}
           </>
         )}
       </ChatFlowShell>
@@ -391,14 +413,24 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       {/* Floating Widget (Desktop only, collapsed state) */}
       {showWidget && !isMobile && (
         <div className="chatbot-floating-widget" onClick={openChat}>
-          <div className="widget-mascot-wrap">
+          <motion.div
+            className="widget-mascot-wrap"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: WIDGET_MASCOT_DURATION, ease: EASE }}
+          >
             <div className="widget-mascot-shadow" />
             <div className="widget-mascot">
               <MyraAvatar size="100%" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="widget-card">
+          <motion.div
+            className="widget-card"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: WIDGET_CARD_DURATION, ease: EASE, delay: WIDGET_MASCOT_DURATION }}
+          >
             <button className="widget-close" onClick={(e) => { e.stopPropagation(); setShowWidget(false); }}>
               <X size={16} />
             </button>
@@ -418,7 +450,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
               <span>Where do you want to go?</span>
               <Sparkles size={16} className="icon-blue" />
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 

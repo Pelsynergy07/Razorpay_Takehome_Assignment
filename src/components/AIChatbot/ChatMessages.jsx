@@ -2,83 +2,45 @@ import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bookmark, MapPin, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
 import MyraAvatar from './MyraAvatar';
-
-const blockTransition = { duration: 0.5, ease: [0.16, 1, 0.3, 1] };
+import {
+  blockVariants,
+  BLOCK_STAGGER,
+  wordVariants,
+  wordContainerVariants,
+  peerContainerVariants,
+  peerItemVariants,
+} from './motionConfig';
 
 /**
- * Chat turn wrapper — smooth, subtle ease-out entrance with zero spring recoil.
+ * Chat turn wrapper. Not animated itself — the bot text / user bubble /
+ * follow-up element inside it own the actual entrance, so nothing double
+ * fades.
  */
 export const MessageBlock = ({ children }) => (
-  <motion.div
-    className="chat-sheet-msg-block"
-    initial={{ opacity: 0, y: 14 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={blockTransition}
-  >
-    {children}
-  </motion.div>
+  <div className="chat-sheet-msg-block">{children}</div>
 );
-
-const wordVariants = {
-  hidden: { opacity: 0, y: 4 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.28,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-};
-
-const containerVariants = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.025,
-    },
-  },
-};
-
-// Roughly how long AnimatedBotText takes to finish revealing a given string
-// (word count × stagger + one word's own transition), so anything that
-// follows the text in the same turn — a button, a card, a carousel — can
-// wait its turn instead of popping in while the text is still typing out.
-export const estimateTextRevealSeconds = (text = '') => {
-  if (!text) return 0.3;
-  const wordCount = text
-    .split('\n')
-    .filter((l) => l.trim() !== '')
-    .reduce((sum, line) => sum + line.trim().split(/\s+/).filter(Boolean).length, 0);
-  return wordCount * 0.025 + 0.28;
-};
 
 /**
  * Wraps a follow-up element (button, card, carousel) that shares a message
- * turn with AnimatedBotText, delaying its entrance until the text above it
- * has finished revealing — so nothing pops in mid-sentence.
+ * turn with the bot text above it — it doesn't animate itself, it hands a
+ * short stagger delay down to its child as `startDelay`, so the follow-up
+ * starts a beat after the text above it begins rather than waiting for the
+ * text to fully finish revealing.
  */
-export const FollowUpReveal = ({ text, children, className }) => (
-  <motion.div
-    className={className}
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.35, ease: 'easeOut', delay: estimateTextRevealSeconds(text) }}
-  >
-    {children}
-  </motion.div>
-);
+export const FollowUpReveal = ({ children, className }) => {
+  const child = React.Children.only(children);
+  return <div className={className}>{React.cloneElement(child, { startDelay: BLOCK_STAGGER })}</div>;
+};
 
-const AnimatedBotText = ({ text }) => {
+const AnimatedBotText = ({ text, startDelay = 0 }) => {
   const lines = text.split('\n').filter((l) => l.trim() !== '');
 
   return (
     <motion.div
-      variants={containerVariants}
+      className="animated-bot-text"
+      variants={wordContainerVariants(startDelay)}
       initial="hidden"
       animate="visible"
-      className="animated-bot-text"
     >
       {lines.map((line, lineIdx) => {
         const trimmed = line.trim();
@@ -101,15 +63,10 @@ const AnimatedBotText = ({ text }) => {
 
         const parts = contentStr.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
         const wordTokens = [];
-
         parts.forEach((part) => {
           const isBold = part.startsWith('**') && part.endsWith('**');
           const cleanPart = isBold ? part.slice(2, -2) : part;
-          const words = cleanPart.split(/\s+/).filter(Boolean);
-
-          words.forEach((w) => {
-            wordTokens.push({ word: w, isBold });
-          });
+          cleanPart.split(/\s+/).filter(Boolean).forEach((w) => wordTokens.push({ word: w, isBold }));
         });
 
         return (
@@ -136,15 +93,23 @@ const AnimatedBotText = ({ text }) => {
 };
 
 export const UserBubble = ({ text }) => (
-  <div className="user-msg-bubble">{text}</div>
+  <motion.div
+    className="user-msg-bubble"
+    variants={blockVariants}
+    custom={0}
+    initial="hidden"
+    animate="visible"
+  >
+    {text}
+  </motion.div>
 );
 
 export const BotTextResponse = ({ text }) => (
   <div className="bot-response">
-    <div className="myra-label">
+    <motion.div className="myra-label" variants={blockVariants} custom={0} initial="hidden" animate="visible">
       <MyraAvatar />
       <span className="myra-label-text">Myra</span>
-    </div>
+    </motion.div>
     <div className="bot-response-text">
       <AnimatedBotText text={text} />
     </div>
@@ -173,7 +138,7 @@ const DestinationCard = ({ destination, isSaved, onToggleSave }) => (
   </div>
 );
 
-export const DestinationCarousel = ({ destinations }) => {
+export const DestinationCarousel = ({ destinations, startDelay = 0 }) => {
   const scrollRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [saved, setSaved] = useState({});
@@ -192,7 +157,7 @@ export const DestinationCarousel = ({ destinations }) => {
   };
 
   return (
-    <div className="destination-overview">
+    <motion.div className="destination-overview" variants={blockVariants} custom={startDelay} initial="hidden" animate="visible">
       <div className="destination-overview-header">
         <span className="destination-overview-icon">
           <MapPin size={13} className="icon-white" />
@@ -216,45 +181,54 @@ export const DestinationCarousel = ({ destinations }) => {
           <span className="destination-dot" />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-export const MessageActions = () => {
+export const MessageActions = ({ startDelay = 0 }) => {
   const [liked, setLiked] = useState(null);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
 
   return (
-    <div className="message-actions-row">
-      <button
+    <motion.div
+      className="message-actions-row"
+      variants={peerContainerVariants(startDelay)}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.button
+        variants={peerItemVariants}
         className={`msg-action-btn ${liked === 'up' ? 'active' : ''}`}
         onClick={() => setLiked((l) => (l === 'up' ? null : 'up'))}
         aria-label="Helpful"
       >
         <ThumbsUp size={15} />
-      </button>
-      <button
+      </motion.button>
+      <motion.button
+        variants={peerItemVariants}
         className={`msg-action-btn ${liked === 'down' ? 'active' : ''}`}
         onClick={() => setLiked((l) => (l === 'down' ? null : 'down'))}
         aria-label="Not helpful"
       >
         <ThumbsDown size={15} />
-      </button>
-      <button
+      </motion.button>
+      <motion.button
+        variants={peerItemVariants}
         className={`msg-action-btn ${saved ? 'active' : ''}`}
         onClick={() => setSaved((s) => !s)}
         aria-label="Save"
       >
         <Bookmark size={15} fill={saved ? 'currentColor' : 'none'} />
-      </button>
-      <button
+      </motion.button>
+      <motion.button
+        variants={peerItemVariants}
         className={`msg-action-btn ${copied ? 'active' : ''}`}
         onClick={() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }}
         aria-label="Copy"
       >
         <Copy size={15} />
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 };

@@ -1,6 +1,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import {
+  blockVariants,
+  BLOCK_STAGGER,
+  wordVariants,
+  wordContainerVariants,
+  peerContainerVariants,
+  peerItemVariants,
+  sequenceDelays,
+} from './motionConfig';
+
+const SUBTITLE_BOLD_WORDS = ["I'm", 'Myra'];
+const SUBTITLE_REST_WORDS = "— your personal travel assistant. Let's plan your next trip together.".split(' ');
 
 const formatRelativeTime = (timestamp) => {
   const diffMs = Date.now() - timestamp;
@@ -17,37 +29,53 @@ const formatRelativeTime = (timestamp) => {
  * Landing screen shown whenever the chat has no active conversation loaded —
  * greeting + suggested prompts on a fresh start, or a "pick up where you
  * left off" list of past conversations once any exist.
+ *
+ * Entrance: wordmark, greeting, subtitle, section label, then the
+ * suggestion/history list — top to bottom, each waiting for the one above.
  */
 const ChatLandingScreen = ({ conversations, suggestions, onSelectSuggestion, onSelectConversation }) => {
   const hasHistory = conversations.length > 0;
+  const [wordmarkDelay, greetingDelay, subtitleDelay, labelDelay, listDelay] = sequenceDelays(Array(5).fill(BLOCK_STAGGER));
 
   return (
-    <motion.div
-      className="myra-landing"
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <div className="myra-landing-wordmark">
+    <div className="myra-landing">
+      <motion.div className="myra-landing-wordmark" variants={blockVariants} custom={wordmarkDelay} initial="hidden" animate="visible">
         myra<span className="myra-landing-wordmark-ai">.AI</span>
         <span className="myra-landing-beta">beta</span>
-      </div>
+      </motion.div>
 
-      <h1 className="myra-landing-greeting">Hi, Pranav</h1>
-      <p className="myra-landing-subtitle">
-        <strong>I'm Myra</strong> — your personal travel assistant. Let's plan your next trip together.
-      </p>
+      <motion.h1 className="myra-landing-greeting" variants={blockVariants} custom={greetingDelay} initial="hidden" animate="visible">
+        Hi, Pranav
+      </motion.h1>
+      <motion.p
+        className="myra-landing-subtitle"
+        variants={wordContainerVariants(subtitleDelay)}
+        initial="hidden"
+        animate="visible"
+      >
+        {SUBTITLE_BOLD_WORDS.map((word, i) => (
+          <motion.span key={`b${i}`} variants={wordVariants} style={{ display: 'inline-block', marginRight: '0.25em' }}>
+            <strong>{word}</strong>
+          </motion.span>
+        ))}
+        {SUBTITLE_REST_WORDS.map((word, i) => (
+          <motion.span key={`r${i}`} variants={wordVariants} style={{ display: 'inline-block', marginRight: '0.25em' }}>
+            {word}
+          </motion.span>
+        ))}
+      </motion.p>
 
-      <span className="myra-landing-section-label">
+      <motion.span className="myra-landing-section-label" variants={blockVariants} custom={labelDelay} initial="hidden" animate="visible">
         {hasHistory ? 'Pick up where you left off' : 'You may try asking'}
-      </span>
+      </motion.span>
 
-      <div className="myra-landing-list">
+      <motion.div className="myra-landing-list" variants={peerContainerVariants(listDelay)} initial="hidden" animate="visible">
         {hasHistory
           ? conversations.map((c) => (
-              <button
+              <motion.button
                 key={c.id}
                 type="button"
+                variants={peerItemVariants}
                 className="myra-suggestion-pill"
                 onClick={() => onSelectConversation(c.id)}
               >
@@ -56,21 +84,22 @@ const ChatLandingScreen = ({ conversations, suggestions, onSelectSuggestion, onS
                   <span className="myra-suggestion-text">{c.title}</span>
                   <span className="myra-suggestion-meta">{formatRelativeTime(c.updatedAt)}</span>
                 </span>
-              </button>
+              </motion.button>
             ))
           : suggestions.map((s) => (
-              <button
+              <motion.button
                 key={s.text}
                 type="button"
+                variants={peerItemVariants}
                 className="myra-suggestion-pill"
                 onClick={() => onSelectSuggestion(s.text)}
               >
                 <span className="myra-suggestion-icon"><Sparkles size={14} /></span>
                 <span className="myra-suggestion-text">{s.text}</span>
-              </button>
+              </motion.button>
             ))}
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

@@ -68,7 +68,11 @@ const DESTINATION_OPTIONS = {
   Rishikesh: {
     heroImage: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80',
     weather: '21°C Pleasant | AQI 38',
-    datesReasoning: '3 of 4 can shift a few days — locked Dec 19-22, works for everyone.',
+    dateOptions: [
+      { id: 'dt1', title: 'Dec 19 – Dec 22', badge: 'Best time to visit', desc: 'Mid-December is peak season for Rishikesh — river levels are ideal for rafting, days are clear and pleasant, and it lines up with the year-end holiday window so time off is easy to get.', selected: true },
+      { id: 'dt2', title: 'Dec 26 – Dec 29', badge: 'Holiday rush', desc: 'Right after Christmas — same great weather, but hostels and rafting slots get busier and pricier this week.', selected: false },
+      { id: 'dt3', title: 'Jan 9 – Jan 12', badge: 'Quieter & cheaper', desc: 'Same winter rafting conditions with fewer crowds and lower prices once the holiday rush clears.', selected: false },
+    ],
     transports: [
       { id: 't1', title: 'AC Sleeper Volvo Bus', duration: 'Overnight 7h', cost: 1200, badge: 'Reconciled Effort', desc: 'Direct overnight route with lie-flat seating', selected: true },
       { id: 't2', title: 'Indigo Flight + Taxi Transfer', duration: '3h total', cost: 3400, badge: 'Fastest', desc: 'Flight to Dehradun (DED) + 40m cab ride to Rishikesh', selected: false },
@@ -84,7 +88,11 @@ const DESTINATION_OPTIONS = {
       { id: 'a2', title: 'Sunrise Trek + Bungee Jump + Beatle Cafe Trail', cost: 3500, badge: 'High Energy', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=400&q=80', items: ['Kunjapuri Sunrise Temple Trek', 'Mohanchatti Bungee Jump 83m', 'Beatles Ashram Walk'], selected: false },
       { id: 'a3', title: 'Yoga Retreat + Pottery Workshop + Cafe Crawl', cost: 1400, badge: 'Slow Pace', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=400&q=80', items: ['Guided Riverside Yoga Session', 'Clay Pottery & Craft Workshop', 'Laxman Jhula Cafe Hopping'], selected: false },
     ],
-    resolvedSummary: 'Reconciled 4 participant responses: 3 preferred offbeat/relaxed pace while 1 wanted high activity. Selected Shivpuri rafting + hostel stay to stay under ₹20,000 budget while accommodating flexible dates.',
+    resolvedSummary: [
+      { label: 'Group vibe', detail: '3 of 4 friends wanted an offbeat, relaxed pace, 1 wanted high activity' },
+      { label: 'Budget fit', detail: 'Shivpuri rafting + hostel stay keeps the trip under ₹20,000 per person' },
+      { label: 'Dates', detail: 'Most of the group had flexible dates, which made Dec 19-22 work for everyone' },
+    ],
     itinerary: [
       {
         day: 1,
@@ -139,7 +147,11 @@ const DESTINATION_OPTIONS = {
   Goa: {
     heroImage: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80',
     weather: '29°C Sunny | AQI 24',
-    datesReasoning: 'All 4 participants are available Dec 18-21 without any date conflicts.',
+    dateOptions: [
+      { id: 'dt1', title: 'Dec 18 – Dec 21', badge: 'Best time to visit', desc: 'This is peak winter season in Goa — dry weather, calm seas, and the liveliest stretch of the beach and nightlife scene all year.', selected: true },
+      { id: 'dt2', title: 'Dec 24 – Dec 27', badge: 'Christmas week', desc: 'Festive energy across the beach shacks, but expect higher resort prices and bigger crowds.', selected: false },
+      { id: 'dt3', title: 'Jan 5 – Jan 8', badge: 'Quieter & cheaper', desc: 'Same great winter weather with thinner crowds and better rates once the holiday season winds down.', selected: false },
+    ],
     transports: [
       { id: 't1', title: 'Direct Flight (IndiGo)', duration: '2.5h', cost: 4500, badge: 'Direct Flight', desc: 'Direct flight to Mopa (GOX) with shared airport cab', selected: true },
       { id: 't2', title: 'Tejas Express Train', duration: '10h', cost: 1800, badge: 'Budget Rail', desc: 'Overnight train with catering and recliner seats', selected: false },
@@ -152,7 +164,10 @@ const DESTINATION_OPTIONS = {
       { id: 'a1', title: 'South Goa Beach Hopping + Sunset Cruise', cost: 2500, badge: 'Chill Beach', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80', items: ['Palolem & Agonda Beach Walk', 'Mandovi River Sunset Cruise'], selected: true },
       { id: 'a2', title: 'Scuba Diving at Grand Island + Water Sports', cost: 4200, badge: 'Water Adventure', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=400&q=80', items: ['PADI Guided Island Scuba', 'Banana Ride & Jet Ski Bundle'], selected: false },
     ],
-    resolvedSummary: 'Resolved beach vibe preference across all members. Balanced luxury resort stay with relaxed day trips.',
+    resolvedSummary: [
+      { label: 'Group vibe', detail: 'Beach was the clear preference across every member' },
+      { label: 'Stay', detail: 'Balanced a luxury resort stay with relaxed day trips to fit the budget' },
+    ],
     itinerary: [
       {
         day: 1,
@@ -225,7 +240,7 @@ export function synthesizeRecommendation(session, responses) {
     estimatedCost,
     heroImage: customData.heroImage || DESTINATION_HEROES[best.destination] || DESTINATION_HEROES.Default,
     weather: customData.weather,
-    datesReasoning: customData.datesReasoning,
+    dateOptions: customData.dateOptions,
     transports: customData.transports,
     stays: customData.stays,
     activities: customData.activities,
@@ -257,10 +272,10 @@ export function synthesizeRecommendation(session, responses) {
         author: 'Google Local Guides'
       },
       {
-        platform: 'TripAdvisor Verified',
-        platformType: 'tripadvisor',
+        platform: 'MakeMyTrip Verified',
+        platformType: 'mmt',
         quote: '"Ideal 4-day pace for young working professionals. Rafting in the morning, sunset Aarti in the evening."',
-        author: 'Top Traveler Contributor'
+        author: 'MakeMyTrip Verified Traveler'
       }
     ],
     riskFlag: scenario === 'budget_ceiling' ? 'Option is close to per-person budget limit.' : null,

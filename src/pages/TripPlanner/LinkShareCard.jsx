@@ -4,12 +4,13 @@ import { Copy, Check, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
 import { toastStyle } from './toastStyle';
+import { blockVariants, BLOCK_STAGGER } from '../../components/AIChatbot/motionConfig';
 
 /**
- * Screen 2.1 — shareable link card with sonner toast notification,
- * copy button pulse animation, and AI-moment gradient sweep button.
+ * Screen 2.1 — shareable link card with sonner toast notification and
+ * AI-moment gradient sweep button.
  */
-const LinkShareCard = ({ joinUrl, onEnterHub }) => {
+const LinkShareCard = ({ joinUrl, onEnterHub, startDelay = 0 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -23,36 +24,31 @@ const LinkShareCard = ({ joinUrl, onEnterHub }) => {
   };
 
   return (
-    <motion.div
-      className="link-share-card"
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <span className="link-share-label">Shareable link</span>
-      <div className="link-share-row">
-        <span className="link-share-url">{joinUrl}</span>
-        <motion.button
-          type="button"
-          className="link-share-copy-btn"
-          onClick={handleCopy}
-          aria-label="Copy link"
-          whileTap={{ scale: 0.85 }}
-          animate={copied ? { scale: [1, 1.15, 1] } : { scale: 1 }}
-          transition={{ duration: 0.2 }}
-        >
-          {copied ? <Check size={16} /> : <Copy size={16} />}
-        </motion.button>
-      </div>
+    <div className="link-share-card">
+      <motion.div variants={blockVariants} custom={startDelay} initial="hidden" animate="visible">
+        <span className="link-share-label">Shareable link</span>
+        <div className="link-share-row">
+          <span className="link-share-url">{joinUrl}</span>
+          <button
+            type="button"
+            className="link-share-copy-btn"
+            onClick={handleCopy}
+            aria-label="Copy link"
+          >
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+          </button>
+        </div>
+      </motion.div>
       <GradientSweepButton
         type="button"
         className="link-share-hub-btn"
         onClick={onEnterHub}
+        startDelay={startDelay + BLOCK_STAGGER}
       >
         Peek at the live responses 👀
         <ArrowRight size={16} />
       </GradientSweepButton>
-    </motion.div>
+    </div>
   );
 };
 

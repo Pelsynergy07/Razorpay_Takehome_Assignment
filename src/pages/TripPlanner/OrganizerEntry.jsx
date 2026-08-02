@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import ChatFlowShell from '../../components/AIChatbot/ChatFlowShell';
 import { UserBubble, BotTextResponse, MessageBlock, FollowUpReveal } from '../../components/AIChatbot/ChatMessages';
 import TypingIndicator from '../../components/AIChatbot/TypingIndicator';
@@ -89,7 +88,7 @@ const OrganizerEntry = () => {
         />
       ) : null}
     >
-      <AnimatePresence initial={false}>
+      <>
         {messages.map((msg) => (
           <MessageBlock key={msg.id}>
             {msg.role === 'user' ? (
@@ -147,7 +146,7 @@ const OrganizerEntry = () => {
             <TypingIndicator />
           </MessageBlock>
         )}
-      </AnimatePresence>
+      </>
     </ChatFlowShell>
   );
 };

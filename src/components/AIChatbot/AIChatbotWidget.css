@@ -6,7 +6,6 @@
   width: 320px;
   z-index: var(--z-widget);
   cursor: pointer;
-  animation: bounceIn 550ms var(--ease-decelerate);
 }
 
 /* Mascot floats above the card, half overlapping its top edge, with its
@@ -24,7 +23,6 @@
 .widget-mascot {
   width: 120px;
   height: 120px;
-  animation: floatMascot 3s ease-in-out infinite;
 }
 
 .widget-mascot-shadow {
@@ -36,7 +34,6 @@
   height: 14px;
   background: radial-gradient(50% 50% at 50% 50%, rgba(20, 20, 40, 0.28) 0%, rgba(20, 20, 40, 0) 75%);
   border-radius: 50%;
-  animation: floatMascotShadow 3s ease-in-out infinite;
 }
 
 .widget-card {
@@ -157,30 +154,25 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: scaleIn var(--duration-slower) var(--ease-decelerate);
 }
 
 /* ===== TYPING INDICATOR (shared by mobile + desktop) ===== */
-.typing-indicator {
+.typing-indicator-row {
   display: flex;
-  gap: 5px;
   align-items: center;
+  gap: var(--space-xs);
 }
 
-.typing-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--mmt-text-light);
-  animation: typingDots 1.4s ease-in-out infinite;
+.typing-indicator-text {
+  font-size: var(--text-sm);
+  color: var(--mmt-blue);
+  font-style: italic;
 }
 
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
+.typing-indicator-spinner {
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
 }
 
 /* =====================================================================
@@ -194,7 +186,6 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: var(--z-chat-panel);
-  animation: fadeIn var(--duration-slower) ease;
 }
 
 .chat-sheet {
@@ -210,7 +201,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: slideUp var(--duration-slower) var(--ease-decelerate);
 }
 
 /* Full-page route usage (e.g. /plan) instead of an overlay-on-the-homepage
@@ -221,7 +211,6 @@
   height: 100vh;
   border-radius: 0;
   box-shadow: none;
-  animation: none;
   margin: 0 auto;
   max-width: var(--container-chat-max);
 }
@@ -269,8 +258,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  /* Entrance is owned by framer-motion (MessageBlock in ChatMessages.jsx) —
-     no competing CSS animation here. */
 }
 
 .user-msg-bubble {

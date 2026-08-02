@@ -15,7 +15,7 @@ export function useTripPlannerFlow() {
   // Broad intent detection for offline fallback — triggers whenever the user
   // mentions trips, group travel, vacations, flight/hotel planning, or friends.
   const detectsTripIntent = (text) =>
-    /friends|trip|vacation|holiday|getaway|goa|manali|rishikesh|group|plan|flight|hotel|weekend|travel|fly|stay|pack|explore/i.test(text);
+    /friends?|trip|vacation|holiday|getaway|goa|manali|rishikesh|group|plan|flight|hotel|weekend|travel|fly|stay|pack|explore/i.test(text);
 
   const launchMessage = () => ({
     kind: 'launch',
