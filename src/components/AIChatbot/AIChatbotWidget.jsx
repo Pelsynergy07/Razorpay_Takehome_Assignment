@@ -17,6 +17,8 @@ import TripSummaryCard from '../../pages/TripPlanner/TripSummaryCard';
 import { useTripPlannerFlow } from '../../pages/TripPlanner/useTripPlannerFlow';
 import '../../pages/TripPlanner/TripPlanner.css';
 import MyraAvatar from './MyraAvatar';
+import ChatLandingScreen from './ChatLandingScreen';
+import { listConversations, getConversation, saveConversation, createConversationId, clearAllConversations } from '../../lib/chatHistory';
 import './AIChatbotWidget.css';
 
 const promptSuggestions = [
@@ -86,14 +88,9 @@ const generateBotResponse = (userMsg) => {
 
 const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   const flow = useTripPlannerFlow();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: 'bot',
-      type: 'text',
-      text: "Hi there! 👋 I'm MyRA, your AI travel assistant. I can help you find the best flights, hotels, and plan amazing trips. What would you like to explore today?",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [conversations, setConversations] = useState(() => listConversations());
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showWidget, setShowWidget] = useState(!isOpen);
@@ -112,6 +109,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
   useEffect(() => {
     if (chatOpen) {
+      setConversations(listConversations());
       setShowRedirect(true);
       const t = setTimeout(() => setShowRedirect(false), 1300);
       return () => clearTimeout(t);
@@ -121,6 +119,39 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  // Persist the active conversation to localStorage on every change, so it
+  // shows up in the "pick up where you left off" list next time.
+  useEffect(() => {
+    if (activeConversationId && messages.length > 0) {
+      saveConversation(activeConversationId, messages);
+    }
+  }, [activeConversationId, messages]);
+
+  const ensureConversationId = () => {
+    if (activeConversationId) return activeConversationId;
+    const id = createConversationId();
+    setActiveConversationId(id);
+    return id;
+  };
+
+  const handleSelectConversation = (id) => {
+    const conv = getConversation(id);
+    if (conv) {
+      setActiveConversationId(id);
+      setMessages(conv.messages);
+    }
+  };
+
+  const handleClearHistory = () => {
+    if (messages.length === 0 && conversations.length === 0) return;
+    const ok = window.confirm('Delete all chat history? This cannot be undone.');
+    if (!ok) return;
+    clearAllConversations();
+    setConversations([]);
+    setMessages([]);
+    setActiveConversationId(null);
+  };
 
   // Every bot turn "thinks" briefly before landing, instead of popping in
   // instantly.
@@ -136,6 +167,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     const msg = text || inputValue.trim();
     if (!msg || isTyping) return;
 
+    ensureConversationId();
     const userMsg = { id: Date.now(), role: 'user', type: 'text', text: msg };
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
@@ -155,14 +187,58 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     }, 1200 + Math.random() * 800);
   };
 
+  // Action buttons (Launch sync mode, Create trip session, Enter hub) echo
+  // as a user message first, instead of silently jumping to the next step.
+  const echoUser = (text) => {
+    ensureConversationId();
+    setMessages(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', text }]);
+  };
+
   const handleLaunchSyncMode = () => {
+    echoUser('Launch sync mode');
     const { kind, text } = flow.startForm();
     thinkThen(kind, text, 1400);
   };
 
   const handleTripFormSubmit = (formValues) => {
+    echoUser(`${formValues.groupSize} people · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
     const { message } = flow.submitForm(formValues);
     thinkThen(message.kind, message.text, 1800);
+  };
+
+  const handleEnterHub = () => {
+    echoUser('Enter live aggregation hub');
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.enterHub();
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'hub', text: "Here's the live hub — I'll update this as responses come in." }]);
+      setIsTyping(false);
+    }, 900);
+  };
+
+  const handleProceedToSynthesis = () => {
+    echoUser('Proceed to synthesis now');
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.startSynthesis();
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'processing' }]);
+      setIsTyping(false);
+    }, 900);
+  };
+
+  const handleCompleteSynthesis = () => {
+    flow.completeSynthesis();
+    setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'result', text: "Here's what I've put together:" }]);
+  };
+
+  const handleApprove = () => {
+    echoUser('Approve itinerary');
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.approve();
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'closed', text: "You're all set! Here's your itinerary:" }]);
+      setIsTyping(false);
+    }, 900);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -182,6 +258,10 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   const closeChat = () => {
     setChatOpen(false);
     setShowWidget(true);
+    // Leaving the chat returns to the landing screen next time — any
+    // conversation so far is already persisted, so nothing is lost.
+    setMessages([]);
+    setActiveConversationId(null);
     if (onClose) onClose();
   };
 
@@ -191,48 +271,13 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   };
 
   const renderChatBody = (rootClassName) => {
-    if (chatOpen && !showRedirect && flow.tripStep === 'hub') {
-      return (
-        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
-          <LiveAggregationHub session={flow.session} onProceed={flow.startSynthesis} />
-        </ChatFlowShell>
-      );
-    }
-
-    if (chatOpen && !showRedirect && flow.tripStep === 'processing') {
-      return (
-        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
-          <ProcessingScreen onComplete={flow.completeSynthesis} />
-        </ChatFlowShell>
-      );
-    }
-
-    if (chatOpen && !showRedirect && flow.tripStep === 'result') {
-      return (
-        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
-          <SynthesisResult
-            recommendation={flow.recommendation}
-            onUpdate={flow.updateRecommendation}
-            onApprove={flow.approve}
-          />
-        </ChatFlowShell>
-      );
-    }
-
-    if (chatOpen && !showRedirect && flow.tripStep === 'closed') {
-      return (
-        <ChatFlowShell rootClassName={rootClassName} onClose={closeChat}>
-          <TripSummaryCard recommendation={flow.recommendation} />
-        </ChatFlowShell>
-      );
-    }
-
     return (
       <ChatFlowShell
         rootClassName={rootClassName}
         onClose={closeChat}
+        onClearHistory={handleClearHistory}
         messagesRef={messagesScrollRef}
-        belowMessages={!showRedirect && <ScrollHintButton onClick={scrollMessagesDown} />}
+        belowMessages={!showRedirect && messages.length > 0 && <ScrollHintButton onClick={scrollMessagesDown} />}
         footer={flow.tripStep !== 'form' && (
           <ChatInputBar
             value={inputValue}
@@ -245,6 +290,13 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       >
         {showRedirect ? (
           <ChatRedirectState label="Myra" />
+        ) : messages.length === 0 ? (
+          <ChatLandingScreen
+            conversations={conversations}
+            suggestions={promptSuggestions.slice(0, 3)}
+            onSelectSuggestion={handleSend}
+            onSelectConversation={handleSelectConversation}
+          />
         ) : (
           <>
             <AnimatePresence initial={false}>
@@ -254,7 +306,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                     <UserBubble text={msg.text} />
                   ) : (
                     <>
-                      <BotTextResponse text={msg.text} />
+                      {msg.type !== 'processing' && <BotTextResponse text={msg.text} />}
                       {msg.type === 'destinations' && msg.destinations && (
                         <DestinationCarousel destinations={msg.destinations} />
                       )}
@@ -265,9 +317,23 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                       )}
                       {msg.type === 'form' && <IntentFormCard onSubmit={handleTripFormSubmit} />}
                       {msg.type === 'share' && flow.session && (
-                        <LinkShareCard joinUrl={tripJoinUrl} onEnterHub={flow.enterHub} />
+                        <LinkShareCard joinUrl={tripJoinUrl} onEnterHub={handleEnterHub} />
                       )}
-                      {msg.type !== 'launch' && msg.type !== 'form' && msg.type !== 'share' && <MessageActions />}
+                      {msg.type === 'hub' && (
+                        <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                      )}
+                      {msg.type === 'processing' && <ProcessingScreen onComplete={handleCompleteSynthesis} />}
+                      {msg.type === 'result' && (
+                        <SynthesisResult
+                          recommendation={flow.recommendation}
+                          onUpdate={flow.updateRecommendation}
+                          onApprove={handleApprove}
+                        />
+                      )}
+                      {msg.type === 'closed' && <TripSummaryCard recommendation={flow.recommendation} />}
+                      {!['launch', 'form', 'share', 'hub', 'processing', 'result', 'closed'].includes(msg.type) && (
+                        <MessageActions />
+                      )}
                     </>
                   )}
                 </MessageBlock>

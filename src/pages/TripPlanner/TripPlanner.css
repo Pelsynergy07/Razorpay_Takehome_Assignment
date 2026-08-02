@@ -556,15 +556,18 @@
   gap: var(--space-sm);
 }
 
-/* ===== Screen 3.1 — live aggregation hub ===== */
+/* ===== Screen 3.1 — live aggregation hub =====
+   Lives inline in the message transcript (not a full-screen takeover), so
+   it reads as one more card in the conversation rather than a page swap. */
 .hub-screen {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: var(--space-md);
-  padding: var(--space-xl);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-lg);
   text-align: center;
 }
 
@@ -637,20 +640,25 @@
   border-radius: var(--radius-pill);
 }
 
-/* ===== Screen 4.1 — processing state ===== */
+/* ===== Screen 4.1 — processing state =====
+   Lives inline in the message transcript, same as the hub above. */
 .processing-screen {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: var(--space-md);
-  padding: var(--space-xl);
+  background: var(--mmt-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-lg);
+  text-align: center;
 }
 
 .processing-stage-text {
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
   color: var(--mmt-text-secondary);
+  text-align: center;
 }
 
 /* ===== Screens 4.2/4.3 — synthesis result + edit/swap ===== */
@@ -809,59 +817,773 @@
   margin-top: auto;
 }
 
-/* ===== Screen 5.1 — close the loop ===== */
-.trip-summary-screen {
-  flex: 1;
+/* ===== Screen 5.1 — final day-by-day itinerary =====
+   Same elevated-card treatment as every other card in this flow (white
+   bg, radius-lg, shadow-sm) — the hero photo bleeds to the card's own
+   edges and gets its corner rounding for free via overflow:hidden here,
+   rather than needing its own separate radius. */
+.itinerary-screen {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-lg);
-  padding: var(--space-xl);
-}
-
-.trip-summary-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
   background: var(--mmt-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-xl);
-  text-align: center;
-  width: 100%;
+  overflow: hidden;
 }
 
-.trip-summary-check {
-  width: 44px;
-  height: 44px;
+.itinerary-hero {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  flex-shrink: 0;
+}
+
+.itinerary-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.itinerary-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.itinerary-hero-content {
+  position: absolute;
+  inset: 0;
+  padding: var(--space-lg) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  color: var(--mmt-text-white);
+}
+
+.itinerary-hero-title {
+  font-family: var(--font-family-serif);
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-bold);
+  margin: 0;
+  line-height: var(--leading-tight);
+}
+
+.itinerary-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.itinerary-hero-destname {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  opacity: 0.85;
+}
+
+.itinerary-timeline {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg) var(--space-md) 0;
+}
+
+.itinerary-day {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.itinerary-day-marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 12px;
+  padding-top: var(--space-2xs);
+}
+
+.itinerary-day-dot {
+  width: 10px;
+  height: 10px;
   border-radius: var(--radius-pill);
+  background: var(--mmt-blue);
+  flex-shrink: 0;
+}
+
+.itinerary-day-line {
+  flex: 1;
+  width: 2px;
+  background: var(--mmt-border);
+  margin-top: var(--space-2xs);
+  transform-origin: top;
+}
+
+.itinerary-day-card {
+  flex: 1;
+  padding-bottom: var(--space-xl);
+}
+
+.itinerary-day-title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-heavy);
+  color: var(--mmt-text-primary);
+  margin: 0 0 var(--space-xs);
+}
+
+.itinerary-day-desc {
+  font-size: var(--text-md);
+  color: var(--mmt-text-secondary);
+  line-height: var(--leading-base);
+  margin: 0 0 var(--space-sm);
+}
+
+.itinerary-day-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+}
+
+.itinerary-day-detail-chip {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue-deep);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-pill);
+}
+
+.itinerary-day-image-wrap {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+}
+
+.itinerary-day-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.itinerary-day-rating {
+  position: absolute;
+  bottom: var(--space-xs);
+  right: var(--space-xs);
   background: var(--mmt-success);
-  color: var(--mmt-white);
+  color: var(--mmt-text-white);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-xs);
+}
+
+.itinerary-day-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* Deliberately no size override here — same height as every other
+   .btn-secondary in the app (Create trip session, Approve itinerary, etc). */
+
+.itinerary-footer-actions {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+}
+
+.itinerary-footer-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-xs);
+  gap: var(--space-2xs);
 }
 
-.trip-summary-destination {
+
+/* ===== Screen 4.2 — synthesis result dashboard =====
+   Hero banner + confidence card + 5 section accordions (Dates, Getting
+   there, Stay, Things to do, What we resolved). Every accordion shares one
+   icon-chip treatment (blue-tint, single accent) instead of a different
+   raw color per category, and editing a category slides in a swap view
+   in place of the dashboard — no fixed/full-viewport modal — so it stays
+   inside the chat panel's own bounds. */
+.synthesis-revamped-dashboard,
+.synthesis-swap-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  padding-bottom: var(--space-xl);
+}
+
+.synthesis-hero-banner {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.synthesis-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.synthesis-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.synthesis-hero-content {
+  position: absolute;
+  inset: 0;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: var(--mmt-text-white);
+}
+
+.synthesis-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  padding: var(--space-3xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-3xs);
+  width: fit-content;
+}
+
+.synthesis-hero-title {
   font-size: var(--text-2xl);
   font-weight: var(--fw-heavy);
+  margin: 0 0 var(--space-3xs);
+  letter-spacing: -0.02em;
+  color: var(--mmt-text-white);
+}
+
+.synthesis-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.hero-meta-pill {
+  font-size: var(--text-sm);
+  background: rgba(255, 255, 255, 0.2);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-xs);
+}
+
+.hero-weather-badge {
+  font-size: var(--text-xs);
+  background: var(--mmt-blue);
+  color: var(--mmt-text-white);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-xs);
+  font-weight: var(--fw-bold);
+}
+
+/* Confidence card — same plain neutral card as every accordion, no
+   colored fill and no left-edge accent bar. */
+.synthesis-confidence-card {
+  background: var(--mmt-white);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.confidence-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.confidence-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-md);
+  font-weight: var(--fw-black);
   color: var(--mmt-text-primary);
 }
 
-.trip-summary-meta {
-  font-size: var(--text-md);
-  color: var(--mmt-text-secondary);
+/* Tiny "why this recommendation" trust/transparency toggle */
+.confidence-source-btn {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--mmt-bg-page);
+  color: var(--mmt-text-tertiary);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--duration-base), color var(--duration-base);
 }
 
-.trip-summary-reason {
+.confidence-source-btn:hover {
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+}
+
+.confidence-reasoning {
   font-size: var(--text-md);
   color: var(--mmt-text-primary);
-  margin-top: var(--space-xs);
+  margin: var(--space-2xs) 0 0;
+  line-height: var(--leading-base);
 }
 
-.trip-summary-share-btn {
+/* Accordion cards group */
+.synthesis-accordions-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.accordion-card {
+  background: var(--mmt-white);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.accordion-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: var(--space-sm);
+}
+
+.accordion-header {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordion-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* One consistent icon treatment for every category — no per-category
+   rainbow of raw hex colors. */
+.accordion-icon-chip {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accordion-heading {
+  font-size: var(--text-md);
+  font-weight: var(--fw-black);
+  color: var(--mmt-text-primary);
+  margin: 0;
+}
+
+.accordion-subtext {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-tertiary);
+}
+
+.accordion-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  padding: var(--space-2xs) var(--space-sm);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  border: none;
+  cursor: pointer;
+  transition: background var(--duration-base);
+}
+
+.accordion-edit-btn:hover {
+  background: var(--mmt-blue-tint-hover);
+}
+
+.accordion-body {
+  padding: 0 var(--space-md) var(--space-md);
+  border-top: 1px dashed var(--mmt-border);
+}
+
+/* Item previews inside accordions */
+.dates-reasoning-box {
+  background: var(--mmt-bg-page-alt);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.dates-reasoning-tag {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  color: var(--mmt-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dates-reasoning-text {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-primary);
+  margin: var(--space-2xs) 0 0;
+  font-style: italic;
+}
+
+.active-item-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin-top: var(--space-sm);
+}
+
+.active-item-preview.flex-row {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.active-item-img {
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.active-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.active-item-badge {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
+  font-family: inherit;
+  background: var(--mmt-bg-page);
+  color: var(--mmt-text-secondary);
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-xs);
+  border: none;
+}
+
+.badge-clickable {
+  cursor: pointer;
+  transition: background var(--duration-base), color var(--duration-base);
+}
+
+.badge-clickable:hover {
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+}
+
+.voted-by-text {
+  font-size: var(--text-xs);
+  color: var(--mmt-text-tertiary);
+  font-style: italic;
+  margin: var(--space-3xs) 0 0;
+}
+
+.active-item-title {
+  font-size: var(--text-md);
+  font-weight: var(--fw-black);
+  color: var(--mmt-text-primary);
+  margin: var(--space-3xs) 0 0;
+}
+
+.active-item-desc {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  margin: 0;
+  line-height: var(--leading-tight);
+}
+
+.active-item-price {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-black);
+  color: var(--mmt-blue);
+  margin-top: var(--space-3xs);
+}
+
+.activity-list-items {
+  margin: var(--space-2xs) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.activity-list-items li {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  font-weight: var(--fw-semibold);
+}
+
+/* What we resolved — same neutral card as every other accordion, no
+   special color theming */
+.resolved-summary-box {
+  margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.resolved-summary-text {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-primary);
+  line-height: var(--leading-base);
+  margin: 0;
+  font-weight: var(--fw-semibold);
+}
+
+.resolved-attributions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.attribution-label {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  color: var(--mmt-text-tertiary);
+}
+
+.attribution-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+/* Footer approve button — same outline family as every other CTA in this
+   flow (Launch sync mode, Create trip session, Enter live aggregation
+   hub), not a one-off filled gradient. */
+.synthesis-footer-action {
+  margin-top: var(--space-xs);
+  width: 100%;
+}
+
+.approve-itinerary-btn {
+  width: 100%;
+}
+
+/* ===== In-panel category swap view (Screen 4.3) =====
+   Replaces the dashboard in place — same chat-sheet bounds, no modal. */
+.synthesis-swap-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--mmt-blue);
+  font-size: var(--text-md);
+  font-weight: var(--fw-semibold);
+  padding: var(--space-2xs) 0;
+  cursor: pointer;
+}
+
+.synthesis-swap-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.synthesis-swap-title {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-heavy);
+  color: var(--mmt-text-primary);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.synthesis-swap-subtitle {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  margin: 0;
+}
+
+.synthesis-swap-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.synthesis-swap-option {
+  display: flex;
+  gap: var(--space-sm);
+  background: var(--mmt-white);
+  border: 1.5px solid var(--mmt-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  text-align: left;
+  transition: border-color var(--duration-base), background var(--duration-base);
+}
+
+.synthesis-swap-option:hover {
+  border-color: var(--mmt-blue);
+}
+
+.synthesis-swap-option.selected {
+  border-color: var(--mmt-blue);
+  background: var(--mmt-blue-tint);
+}
+
+.synthesis-swap-option-img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.synthesis-swap-option-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  min-width: 0;
+}
+
+.synthesis-swap-option-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.synthesis-swap-option-title {
+  font-size: var(--text-md);
+  font-weight: var(--fw-black);
+  color: var(--mmt-text-primary);
+  margin: 0;
+}
+
+.synthesis-swap-active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  background: var(--mmt-blue);
+  color: var(--mmt-text-white);
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-pill);
+}
+
+.synthesis-swap-option-type {
+  font-size: var(--text-xs);
+  color: var(--mmt-text-tertiary);
+}
+
+.synthesis-swap-option-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-2xs);
+  padding-top: var(--space-2xs);
+  border-top: 1px dashed var(--mmt-border);
+}
+
+.synthesis-swap-select-hint {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-tertiary);
+}
+
+.synthesis-swap-select-hint.selected {
+  color: var(--mmt-blue);
+}
+
+/* Evidence & sourcing accordion — same neutral treatment as every other
+   accordion, no per-platform colors and no left-edge accent bars. */
+.community-proof-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin-top: var(--space-sm);
+}
+
+.community-proof-card {
+  background: var(--mmt-bg-page-alt);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.proof-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.proof-platform-tag {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  color: var(--mmt-text-primary);
+}
+
+.proof-author {
+  font-size: var(--text-xs);
+  color: var(--mmt-text-tertiary);
+  font-weight: var(--fw-semibold);
+}
+
+.proof-quote {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  margin: 0;
+  line-height: var(--leading-tight);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

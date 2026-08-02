@@ -8,9 +8,9 @@ import ChatHeader from './ChatHeader';
  * dedicated routes (like the trip-planner flow) so there is exactly one
  * place that owns the header/messages/input composition.
  */
-const ChatFlowShell = ({ onClose, messagesRef, children, belowMessages, footer, rootClassName = 'chat-sheet' }) => (
+const ChatFlowShell = ({ onClose, onClearHistory, messagesRef, children, belowMessages, footer, rootClassName = 'chat-sheet' }) => (
   <div className={rootClassName}>
-    <ChatHeader onClose={onClose} />
+    <ChatHeader onClose={onClose} onClearHistory={onClearHistory} />
     <div className="chat-sheet-messages" ref={messagesRef}>
       {children}
     </div>

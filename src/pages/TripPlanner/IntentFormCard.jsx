@@ -9,6 +9,13 @@ const budgetOptions = [
   { label: '₹15,000+', value: 20000 },
 ];
 
+const formatDateRange = (startIso, endIso) => {
+  const opts = { month: 'short', day: 'numeric' };
+  const start = new Date(`${startIso}T00:00:00`).toLocaleDateString('en-US', opts);
+  const end = new Date(`${endIso}T00:00:00`).toLocaleDateString('en-US', opts);
+  return `${start} - ${end}`;
+};
+
 const formContainerVariants = {
   hidden: { opacity: 0, y: 14 },
   visible: {
@@ -40,17 +47,23 @@ const formItemVariants = {
  */
 const IntentFormCard = ({ onSubmit }) => {
   const [groupSize, setGroupSize] = useState('5');
+  const [knowsDates, setKnowsDates] = useState(null); // null | true | false
   const [numberOfDays, setNumberOfDays] = useState('4');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [budget, setBudget] = useState(null);
 
-  const canSubmit = groupSize && numberOfDays && budget !== null;
+  const hasDateAnswer = knowsDates === true ? Boolean(startDate && endDate) : Boolean(numberOfDays);
+  const canSubmit = groupSize && knowsDates !== null && hasDateAnswer && budget !== null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!canSubmit) return;
     onSubmit({
       groupSize: Number(groupSize),
-      dateWindow: `${numberOfDays} day${Number(numberOfDays) === 1 ? '' : 's'}`,
+      dateWindow: knowsDates
+        ? formatDateRange(startDate, endDate)
+        : `${numberOfDays} day${Number(numberOfDays) === 1 ? '' : 's'}`,
       budgetPerPerson: budget,
     });
   };
@@ -63,19 +76,68 @@ const IntentFormCard = ({ onSubmit }) => {
       initial="hidden"
       animate="visible"
     >
-      <div className="intent-form-row">
-        <motion.div className="intent-form-field" variants={formItemVariants}>
-          <label htmlFor="groupSize">How many of you?</label>
-          <input
-            id="groupSize"
-            type="number"
-            min="2"
-            max="30"
-            value={groupSize}
-            onChange={(e) => setGroupSize(e.target.value)}
-            required
-          />
-        </motion.div>
+      <motion.div className="intent-form-field" variants={formItemVariants}>
+        <label htmlFor="groupSize">How many of you?</label>
+        <input
+          id="groupSize"
+          type="number"
+          min="2"
+          max="30"
+          value={groupSize}
+          onChange={(e) => setGroupSize(e.target.value)}
+          required
+        />
+      </motion.div>
+
+      <motion.div className="intent-form-field" variants={formItemVariants}>
+        <label>Do you already know the dates of travel?</label>
+        <div className="budget-pill-group">
+          <motion.button
+            type="button"
+            className={`budget-pill ${knowsDates === true ? 'active' : ''}`}
+            onClick={() => setKnowsDates(true)}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            Yes
+          </motion.button>
+          <motion.button
+            type="button"
+            className={`budget-pill ${knowsDates === false ? 'active' : ''}`}
+            onClick={() => setKnowsDates(false)}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            No
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {knowsDates === true ? (
+        <div className="intent-form-row">
+          <motion.div className="intent-form-field" variants={formItemVariants}>
+            <label htmlFor="startDate">Start date</label>
+            <input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+          </motion.div>
+          <motion.div className="intent-form-field" variants={formItemVariants}>
+            <label htmlFor="endDate">End date</label>
+            <input
+              id="endDate"
+              type="date"
+              min={startDate || undefined}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+            />
+          </motion.div>
+        </div>
+      ) : knowsDates === false ? (
         <motion.div className="intent-form-field" variants={formItemVariants}>
           <label htmlFor="numberOfDays">How many days?</label>
           <input
@@ -89,7 +151,7 @@ const IntentFormCard = ({ onSubmit }) => {
             required
           />
         </motion.div>
-      </div>
+      ) : null}
 
       <motion.div className="intent-form-field" variants={formItemVariants}>
         <label>What's the budget looking like per head?</label>

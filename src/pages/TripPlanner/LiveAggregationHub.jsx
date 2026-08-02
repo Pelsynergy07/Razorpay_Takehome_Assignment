@@ -29,7 +29,6 @@ const summarizeVibes = (responses) => {
 const LiveAggregationHub = ({ session, onProceed }) => {
   const [responses, setResponses] = useState(() => getResponses(session.id));
   const [nudgeSent, setNudgeSent] = useState(false);
-  const [synthesisRequested, setSynthesisRequested] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeToResponses(session.id, setResponses);
@@ -40,9 +39,16 @@ const LiveAggregationHub = ({ session, onProceed }) => {
   const pendingCount = Math.max(0, session.group_size - respondedCount);
   const signalLine = summarizeVibes(responses);
 
+  const [proceeded, setProceeded] = useState(false);
+
   const handleNudge = () => {
     setNudgeSent(true);
     setTimeout(() => setNudgeSent(false), 2500);
+  };
+
+  const handleProceed = () => {
+    setProceeded(true);
+    onProceed?.();
   };
 
   return (
@@ -79,8 +85,9 @@ const LiveAggregationHub = ({ session, onProceed }) => {
         <motion.button
           type="button"
           className="btn-secondary"
-          onClick={() => { setSynthesisRequested(true); onProceed?.(); }}
-          whileTap={{ scale: 0.98 }}
+          onClick={handleProceed}
+          disabled={proceeded}
+          whileTap={proceeded ? undefined : { scale: 0.98 }}
         >
           Proceed to synthesis now
         </motion.button>
@@ -96,16 +103,6 @@ const LiveAggregationHub = ({ session, onProceed }) => {
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
             Nudge sent to pending friends.
-          </motion.p>
-        )}
-        {synthesisRequested && (
-          <motion.p
-            className="hub-toast"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          >
-            Synthesis is coming in the next phase — that's where Myra turns these answers into one recommendation.
           </motion.p>
         )}
       </AnimatePresence>

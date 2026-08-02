@@ -50,6 +50,12 @@ const OrganizerEntry = () => {
     }, delay);
   };
 
+  // Action buttons (Launch sync mode, Create trip session, Enter hub) echo
+  // as a user message first, instead of silently jumping to the next step.
+  const echoUser = (text) => {
+    setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: 'user', kind: 'text', text }]);
+  };
+
   const handleSend = () => {
     const text = inputValue.trim();
     if (!text || flow.tripStep !== 'intro' || isTyping) return;
@@ -67,50 +73,53 @@ const OrganizerEntry = () => {
     }
   };
 
-  const handleLaunchSyncMode = () => thinkThen(flow.startForm(), 1400);
+  const handleLaunchSyncMode = () => {
+    echoUser('Launch sync mode');
+    thinkThen(flow.startForm(), 1400);
+  };
 
   const handleFormSubmit = (formValues) => {
+    echoUser(`${formValues.groupSize} people · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
     const { message } = flow.submitForm(formValues);
     thinkThen(message, 1800);
   };
 
+  const handleEnterHub = () => {
+    echoUser('Enter live aggregation hub');
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.enterHub();
+      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'hub', text: "Here's the live hub — I'll update this as responses come in." }]);
+      setIsTyping(false);
+    }, 900);
+  };
+
+  const handleProceedToSynthesis = () => {
+    echoUser('Proceed to synthesis now');
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.startSynthesis();
+      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'processing' }]);
+      setIsTyping(false);
+    }, 900);
+  };
+
+  const handleCompleteSynthesis = () => {
+    flow.completeSynthesis();
+    setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'result', text: "Here's what I've put together:" }]);
+  };
+
+  const handleApprove = () => {
+    echoUser('Approve itinerary');
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.approve();
+      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'closed', text: "You're all set! Here's your itinerary:" }]);
+      setIsTyping(false);
+    }, 900);
+  };
+
   const joinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
-
-  if (flow.tripStep === 'hub') {
-    return (
-      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
-        <LiveAggregationHub session={flow.session} onProceed={flow.startSynthesis} />
-      </ChatFlowShell>
-    );
-  }
-
-  if (flow.tripStep === 'processing') {
-    return (
-      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
-        <ProcessingScreen onComplete={flow.completeSynthesis} />
-      </ChatFlowShell>
-    );
-  }
-
-  if (flow.tripStep === 'result') {
-    return (
-      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
-        <SynthesisResult
-          recommendation={flow.recommendation}
-          onUpdate={flow.updateRecommendation}
-          onApprove={flow.approve}
-        />
-      </ChatFlowShell>
-    );
-  }
-
-  if (flow.tripStep === 'closed') {
-    return (
-      <ChatFlowShell rootClassName="chat-sheet chat-sheet--route" onClose={() => navigate('/')}>
-        <TripSummaryCard recommendation={flow.recommendation} />
-      </ChatFlowShell>
-    );
-  }
 
   return (
     <ChatFlowShell
@@ -134,7 +143,7 @@ const OrganizerEntry = () => {
               <UserBubble text={msg.text} />
             ) : (
               <>
-                <BotTextResponse text={msg.text} />
+                {msg.kind !== 'processing' && <BotTextResponse text={msg.text} />}
                 {msg.kind === 'launch' && (
                   <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
                     Launch sync mode
@@ -142,8 +151,20 @@ const OrganizerEntry = () => {
                 )}
                 {msg.kind === 'form' && <IntentFormCard onSubmit={handleFormSubmit} />}
                 {msg.kind === 'share' && flow.session && (
-                  <LinkShareCard joinUrl={joinUrl} onEnterHub={flow.enterHub} />
+                  <LinkShareCard joinUrl={joinUrl} onEnterHub={handleEnterHub} />
                 )}
+                {msg.kind === 'hub' && (
+                  <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                )}
+                {msg.kind === 'processing' && <ProcessingScreen onComplete={handleCompleteSynthesis} />}
+                {msg.kind === 'result' && (
+                  <SynthesisResult
+                    recommendation={flow.recommendation}
+                    onUpdate={flow.updateRecommendation}
+                    onApprove={handleApprove}
+                  />
+                )}
+                {msg.kind === 'closed' && <TripSummaryCard recommendation={flow.recommendation} />}
               </>
             )}
           </MessageBlock>

@@ -199,6 +199,11 @@
   background: var(--mmt-border);
 }
 
+.chat-sheet-icon-btn--danger:hover {
+  background: rgba(235, 34, 38, 0.12);
+  color: var(--mmt-red);
+}
+
 /* ----- Messages ----- */
 .chat-sheet-messages {
   flex: 1;
@@ -595,9 +600,151 @@
   color: var(--mmt-navy-light);
 }
 
+/* ===== MYRA LANDING SCREEN (greeting + suggestions/history picker) ===== */
+.myra-landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+}
+
+.myra-landing-wordmark {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  color: var(--mmt-blue-deep);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+}
+
+.myra-landing-wordmark-ai {
+  background: var(--gradient-btn-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.myra-landing-beta {
+  font-size: var(--text-2xs);
+  font-weight: var(--fw-bold);
+  font-style: normal;
+  color: var(--mmt-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.myra-landing-greeting {
+  font-family: var(--font-family-serif);
+  font-size: var(--text-4xl);
+  font-weight: var(--fw-heavy);
+  background: var(--gradient-btn-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.myra-landing-subtitle {
+  font-size: var(--text-lg);
+  line-height: var(--leading-base);
+  color: var(--mmt-text-primary);
+  margin: 0;
+}
+
+.myra-landing-section-label {
+  font-size: var(--text-md);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-secondary);
+  margin-top: var(--space-sm);
+}
+
+.myra-landing-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.myra-suggestion-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--mmt-white);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  transition: border-color var(--duration-base), box-shadow var(--duration-base);
+}
+
+.myra-suggestion-pill:hover {
+  border-color: var(--mmt-blue);
+  box-shadow: var(--shadow-xs);
+}
+
+.myra-suggestion-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.myra-suggestion-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.myra-suggestion-text {
+  font-size: var(--text-md);
+  color: var(--mmt-text-primary);
+}
+
+.myra-suggestion-meta {
+  font-size: var(--text-xs);
+  color: var(--mmt-text-light);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .chatbot-floating-widget {
     display: none;
+  }
+}
+
+/* ===== PRINT (Download PDF on the final itinerary screen) =====
+   The chat shell is normally a fixed-position, overflow-clipped panel —
+   none of that should apply on paper. Everything else on the page (chat
+   chrome, backdrop, floating widget) is hidden so only the itinerary
+   content prints. */
+@media print {
+  .chatbot-floating-widget,
+  .chat-sheet-backdrop,
+  .chat-sheet-header,
+  .chat-sheet-input-area {
+    display: none !important;
+  }
+
+  .chat-sheet,
+  .chatbot-panel,
+  .chat-sheet--route {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .chat-sheet-messages {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
   }
 }
