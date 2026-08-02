@@ -15,10 +15,10 @@ const formContainerVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.55,
+      duration: 0.85,
       ease: [0.16, 1, 0.3, 1],
-      staggerChildren: 0.08,
-      delayChildren: 0.12,
+      staggerChildren: 0.12,
+      delayChildren: 0.15,
     },
   },
 };
@@ -29,7 +29,7 @@ const formItemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.45,
+      duration: 0.65,
       ease: [0.16, 1, 0.3, 1],
     },
   },
@@ -77,7 +77,7 @@ const IntentFormCard = ({ onSubmit }) => {
           />
         </motion.div>
         <motion.div className="intent-form-field" variants={formItemVariants}>
-          <label htmlFor="numberOfDays">When are you thinking?</label>
+          <label htmlFor="numberOfDays">How many days?</label>
           <input
             id="numberOfDays"
             type="number"

@@ -143,6 +143,7 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-slow: 350ms;
+  --duration-slower: 550ms; /* deliberate entrance moments (panel/sheet open, message reveal) — not for hover/press feedback */
 
   /* ===================================================================
      Z-INDEX SCALE

@@ -45,7 +45,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
             {getAlternatives(recommendation).map((alt) => (
               <button key={alt.id} type="button" className="synthesis-alt-card" onClick={() => handleSwap(alt)}>
@@ -71,7 +71,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
             {attributions.length > 0 && (
               <div className="attribution-pill-row">

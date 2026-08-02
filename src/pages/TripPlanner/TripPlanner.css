@@ -1,6 +1,19 @@
-/* ===== AI Moment Gradient Sweep Button ===== */
+/* ===== AI Moment Gradient Sweep Button =====
+   A diagonal light band glides across the button every ~7s — a quiet
+   "the AI is nudging you toward this" cue — instead of an animated border.
+   Band reuses --gradient-btn-primary's own blue-on-blue tones (the
+   button's own border/text color), so it reads as a soft glow of the
+   button's own accent rather than an unrelated rainbow. The band is an
+   actual skewed (skewX) parallelogram, not a gradient-angle trick, so its
+   edges stay hard/crisp (no fade to transparent) while still reading as
+   diagonal. Fixed 24px width (not a % of the button) so it stays a slim
+   highlight even on wide CTAs, and it stops entirely once the button has
+   been clicked (see GradientSweepButton.jsx's hasBeenClicked →
+   reduced-motion class). */
 .btn-gradient-sweep {
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -8,30 +21,29 @@
   padding: var(--space-sm) var(--space-lg);
   background: var(--mmt-white);
   color: var(--mmt-blue);
-  border: none;
+  border: 1.5px solid var(--mmt-blue);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
   font-weight: var(--fw-bold);
   cursor: pointer;
-  z-index: 1;
-  isolation: isolate;
-  background-clip: padding-box;
   transition: background var(--duration-base), box-shadow var(--duration-base);
 }
 
-.btn-gradient-sweep::before {
+.btn-gradient-sweep::after {
   content: '';
   position: absolute;
-  inset: -1.5px;
-  border-radius: calc(var(--radius-sm) + 1.5px);
-  padding: 1.5px;
-  background: linear-gradient(90deg, #008cff, #9333ea, #e11d48, #008cff);
-  background-size: 300% 300%;
-  animation: sweepBorder 4s linear infinite;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  z-index: -1;
+  top: -30%;
+  bottom: -30%;
+  left: -40px;
+  width: 24px;
+  background: linear-gradient(
+    to right,
+    rgba(83, 178, 254, 0.5) 0%,
+    rgba(6, 90, 243, 0.65) 100%
+  );
+  transform: skewX(-20deg);
+  animation: aiNudgeSweep 7s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .btn-gradient-sweep:hover {
@@ -46,15 +58,20 @@
   box-shadow: none;
 }
 
-.btn-gradient-sweep.reduced-motion::before {
-  animation: none;
-  background: var(--mmt-blue);
+.btn-gradient-sweep:disabled::after {
+  animation-play-state: paused;
+  opacity: 0;
 }
 
-@keyframes sweepBorder {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.btn-gradient-sweep.reduced-motion::after {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes aiNudgeSweep {
+  0% { left: -40px; }
+  20% { left: calc(100% + 40px); }
+  100% { left: calc(100% + 40px); }
 }
 
 /* ===== Shared secondary button (outline, no fill) =====

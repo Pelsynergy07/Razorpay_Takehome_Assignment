@@ -16,6 +16,7 @@ import SynthesisResult from '../../pages/TripPlanner/SynthesisResult';
 import TripSummaryCard from '../../pages/TripPlanner/TripSummaryCard';
 import { useTripPlannerFlow } from '../../pages/TripPlanner/useTripPlannerFlow';
 import '../../pages/TripPlanner/TripPlanner.css';
+import MyraAvatar from './MyraAvatar';
 import './AIChatbotWidget.css';
 
 const promptSuggestions = [
@@ -123,7 +124,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
   // Every bot turn "thinks" briefly before landing, instead of popping in
   // instantly.
-  const thinkThen = (kind, text, delay = 850) => {
+  const thinkThen = (kind, text, delay = 1400) => {
     setIsTyping(true);
     setTimeout(() => {
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: kind, text }]);
@@ -141,7 +142,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
     if (flow.tripStep === 'intro' && flow.detectsTripIntent(msg)) {
       const { kind, text: launchText } = flow.launchMessage();
-      thinkThen(kind, launchText, 900);
+      thinkThen(kind, launchText, 1500);
       return;
     }
 
@@ -156,12 +157,12 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
   const handleLaunchSyncMode = () => {
     const { kind, text } = flow.startForm();
-    thinkThen(kind, text, 850);
+    thinkThen(kind, text, 1400);
   };
 
   const handleTripFormSubmit = (formValues) => {
     const { message } = flow.submitForm(formValues);
-    thinkThen(message.kind, message.text, 1200);
+    thinkThen(message.kind, message.text, 1800);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -291,7 +292,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       {showWidget && !isMobile && (
         <div className="chatbot-floating-widget" onClick={openChat}>
           <div className="widget-mascot">
-            <Bot size={28} className="icon-white" />
+            <MyraAvatar size="100%" />
           </div>
           <div className="widget-prompts">
             {promptSuggestions.slice(0, 2).map((s, i) => (

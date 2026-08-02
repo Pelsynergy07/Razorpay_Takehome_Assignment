@@ -93,6 +93,7 @@ const LiveAggregationHub = ({ session, onProceed }) => {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
             Nudge sent to pending friends.
           </motion.p>
@@ -102,6 +103,7 @@ const LiveAggregationHub = ({ session, onProceed }) => {
             className="hub-toast"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
             Synthesis is coming in the next phase — that's where Myra turns these answers into one recommendation.
           </motion.p>

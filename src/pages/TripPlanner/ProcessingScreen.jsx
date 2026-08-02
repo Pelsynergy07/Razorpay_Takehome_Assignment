@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import TypingIndicator from '../../components/AIChatbot/TypingIndicator';
 
 const STAGES = ['Collating inputs…', 'Checking reviews…', 'Checking timing constraints…'];
-const STAGE_DELAY = 800;
+const STAGE_DELAY = 1100;
 
 /**
  * Screen 4.1 — processing state. Cycles staged micro-copy while the mock
@@ -32,7 +32,7 @@ const ProcessingScreen = ({ onComplete }) => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         >
           {STAGES[stageIndex]}
         </motion.p>

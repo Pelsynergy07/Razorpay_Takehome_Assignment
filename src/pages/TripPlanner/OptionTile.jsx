@@ -19,7 +19,7 @@ const OptionTile = ({ option, onSelect }) => {
       className="option-tile option-tile--photo"
       onClick={() => onSelect(option.value)}
       initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }}
       whileHover={
         shouldReduceMotion
           ? undefined

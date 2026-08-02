@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Bookmark, MapPin, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
+import { Bookmark, MapPin, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
+import MyraAvatar from './MyraAvatar';
 
-const blockTransition = { duration: 0.65, ease: [0.16, 1, 0.3, 1] };
+const blockTransition = { duration: 0.9, ease: [0.16, 1, 0.3, 1] };
 
 /**
  * Chat turn wrapper — smooth, subtle ease-out entrance with zero spring recoil.
@@ -10,7 +11,7 @@ const blockTransition = { duration: 0.65, ease: [0.16, 1, 0.3, 1] };
 export const MessageBlock = ({ children }) => (
   <motion.div
     className="chat-sheet-msg-block"
-    initial={{ opacity: 0, y: 10 }}
+    initial={{ opacity: 0, y: 14 }}
     animate={{ opacity: 1, y: 0 }}
     transition={blockTransition}
   >
@@ -24,7 +25,7 @@ const wordVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.38,
+      duration: 0.55,
       ease: [0.16, 1, 0.3, 1],
     },
   },
@@ -35,7 +36,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.035,
+      staggerChildren: 0.05,
     },
   },
 };
@@ -112,8 +113,8 @@ export const UserBubble = ({ text }) => (
 export const BotTextResponse = ({ text }) => (
   <div className="bot-response">
     <div className="myra-label">
+      <MyraAvatar />
       <span className="myra-label-text">Myra</span>
-      <Sparkles size={13} className="myra-sparkle" />
     </div>
     <div className="bot-response-text">
       <AnimatedBotText text={text} />

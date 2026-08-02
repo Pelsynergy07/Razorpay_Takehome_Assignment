@@ -1,0 +1,805 @@
+/* ===================================================================
+   PARTICIPANT FLOW — REDESIGN CSS
+   Clean Light Mode | Mobile Device Mockup | Full-Bleed Photo Cards
+   =================================================================== */
+
+.participant-demo-canvas {
+  min-height: 100vh;
+  width: 100%;
+  background: #dde3ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+  box-sizing: border-box;
+}
+
+/* Mobile Phone Shell */
+.participant-phone-frame {
+  height: 90vh;
+  max-height: 852px;
+  width: auto;
+  aspect-ratio: 393 / 852;
+  background: #ffffff;
+  border-radius: 40px;
+  box-shadow: 0 28px 60px -10px rgba(15, 23, 42, 0.35), 0 0 0 10px #1e293b;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .participant-demo-canvas {
+    padding: 0;
+    background: #ffffff;
+  }
+  .participant-phone-frame {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ── Status / Notch Bar ───────────────────────────────── */
+.phone-notch-bar {
+  height: 32px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  position: relative;
+}
+
+.phone-camera-notch {
+  width: 90px;
+  height: 16px;
+  background: #1e293b;
+  border-radius: 0 0 10px 10px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+}
+
+/* ── Browser Bar ──────────────────────────────────────── */
+.phone-browser-bar {
+  height: 36px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.phone-browser-url-pill {
+  flex: 1;
+  height: 24px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.url-lock-icon { color: #10b981; }
+
+.phone-url-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phone-browser-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+/* ── Screen Content ───────────────────────────────────── */
+.phone-screen-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  overflow: hidden; /* no scroll — everything fits */
+  position: relative;
+}
+
+/* ── Home Indicator ───────────────────────────────────── */
+.phone-home-indicator {
+  height: 14px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.phone-home-indicator::after {
+  content: '';
+  width: 100px;
+  height: 3px;
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+/* ===================================================================
+   PROGRESS STEPPER — icon circles only, connector lines fill blue
+   =================================================================== */
+.participant-stepper-header {
+  padding: 12px 24px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.stepper-icons-track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stepper-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.28s ease;
+  user-select: none;
+}
+
+.stepper-circle.current {
+  border-color: #008cff;
+  background: #eaf5ff;
+  color: #008cff;
+  box-shadow: 0 0 0 4px rgba(0, 140, 255, 0.14);
+}
+
+.stepper-circle.completed {
+  background: #008cff;
+  border-color: #008cff;
+  color: #ffffff;
+}
+
+.stepper-circle.clickable {
+  cursor: pointer;
+}
+
+.stepper-circle.clickable:hover {
+  background: #065af3;
+  border-color: #065af3;
+  box-shadow: 0 0 0 4px rgba(0, 140, 255, 0.2);
+}
+
+/* Connector lines between circles — fill blue when completed */
+.stepper-connector {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 5px;
+  border-radius: 2px;
+  transition: background 0.3s ease;
+}
+.stepper-connector.filled { background: #008cff; }
+
+/* ===================================================================
+   SCREEN WRAPPER — tight padding, no scroll
+   =================================================================== */
+.participant-view-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px 10px;
+  box-sizing: border-box;
+  justify-content: space-between;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Arrival ──────────────────────────────────────────── */
+.arrival-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  min-height: 0;
+  padding-top: 24px;
+}
+
+.arrival-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: #eaf5ff;
+  color: #003b95;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.arrival-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.arrival-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 300px;
+}
+
+.arrival-lottie-container {
+  width: 100%;
+  max-width: 320px;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Name input */
+.arrival-name-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+
+.arrival-name-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.arrival-name-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.arrival-name-input:focus {
+  border-color: #008cff;
+  box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.12);
+}
+
+.arrival-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: 20px;
+}
+
+.defer-prompt-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.defer-prompt-text {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ── Question Header ──────────────────────────────────── */
+.question-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.question-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.question-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ===================================================================
+   PHOTO CARDS
+   =================================================================== */
+
+/* 2×2 grid */
+.photo-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.photo-card-item {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.photo-card-item.selected {
+  border-color: #008cff;
+  box-shadow: 0 6px 18px rgba(0, 140, 255, 0.3);
+}
+
+.photo-card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.photo-card-item:hover .photo-card-bg { transform: scale(1.05); }
+
+.photo-card-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15,23,42,0.08) 20%, rgba(15,23,42,0.82) 100%);
+}
+
+.photo-card-label {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.3;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  z-index: 2;
+}
+
+.photo-card-check {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #008cff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+}
+
+/* Head-to-Head */
+.head-to-head-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.head-option-card {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.head-option-card.selected {
+  border-color: #008cff;
+  box-shadow: 0 6px 20px rgba(0,140,255,0.28);
+}
+
+.head-card-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.9);
+  color: #0f172a;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  z-index: 2;
+}
+
+.head-card-title {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  z-index: 2;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+/* ===================================================================
+   RANGE SLIDER — drag interaction
+   =================================================================== */
+.range-slider-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Three landscape image tiles side by side */
+.range-slider-image-rail {
+  display: flex;
+  gap: 6px;
+  height: 190px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.range-stop-image-cell {
+  flex: 1;
+  position: relative;
+  transition: flex 0.3s ease;
+}
+.range-stop-image-cell.active { flex: 2.2; }
+
+.range-stop-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.range-stop-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15,23,42,0.22);
+  transition: background 0.3s ease;
+}
+.range-stop-image-cell.active .range-stop-image-overlay {
+  background: rgba(15,23,42,0.0);
+}
+
+/* Active stop label */
+.range-active-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+}
+
+.range-label-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.range-label-detail {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Slider track */
+.range-slider-track-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-edge-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.range-input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #008cff var(--progress, 50%), #e2e8f0 var(--progress, 50%));
+  outline: none;
+  cursor: pointer;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid #008cff;
+  box-shadow: 0 2px 8px rgba(0, 140, 255, 0.35);
+  cursor: grab;
+  transition: transform 0.15s ease;
+}
+
+.range-input::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  cursor: grabbing;
+}
+
+.range-input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid #008cff;
+  box-shadow: 0 2px 8px rgba(0, 140, 255, 0.35);
+  cursor: grab;
+}
+
+/* Stop position dots */
+.range-stop-dots {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.range-stop-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.range-stop-dot.active {
+  background: #008cff;
+  transform: scale(1.3);
+}
+
+.range-confirm-btn {
+  margin-top: auto;
+}
+
+/* ===================================================================
+   BUTTONS
+   =================================================================== */
+.primary-btn-brand {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(93deg, #53b2fe 0%, #065af3 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 34px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 140, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.primary-btn-brand:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.primary-btn-brand:not(:disabled):hover { transform: translateY(-1px); }
+.primary-btn-brand:not(:disabled):active { transform: translateY(0); }
+
+.ghost-btn-link {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px;
+  text-align: center;
+}
+.ghost-btn-link:hover { color: #475569; }
+
+.ghost-btn-link-blue-caps {
+  background: transparent;
+  border: none;
+  color: #008cff;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 6px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ghost-btn-link-blue-caps:hover {
+  color: #003b95;
+}
+
+.secondary-btn-brand {
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  color: #008cff;
+  border: 1.5px solid #008cff;
+  border-radius: 34px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.2s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.secondary-btn-brand:disabled {
+  opacity: 0.4;
+  color: #94a3b8;
+  border-color: #cbd5e1;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.secondary-btn-brand:not(:disabled):hover {
+  background: #eaf5ff;
+  color: #003b95;
+}
+
+.secondary-btn-brand:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* ===================================================================
+   OPEN NOTE
+   =================================================================== */
+.open-note-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  flex: 1;
+  min-height: 0;
+}
+
+.open-note-header-spacing {
+  padding-top: 20px;
+}
+
+.open-note-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #0f172a;
+  resize: none;
+  box-sizing: border-box;
+  /* Fixed height — never touches the button below */
+  height: 160px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.open-note-textarea:focus {
+  outline: none;
+  border-color: #008cff;
+  box-shadow: 0 0 0 3px rgba(0,140,255,0.1);
+}
+
+/* ===================================================================
+   THANKS SCREEN
+   =================================================================== */
+.thanks-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.thanks-meme-image {
+  width: 100%;
+  max-width: 250px;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  margin-bottom: 6px;
+}
+
+.thanks-heading {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.thanks-desc {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  max-width: 270px;
+  margin: 0;
+}

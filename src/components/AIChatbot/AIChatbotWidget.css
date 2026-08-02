@@ -6,23 +6,24 @@
   width: 320px;
   z-index: var(--z-widget);
   cursor: pointer;
-  animation: bounceIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: bounceIn 700ms var(--ease-decelerate);
 }
 
 .widget-mascot {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--gradient-myra);
+  background: linear-gradient(93deg, #53b2fe 0%, #065af3 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 140, 255, 0.45);
   position: absolute;
   top: -28px;
   right: var(--space-md);
   z-index: 2;
   animation: floatMascot 3s ease-in-out infinite;
+  overflow: hidden;
 }
 
 .widget-prompts {
@@ -105,7 +106,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: scaleIn 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: scaleIn var(--duration-slower) var(--ease-decelerate);
 }
 
 /* ===== TYPING INDICATOR (shared by mobile + desktop) ===== */
@@ -142,7 +143,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: var(--z-chat-panel);
-  animation: fadeIn var(--duration-base) ease;
+  animation: fadeIn var(--duration-slower) ease;
 }
 
 .chat-sheet {
@@ -158,7 +159,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: slideUp var(--duration-slow) var(--ease-decelerate);
+  animation: slideUp var(--duration-slower) var(--ease-decelerate);
 }
 
 /* Full-page route usage (e.g. /plan) instead of an overlay-on-the-homepage
@@ -212,7 +213,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  animation: fadeIn var(--duration-base) ease;
+  /* Entrance is owned by framer-motion (MessageBlock in ChatMessages.jsx) —
+     no competing CSS animation here. */
 }
 
 .user-msg-bubble {
@@ -229,7 +231,7 @@
 .myra-label {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-2xs);
 }
 
 .myra-label-text {
@@ -239,10 +241,6 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.myra-sparkle {
-  color: var(--mmt-blue-mid);
 }
 
 .bot-response {
@@ -500,7 +498,7 @@
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-md);
   background: var(--mmt-white);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
 }
 
@@ -518,7 +516,7 @@
 .chat-sheet-send-btn {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-lg);
   background: var(--mmt-blue);
   color: var(--mmt-white);
   display: flex;

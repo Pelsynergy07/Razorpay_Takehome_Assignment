@@ -12,6 +12,7 @@
     "vite": "^8.2.0"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-react": "^0.19.12",
     "@vitejs/plugin-react": "^6.0.5",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.43.0",

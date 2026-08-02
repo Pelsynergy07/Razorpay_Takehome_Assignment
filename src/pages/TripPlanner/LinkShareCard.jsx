@@ -32,7 +32,7 @@ const LinkShareCard = ({ joinUrl, onEnterHub }) => {
       className="link-share-card"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
     >
       <span className="link-share-label">Shareable link</span>
       <div className="link-share-row">

@@ -41,8 +41,8 @@ const OrganizerEntry = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Every transition "thinks" briefly (~600-800ms) before the next bot turn lands.
-  const thinkThen = (msg, delay = 850) => {
+  // Every transition "thinks" for a beat (~1.2-1.8s) before the next bot turn lands.
+  const thinkThen = (msg, delay = 1400) => {
     setIsTyping(true);
     setTimeout(() => {
       setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', ...msg }]);
@@ -57,7 +57,7 @@ const OrganizerEntry = () => {
     const botReply = flow.detectsTripIntent(text) ? flow.launchMessage() : flow.nudgeMessage();
     setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: 'user', kind: 'text', text }]);
     setInputValue('');
-    thinkThen(botReply, 950);
+    thinkThen(botReply, 1500);
   };
 
   const handleKeyDown = (e) => {
@@ -67,11 +67,11 @@ const OrganizerEntry = () => {
     }
   };
 
-  const handleLaunchSyncMode = () => thinkThen(flow.startForm(), 850);
+  const handleLaunchSyncMode = () => thinkThen(flow.startForm(), 1400);
 
   const handleFormSubmit = (formValues) => {
     const { message } = flow.submitForm(formValues);
-    thinkThen(message, 1200);
+    thinkThen(message, 1800);
   };
 
   const joinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
