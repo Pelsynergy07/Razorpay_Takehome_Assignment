@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { X, Bot, Sparkles } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import ChatFlowShell from './ChatFlowShell';
 import ChatRedirectState from './ChatRedirectState';
-import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock } from './ChatMessages';
+import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock, FollowUpReveal } from './ChatMessages';
 import TypingIndicator from './TypingIndicator';
 import ScrollHintButton from './ScrollHintButton';
 import ChatInputBar from './ChatInputBar';
@@ -15,6 +15,8 @@ import ProcessingScreen from '../../pages/TripPlanner/ProcessingScreen';
 import SynthesisResult from '../../pages/TripPlanner/SynthesisResult';
 import TripSummaryCard from '../../pages/TripPlanner/TripSummaryCard';
 import { useTripPlannerFlow } from '../../pages/TripPlanner/useTripPlannerFlow';
+import { useChatFlowActions, useChatAutoScroll } from '../../pages/TripPlanner/useChatFlowActions';
+import { generateMyraAIResponse } from '../../lib/openRouterClient';
 import '../../pages/TripPlanner/TripPlanner.css';
 import MyraAvatar from './MyraAvatar';
 import ChatLandingScreen from './ChatLandingScreen';
@@ -96,7 +98,6 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   const [showWidget, setShowWidget] = useState(!isOpen);
   const [chatOpen, setChatOpen] = useState(isOpen || false);
   const [showRedirect, setShowRedirect] = useState(false);
-  const messagesEndRef = useRef(null);
   const messagesScrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -111,14 +112,12 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     if (chatOpen) {
       setConversations(listConversations());
       setShowRedirect(true);
-      const t = setTimeout(() => setShowRedirect(false), 1300);
+      const t = setTimeout(() => setShowRedirect(false), 800);
       return () => clearTimeout(t);
     }
   }, [chatOpen]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  useChatAutoScroll({ messages, isTyping, containerRef: messagesScrollRef, kindField: 'type' });
 
   // Persist the active conversation to localStorage on every change, so it
   // shows up in the "pick up where you left off" list next time.
@@ -153,92 +152,61 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     setActiveConversationId(null);
   };
 
-  // Every bot turn "thinks" briefly before landing, instead of popping in
-  // instantly.
-  const thinkThen = (kind, text, delay = 1400) => {
-    setIsTyping(true);
-    setTimeout(() => {
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: kind, text }]);
-      setIsTyping(false);
-    }, delay);
-  };
-
-  const handleSend = (text) => {
-    const msg = text || inputValue.trim();
-    if (!msg || isTyping) return;
-
-    ensureConversationId();
-    const userMsg = { id: Date.now(), role: 'user', type: 'text', text: msg };
-    setMessages(prev => [...prev, userMsg]);
-    setInputValue('');
-
-    if (flow.tripStep === 'intro' && flow.detectsTripIntent(msg)) {
-      const { kind, text: launchText } = flow.launchMessage();
-      thinkThen(kind, launchText, 1500);
-      return;
-    }
-
-    setIsTyping(true);
-    setTimeout(() => {
-      const response = generateBotResponse(msg);
-      const botMsg = { id: Date.now() + 1, role: 'bot', ...response };
-      setMessages(prev => [...prev, botMsg]);
-      setIsTyping(false);
-    }, 1200 + Math.random() * 800);
-  };
-
   // Action buttons (Launch sync mode, Create trip session, Enter hub) echo
   // as a user message first, instead of silently jumping to the next step.
   const echoUser = (text) => {
     ensureConversationId();
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', text }]);
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', type: 'text', text }]);
   };
 
-  const handleLaunchSyncMode = () => {
-    echoUser('Launch sync mode');
-    const { kind, text } = flow.startForm();
-    thinkThen(kind, text, 1400);
-  };
+  const {
+    thinkThen,
+    handleLaunchSyncMode,
+    handleTripFormSubmit,
+    handleEnterHub,
+    handleProceedToSynthesis,
+    handleCompleteSynthesis,
+    handleApprove,
+  } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'type' });
 
-  const handleTripFormSubmit = (formValues) => {
-    echoUser(`${formValues.groupSize} people · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
-    const { message } = flow.submitForm(formValues);
-    thinkThen(message.kind, message.text, 1800);
-  };
+  const handleSend = async (text) => {
+    const msg = text || inputValue.trim();
+    if (!msg || isTyping) return;
 
-  const handleEnterHub = () => {
-    echoUser('Enter live aggregation hub');
+    ensureConversationId();
+    const userMsg = { id: crypto.randomUUID(), role: 'user', type: 'text', text: msg };
+    setMessages(prev => [...prev, userMsg]);
+    setInputValue('');
+
     setIsTyping(true);
-    setTimeout(() => {
-      flow.enterHub();
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'hub', text: "Here's the live hub — I'll update this as responses come in." }]);
-      setIsTyping(false);
-    }, 900);
-  };
 
-  const handleProceedToSynthesis = () => {
-    echoUser('Proceed to synthesis now');
-    setIsTyping(true);
-    setTimeout(() => {
-      flow.startSynthesis();
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'processing' }]);
-      setIsTyping(false);
-    }, 900);
-  };
+    // Try OpenRouter AI first
+    const aiResult = await generateMyraAIResponse(msg, messages);
 
-  const handleCompleteSynthesis = () => {
-    flow.completeSynthesis();
-    setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'result', text: "Here's what I've put together:" }]);
-  };
-
-  const handleApprove = () => {
-    echoUser('Approve itinerary');
-    setIsTyping(true);
-    setTimeout(() => {
-      flow.approve();
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: 'closed', text: "You're all set! Here's your itinerary:" }]);
+    if (aiResult) {
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'bot', type: 'text', text: aiResult.text }]);
       setIsTyping(false);
-    }, 900);
+
+      if (aiResult.hasLaunchIntent || (flow.tripStep === 'intro' && flow.detectsTripIntent(msg))) {
+        const { kind, text: launchText } = flow.launchMessage();
+        thinkThen({ type: kind, text: launchText }, 800);
+      }
+      return;
+    }
+
+    // Offline Smart Fallback
+    if (flow.tripStep === 'intro' && flow.detectsTripIntent(msg)) {
+      const { kind, text: launchText } = flow.launchMessage();
+      thinkThen({ type: kind, text: launchText }, 900);
+      return;
+    }
+
+    setTimeout(() => {
+      const response = generateBotResponse(msg);
+      const botMsg = { id: crypto.randomUUID(), role: 'bot', ...response };
+      setMessages(prev => [...prev, botMsg]);
+      setIsTyping(false);
+    }, 700 + Math.random() * 400);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -308,31 +276,55 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                     <>
                       {msg.type !== 'processing' && <BotTextResponse text={msg.text} />}
                       {msg.type === 'destinations' && msg.destinations && (
-                        <DestinationCarousel destinations={msg.destinations} />
+                        <FollowUpReveal text={msg.text}>
+                          <DestinationCarousel destinations={msg.destinations} />
+                        </FollowUpReveal>
                       )}
                       {msg.type === 'launch' && (
-                        <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
-                          Launch sync mode
-                        </GradientSweepButton>
+                        <FollowUpReveal text={msg.text}>
+                          <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
+                            Launch sync mode
+                          </GradientSweepButton>
+                        </FollowUpReveal>
                       )}
-                      {msg.type === 'form' && <IntentFormCard onSubmit={handleTripFormSubmit} />}
+                      {msg.type === 'form' && (
+                        <FollowUpReveal text={msg.text}>
+                          <IntentFormCard onSubmit={handleTripFormSubmit} />
+                        </FollowUpReveal>
+                      )}
                       {msg.type === 'share' && flow.session && (
-                        <LinkShareCard joinUrl={tripJoinUrl} onEnterHub={handleEnterHub} />
+                        <FollowUpReveal text={msg.text}>
+                          <LinkShareCard joinUrl={tripJoinUrl} onEnterHub={handleEnterHub} />
+                        </FollowUpReveal>
                       )}
                       {msg.type === 'hub' && (
-                        <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                        <FollowUpReveal text={msg.text}>
+                          <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                        </FollowUpReveal>
                       )}
-                      {msg.type === 'processing' && <ProcessingScreen onComplete={handleCompleteSynthesis} />}
+                      {msg.type === 'processing' && (
+                        <FollowUpReveal text={msg.text}>
+                          <ProcessingScreen onComplete={handleCompleteSynthesis} />
+                        </FollowUpReveal>
+                      )}
                       {msg.type === 'result' && (
-                        <SynthesisResult
-                          recommendation={flow.recommendation}
-                          onUpdate={flow.updateRecommendation}
-                          onApprove={handleApprove}
-                        />
+                        <FollowUpReveal text={msg.text}>
+                          <SynthesisResult
+                            recommendation={flow.recommendation}
+                            onUpdate={flow.updateRecommendation}
+                            onApprove={handleApprove}
+                          />
+                        </FollowUpReveal>
                       )}
-                      {msg.type === 'closed' && <TripSummaryCard recommendation={flow.recommendation} />}
+                      {msg.type === 'closed' && (
+                        <FollowUpReveal text={msg.text}>
+                          <TripSummaryCard recommendation={flow.recommendation} />
+                        </FollowUpReveal>
+                      )}
                       {!['launch', 'form', 'share', 'hub', 'processing', 'result', 'closed'].includes(msg.type) && (
-                        <MessageActions />
+                        <FollowUpReveal text={msg.text}>
+                          <MessageActions />
+                        </FollowUpReveal>
                       )}
                     </>
                   )}
@@ -345,7 +337,6 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                 </MessageBlock>
               )}
             </AnimatePresence>
-            <div ref={messagesEndRef} />
           </>
         )}
       </ChatFlowShell>

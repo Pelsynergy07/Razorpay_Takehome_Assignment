@@ -22,10 +22,10 @@ const formContainerVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.85,
+      duration: 0.24,
       ease: [0.16, 1, 0.3, 1],
-      staggerChildren: 0.12,
-      delayChildren: 0.15,
+      staggerChildren: 0.03,
+      delayChildren: 0.05,
     },
   },
 };
@@ -36,7 +36,7 @@ const formItemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.65,
+      duration: 0.2,
       ease: [0.16, 1, 0.3, 1],
     },
   },

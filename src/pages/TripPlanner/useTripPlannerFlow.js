@@ -12,10 +12,10 @@ export function useTripPlannerFlow() {
   const [session, setSession] = useState(null);
   const [recommendation, setRecommendation] = useState(null);
 
-  // TEMPORARY mock intent detection — advances only when the message
-  // mentions "friends", standing in for real intent recognition. Remove
-  // once an actual NLU/intent step exists.
-  const detectsTripIntent = (text) => /friends/i.test(text);
+  // Broad intent detection for offline fallback — triggers whenever the user
+  // mentions trips, group travel, vacations, flight/hotel planning, or friends.
+  const detectsTripIntent = (text) =>
+    /friends|trip|vacation|holiday|getaway|goa|manali|rishikesh|group|plan|flight|hotel|weekend|travel|fly|stay|pack|explore/i.test(text);
 
   const launchMessage = () => ({
     kind: 'launch',
@@ -32,8 +32,8 @@ export function useTripPlannerFlow() {
     return { kind: 'form', text: 'Great — a few quick details:' };
   };
 
-  const submitForm = ({ groupSize, dateWindow, budgetPerPerson }) => {
-    const created = createSession({
+  const submitForm = async ({ groupSize, dateWindow, budgetPerPerson }) => {
+    const created = await createSession({
       organizerName: 'Organizer',
       groupSize,
       dateWindow,
@@ -54,10 +54,9 @@ export function useTripPlannerFlow() {
 
   const startSynthesis = () => setTripStep('processing');
 
-  // Runs the mock synthesizer (stand-in for the Phase 5 Edge Function call)
-  // and advances to the result screen.
-  const completeSynthesis = () => {
-    const responses = getResponses(session.id);
+  // Runs the synthesizer and advances to the result screen.
+  const completeSynthesis = async () => {
+    const responses = await getResponses(session.id);
     const rec = synthesizeRecommendation(session, responses);
     setRecommendation(rec);
     setTripStep('result');

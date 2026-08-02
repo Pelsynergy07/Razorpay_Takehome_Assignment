@@ -9,7 +9,7 @@ const STAGES = [
   'Bribing the weather gods…',
   'Wrapping it all up in a bow 🎀',
 ];
-const STAGE_DELAY = 1100;
+const STAGE_DELAY = 1900;
 
 /**
  * Screen 4.1 — processing state. Cycles quirky micro-copy while the mock
@@ -58,7 +58,7 @@ const ProcessingScreen = ({ onComplete }) => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.32, ease: 'easeInOut' }}
         >
           {STAGES[stageIndex]}
         </motion.p>

@@ -17,7 +17,7 @@ import {
   Info,
 } from 'lucide-react';
 
-const viewTransition = { duration: 0.4, ease: [0.16, 1, 0.3, 1] };
+const viewTransition = { duration: 0.4, ease: 'easeInOut' };
 
 /**
  * Screen 4.2 — synthesis result dashboard with 5 section accordions:
@@ -131,6 +131,12 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove }) => {
                         tabIndex={0}
                         className="active-item-badge badge-clickable"
                         onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenSwapBadgeId((id) => (id === opt.id ? null : opt.id));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return;
+                          e.preventDefault();
                           e.stopPropagation();
                           setOpenSwapBadgeId((id) => (id === opt.id ? null : opt.id));
                         }}

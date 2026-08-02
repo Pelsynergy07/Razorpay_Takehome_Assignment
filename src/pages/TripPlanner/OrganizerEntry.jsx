@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import ChatFlowShell from '../../components/AIChatbot/ChatFlowShell';
-import { UserBubble, BotTextResponse, MessageBlock } from '../../components/AIChatbot/ChatMessages';
+import { UserBubble, BotTextResponse, MessageBlock, FollowUpReveal } from '../../components/AIChatbot/ChatMessages';
 import TypingIndicator from '../../components/AIChatbot/TypingIndicator';
 import ChatInputBar from '../../components/AIChatbot/ChatInputBar';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
@@ -13,6 +13,7 @@ import ProcessingScreen from './ProcessingScreen';
 import SynthesisResult from './SynthesisResult';
 import TripSummaryCard from './TripSummaryCard';
 import { useTripPlannerFlow } from './useTripPlannerFlow';
+import { useChatFlowActions, useChatAutoScroll } from './useChatFlowActions';
 import './TripPlanner.css';
 
 /**
@@ -33,37 +34,35 @@ const OrganizerEntry = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
   const messagesScrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
-
-  // Every transition "thinks" for a beat (~1.2-1.8s) before the next bot turn lands.
-  const thinkThen = (msg, delay = 1400) => {
-    setIsTyping(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', ...msg }]);
-      setIsTyping(false);
-    }, delay);
-  };
+  useChatAutoScroll({ messages, isTyping, containerRef: messagesScrollRef, kindField: 'kind' });
 
   // Action buttons (Launch sync mode, Create trip session, Enter hub) echo
   // as a user message first, instead of silently jumping to the next step.
   const echoUser = (text) => {
-    setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: 'user', kind: 'text', text }]);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', kind: 'text', text }]);
   };
+
+  const {
+    thinkThen,
+    handleLaunchSyncMode,
+    handleTripFormSubmit: handleFormSubmit,
+    handleEnterHub,
+    handleProceedToSynthesis,
+    handleCompleteSynthesis,
+    handleApprove,
+  } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'kind' });
 
   const handleSend = () => {
     const text = inputValue.trim();
     if (!text || flow.tripStep !== 'intro' || isTyping) return;
 
     const botReply = flow.detectsTripIntent(text) ? flow.launchMessage() : flow.nudgeMessage();
-    setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: 'user', kind: 'text', text }]);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', kind: 'text', text }]);
     setInputValue('');
-    thinkThen(botReply, 1500);
+    thinkThen(botReply, 900);
   };
 
   const handleKeyDown = (e) => {
@@ -71,52 +70,6 @@ const OrganizerEntry = () => {
       e.preventDefault();
       handleSend();
     }
-  };
-
-  const handleLaunchSyncMode = () => {
-    echoUser('Launch sync mode');
-    thinkThen(flow.startForm(), 1400);
-  };
-
-  const handleFormSubmit = (formValues) => {
-    echoUser(`${formValues.groupSize} people · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
-    const { message } = flow.submitForm(formValues);
-    thinkThen(message, 1800);
-  };
-
-  const handleEnterHub = () => {
-    echoUser('Enter live aggregation hub');
-    setIsTyping(true);
-    setTimeout(() => {
-      flow.enterHub();
-      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'hub', text: "Here's the live hub — I'll update this as responses come in." }]);
-      setIsTyping(false);
-    }, 900);
-  };
-
-  const handleProceedToSynthesis = () => {
-    echoUser('Proceed to synthesis now');
-    setIsTyping(true);
-    setTimeout(() => {
-      flow.startSynthesis();
-      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'processing' }]);
-      setIsTyping(false);
-    }, 900);
-  };
-
-  const handleCompleteSynthesis = () => {
-    flow.completeSynthesis();
-    setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'result', text: "Here's what I've put together:" }]);
-  };
-
-  const handleApprove = () => {
-    echoUser('Approve itinerary');
-    setIsTyping(true);
-    setTimeout(() => {
-      flow.approve();
-      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', kind: 'closed', text: "You're all set! Here's your itinerary:" }]);
-      setIsTyping(false);
-    }, 900);
   };
 
   const joinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -145,26 +98,46 @@ const OrganizerEntry = () => {
               <>
                 {msg.kind !== 'processing' && <BotTextResponse text={msg.text} />}
                 {msg.kind === 'launch' && (
-                  <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
-                    Launch sync mode
-                  </GradientSweepButton>
+                  <FollowUpReveal text={msg.text}>
+                    <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
+                      Launch sync mode
+                    </GradientSweepButton>
+                  </FollowUpReveal>
                 )}
-                {msg.kind === 'form' && <IntentFormCard onSubmit={handleFormSubmit} />}
+                {msg.kind === 'form' && (
+                  <FollowUpReveal text={msg.text}>
+                    <IntentFormCard onSubmit={handleFormSubmit} />
+                  </FollowUpReveal>
+                )}
                 {msg.kind === 'share' && flow.session && (
-                  <LinkShareCard joinUrl={joinUrl} onEnterHub={handleEnterHub} />
+                  <FollowUpReveal text={msg.text}>
+                    <LinkShareCard joinUrl={joinUrl} onEnterHub={handleEnterHub} />
+                  </FollowUpReveal>
                 )}
                 {msg.kind === 'hub' && (
-                  <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                  <FollowUpReveal text={msg.text}>
+                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                  </FollowUpReveal>
                 )}
-                {msg.kind === 'processing' && <ProcessingScreen onComplete={handleCompleteSynthesis} />}
+                {msg.kind === 'processing' && (
+                  <FollowUpReveal text={msg.text}>
+                    <ProcessingScreen onComplete={handleCompleteSynthesis} />
+                  </FollowUpReveal>
+                )}
                 {msg.kind === 'result' && (
-                  <SynthesisResult
-                    recommendation={flow.recommendation}
-                    onUpdate={flow.updateRecommendation}
-                    onApprove={handleApprove}
-                  />
+                  <FollowUpReveal text={msg.text}>
+                    <SynthesisResult
+                      recommendation={flow.recommendation}
+                      onUpdate={flow.updateRecommendation}
+                      onApprove={handleApprove}
+                    />
+                  </FollowUpReveal>
                 )}
-                {msg.kind === 'closed' && <TripSummaryCard recommendation={flow.recommendation} />}
+                {msg.kind === 'closed' && (
+                  <FollowUpReveal text={msg.text}>
+                    <TripSummaryCard recommendation={flow.recommendation} />
+                  </FollowUpReveal>
+                )}
               </>
             )}
           </MessageBlock>
@@ -175,7 +148,6 @@ const OrganizerEntry = () => {
           </MessageBlock>
         )}
       </AnimatePresence>
-      <div ref={messagesEndRef} />
     </ChatFlowShell>
   );
 };

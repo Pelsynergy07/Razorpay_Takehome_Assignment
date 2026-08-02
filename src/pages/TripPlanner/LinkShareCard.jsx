@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Copy, Check, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
+import { toastStyle } from './toastStyle';
 
 /**
  * Screen 2.1 — shareable link card with sonner toast notification,
@@ -16,13 +17,7 @@ const LinkShareCard = ({ joinUrl, onEnterHub }) => {
     setCopied(true);
     toast('Link copied, drop it in the group chat 🔗', {
       duration: 3000,
-      style: {
-        background: '#ffffff',
-        color: '#003b95',
-        border: '1.5px solid #008cff',
-        fontWeight: 600,
-        borderRadius: '8px',
-      },
+      style: toastStyle,
     });
     setTimeout(() => setCopied(false), 2000);
   };
@@ -32,7 +27,7 @@ const LinkShareCard = ({ joinUrl, onEnterHub }) => {
       className="link-share-card"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <span className="link-share-label">Shareable link</span>
       <div className="link-share-row">
@@ -54,7 +49,7 @@ const LinkShareCard = ({ joinUrl, onEnterHub }) => {
         className="link-share-hub-btn"
         onClick={onEnterHub}
       >
-        Enter live aggregation hub
+        Peek at the live responses 👀
         <ArrowRight size={16} />
       </GradientSweepButton>
     </motion.div>

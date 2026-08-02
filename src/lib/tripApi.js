@@ -1,18 +1,9 @@
 /**
- * Group Trip Planner data layer — mock implementation.
- *
- * Same interface (`createSession`, `getSession`, `submitResponse`,
- * `getResponses`, `subscribeToResponses`) that a real Supabase-backed version
- * will expose later on the demo branch. Every caller in the UI only ever
- * imports from this module, so swapping the implementation is a matter of
- * replacing this file's internals, not touching any component.
- *
- * Persistence: localStorage, namespaced under STORAGE_PREFIX. "Live" updates
- * across tabs (the organizer's hub watching a participant submit from a
- * second tab) use the browser's native `storage` event, which only fires in
- * *other* tabs than the one that wrote the value — which is exactly the
- * cross-tab realtime behavior this flow needs, no backend required.
+ * Group Trip Planner data layer with Dual-Mode Architecture:
+ * 1. Live Supabase Realtime (when VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY are present)
+ * 2. LocalStorage + Storage Event fallback (for offline zero-config demo)
  */
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 const STORAGE_PREFIX = 'mmt_trip_planner';
 
@@ -37,11 +28,12 @@ const writeJSON = (key, value) => {
 
 /**
  * @param {{ organizerName: string, groupSize: number, dateWindow: string, budgetPerPerson: number }} input
- * @returns {object} the created session, including its generated id
+ * @returns {Promise<object>|object}
  */
-export const createSession = ({ organizerName, groupSize, dateWindow, budgetPerPerson }) => {
+export const createSession = async ({ organizerName, groupSize, dateWindow, budgetPerPerson }) => {
+  const sessionId = generateId();
   const session = {
-    id: generateId(),
+    id: sessionId,
     organizer_name: organizerName,
     group_size: groupSize,
     date_window: dateWindow,
@@ -50,27 +42,59 @@ export const createSession = ({ organizerName, groupSize, dateWindow, budgetPerP
     recommendation: null,
     created_at: new Date().toISOString(),
   };
+
+  // Always write local fallback
   writeJSON(sessionKey(session.id), session);
   writeJSON(responsesKey(session.id), []);
+
+  if (isSupabaseConfigured) {
+    try {
+      const { error } = await supabase.from('sessions').insert([{
+        id: session.id,
+        organizer_name: organizerName,
+        group_size: groupSize,
+        date_window: dateWindow,
+        budget_per_person: budgetPerPerson,
+      }]);
+      if (error) console.warn('[Supabase Session Insert Error]', error);
+    } catch (err) {
+      console.warn('[Supabase Session Insert Exception]', err);
+    }
+  }
+
   return session;
 };
 
 /**
  * @param {string} id
- * @returns {object|null} the session, or null if it doesn't exist
+ * @returns {Promise<object|null>|object|null}
  */
-export const getSession = (id) => readJSON(sessionKey(id), null);
+export const getSession = async (id) => {
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (data && !error) return data;
+    } catch (err) {
+      console.warn('[Supabase getSession Error]', err);
+    }
+  }
+  return readJSON(sessionKey(id), null);
+};
 
 /**
  * @param {string} sessionId
  * @param {{ participantName?: string, vibe?: string, accommodation?: string, pace?: string, openNote?: string, deferred?: boolean }} data
- * @returns {object} the created response row
+ * @returns {Promise<object>|object}
  */
-export const submitResponse = (sessionId, data) => {
+export const submitResponse = async (sessionId, data) => {
   const response = {
     id: generateId(),
     session_id: sessionId,
-    participant_name: data.participantName ?? '',
+    participant_name: data.participantName ?? 'Participant',
     vibe: data.vibe ?? null,
     accommodation: data.accommodation ?? null,
     pace: data.pace ?? null,
@@ -78,30 +102,111 @@ export const submitResponse = (sessionId, data) => {
     deferred: data.deferred ?? false,
     created_at: new Date().toISOString(),
   };
-  const responses = readJSON(responsesKey(sessionId), []);
-  responses.push(response);
-  writeJSON(responsesKey(sessionId), responses);
+
+  // Save to LocalStorage
+  const localResponses = readJSON(responsesKey(sessionId), []);
+  localResponses.push(response);
+  writeJSON(responsesKey(sessionId), localResponses);
+
+  // Send storage event locally
+  window.dispatchEvent(new CustomEvent('mmt_local_response', { detail: { sessionId, responses: localResponses } }));
+
+  if (isSupabaseConfigured) {
+    try {
+      const { error } = await supabase.from('responses').insert([{
+        id: response.id,
+        session_id: sessionId,
+        participant_name: response.participant_name,
+        vibe: response.vibe,
+        accommodation: response.accommodation,
+        pace: response.pace,
+        open_note: response.open_note,
+        deferred: response.deferred,
+      }]);
+      if (error) console.warn('[Supabase submitResponse Error]', error);
+    } catch (err) {
+      console.warn('[Supabase submitResponse Exception]', err);
+    }
+  }
+
   return response;
 };
 
 /**
  * @param {string} sessionId
- * @returns {object[]}
+ * @returns {Promise<object[]>|object[]}
  */
-export const getResponses = (sessionId) => readJSON(responsesKey(sessionId), []);
+export const getResponses = async (sessionId) => {
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('responses')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+      if (data && !error) return data;
+    } catch (err) {
+      console.warn('[Supabase getResponses Error]', err);
+    }
+  }
+  return readJSON(responsesKey(sessionId), []);
+};
 
 /**
+ * Subscribes to live response updates — via Supabase Realtime when configured,
+ * or native LocalStorage cross-tab events as fallback.
+ *
  * @param {string} sessionId
  * @param {(responses: object[]) => void} callback
  * @returns {() => void} unsubscribe function
  */
 export const subscribeToResponses = (sessionId, callback) => {
+  let supabaseChannel = null;
+
+  if (isSupabaseConfigured) {
+    // Initial fetch
+    getResponses(sessionId).then((initial) => callback(initial));
+
+    // Listen for Realtime Postgres Changes
+    supabaseChannel = supabase
+      .channel(`public:responses:${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'responses',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        async () => {
+          const fresh = await getResponses(sessionId);
+          callback(fresh);
+        }
+      )
+      .subscribe();
+  }
+
+  // Local tab/window storage listener
   const key = responsesKey(sessionId);
-  const handler = (event) => {
+  const storageHandler = (event) => {
     if (event.key === key) {
-      callback(getResponses(sessionId));
+      callback(readJSON(key, []));
     }
   };
-  window.addEventListener('storage', handler);
-  return () => window.removeEventListener('storage', handler);
+  const customHandler = (event) => {
+    if (event.detail?.sessionId === sessionId) {
+      callback(event.detail.responses);
+    }
+  };
+
+  window.addEventListener('storage', storageHandler);
+  window.addEventListener('mmt_local_response', customHandler);
+
+  return () => {
+    window.removeEventListener('storage', storageHandler);
+    window.removeEventListener('mmt_local_response', customHandler);
+    if (supabaseChannel) {
+      supabase.removeChannel(supabaseChannel);
+    }
+  };
 };

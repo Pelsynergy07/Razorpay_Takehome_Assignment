@@ -2,14 +2,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Download, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { toastStyle } from './toastStyle';
 
-const toastStyle = {
-  background: '#ffffff',
-  color: '#003b95',
-  border: '1.5px solid #008cff',
-  fontWeight: 600,
-  borderRadius: '8px',
-};
+// Days reveal one at a time — like Myra is still writing the plan — rather
+// than all popping in near-simultaneously. Each day's own fade-in is quick;
+// what actually paces this out is a deliberate ~1s hold between days (the
+// connecting line grows during that hold, arriving right as the next day
+// starts) rather than a slow animation.
+const DAY_START_DELAY = 0.3;
+const DAY_STAGGER = 1.05;
+const dayDelay = (idx) => DAY_START_DELAY + idx * DAY_STAGGER;
 
 /**
  * Screen 5.1 — final screen, nothing after this. Day-by-day itinerary with
@@ -19,6 +21,7 @@ const toastStyle = {
 const TripSummaryCard = ({ recommendation }) => {
   const { destination, dates, estimatedCost, heroImage, weather, itinerary = [] } = recommendation;
   const [weatherTemp, weatherAqi] = (weather || '').split('|').map((s) => s.trim());
+  const generatedOn = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const handleBook = (label) => {
     toast(`${label} isn't wired up in this demo — this is where real booking would happen.`, {
@@ -41,7 +44,20 @@ const TripSummaryCard = ({ recommendation }) => {
   const handleDownloadPdf = () => window.print();
 
   return (
-    <div className="itinerary-screen">
+    <motion.div
+      className="itinerary-screen"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
+    >
+      {/* Print-only letterhead — invisible on screen, shown only when this
+          card is printed/"Downloaded as PDF" so the output reads as a real
+          travel document instead of a UI screenshot. */}
+      <div className="itinerary-print-header">
+        <span className="itinerary-print-header-brand">MakeMyTrip</span>
+        <span className="itinerary-print-header-tag">Trip itinerary · Prepared by Myra</span>
+      </div>
+
       <div className="itinerary-hero">
         <img src={heroImage} alt={destination} className="itinerary-hero-img" />
         <div className="itinerary-hero-overlay" />
@@ -60,18 +76,38 @@ const TripSummaryCard = ({ recommendation }) => {
           <motion.div
             key={d.day}
             className="itinerary-day"
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.4, delay: dayDelay(idx), ease: 'easeInOut' }}
           >
             <div className="itinerary-day-marker">
-              <span className="itinerary-day-dot" />
-              {idx < itinerary.length - 1 && <span className="itinerary-day-line" />}
+              <motion.span
+                className="itinerary-day-dot"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.35, delay: dayDelay(idx), ease: 'easeInOut' }}
+              />
+              {idx < itinerary.length - 1 && (
+                <motion.span
+                  className="itinerary-day-line"
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ duration: DAY_STAGGER - 0.25, delay: dayDelay(idx) + 0.25, ease: 'easeInOut' }}
+                />
+              )}
             </div>
 
             <div className="itinerary-day-card">
               <h3 className="itinerary-day-title">Day {d.day}: {d.title} {d.emoji}</h3>
               <p className="itinerary-day-desc">{d.description}</p>
+
+              {d.activities && d.activities.length > 0 && (
+                <ul className="activity-list-items itinerary-day-activities">
+                  {d.activities.map((item, i) => (
+                    <li key={i}>✓ {item}</li>
+                  ))}
+                </ul>
+              )}
 
               <div className="itinerary-day-details">
                 <span className="itinerary-day-detail-chip">{d.dateLabel}</span>
@@ -117,7 +153,12 @@ const TripSummaryCard = ({ recommendation }) => {
           <Share2 size={16} /> Share
         </button>
       </div>
-    </div>
+
+      {/* Print-only footer, mirrors the letterhead above. */}
+      <div className="itinerary-print-footer">
+        {destination} · {dates} · ₹{estimatedCost.toLocaleString('en-IN')} per person — generated {generatedOn}
+      </div>
+    </motion.div>
   );
 };
 

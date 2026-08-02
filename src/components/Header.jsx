@@ -8,7 +8,7 @@ import { NAV_ICONS, FLAG_ICON } from '../styles/spriteIcons.js';
 import { colors } from '../styles/tokens.js';
 import './Header.css';
 
-const Header = () => {
+const Header = ({ onOpenInterviewerModal }) => {
   const [showLogin, setShowLogin] = useState(false);
 
   return (
@@ -74,6 +74,18 @@ const Header = () => {
 
           {/* Right Actions */}
           <div className="header-right-actions">
+            {/* Interviewer Context Button */}
+            {onOpenInterviewerModal && (
+              <button
+                type="button"
+                className="header-evaluator-btn"
+                onClick={onOpenInterviewerModal}
+                title="View UX research insights & solution context"
+              >
+                ✨ Interviewer Context
+              </button>
+            )}
+
             {/* Account Avatar */}
             <button className="mmt-avatar-btn" onClick={() => setShowLogin(true)} aria-label="Account">
               <span className="mmt-avatar-circle">PK</span>

@@ -6,7 +6,7 @@
   width: 320px;
   z-index: var(--z-widget);
   cursor: pointer;
-  animation: bounceIn 700ms var(--ease-decelerate);
+  animation: bounceIn 550ms var(--ease-decelerate);
 }
 
 .widget-mascot {
@@ -560,7 +560,7 @@
   inset: 10px;
   border-radius: var(--radius-pill);
   border: 2px dashed var(--mmt-border);
-  animation: orbitRotate 6s linear infinite;
+  animation: orbitRotate 3.5s linear infinite;
 }
 
 .redirect-glyph-badge,
@@ -726,7 +726,8 @@
   .chatbot-floating-widget,
   .chat-sheet-backdrop,
   .chat-sheet-header,
-  .chat-sheet-input-area {
+  .chat-sheet-input-area,
+  .scroll-hint-btn {
     display: none !important;
   }
 
@@ -746,5 +747,13 @@
     overflow: visible !important;
     height: auto !important;
     padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  /* Only the final itinerary card is the "document" being downloaded —
+     every earlier turn (intro chat, forms, hub, synthesis dashboard) is
+     conversation UI, not part of it, so it's excluded from the printout. */
+  .chat-sheet-msg-block:not(:has(.itinerary-screen)) {
+    display: none !important;
   }
 }

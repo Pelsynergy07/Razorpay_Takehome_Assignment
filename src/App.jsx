@@ -9,12 +9,17 @@ import OfferSection from './components/Promos/OfferSection';
 import Footer from './components/Footer';
 import './App.css';
 
+import InterviewerOnboardingModal from './components/InterviewerOnboarding/InterviewerOnboardingModal';
+import ChatbotGuideTooltip from './components/InterviewerOnboarding/ChatbotGuideTooltip';
+
 function App() {
   const [showFlightResults, setShowFlightResults] = useState(false);
   const [searchData, setSearchData] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [showMyraChat, setShowMyraChat] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(true);
+  const [showGuideTooltip, setShowGuideTooltip] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -32,16 +37,22 @@ function App() {
 
   const handleMyraClick = () => {
     setShowMyraChat(true);
+    setShowGuideTooltip(false);
   };
 
   const handleMyraClose = () => {
     setShowMyraChat(false);
   };
 
+  const handleStartDemo = () => {
+    setShowOnboardingModal(false);
+    setShowGuideTooltip(true);
+  };
+
   return (
     <div className="app">
       {/* Header */}
-      <Header />
+      <Header onOpenInterviewerModal={() => setShowOnboardingModal(true)} />
 
       {/* Desktop Hero Section */}
       <div className="hero-section">
@@ -102,6 +113,20 @@ function App() {
         isOpen={showMyraChat}
         onClose={handleMyraClose}
         isMobile={isMobile}
+      />
+
+      {/* Interviewer Onboarding Context Modal */}
+      <InterviewerOnboardingModal
+        isOpen={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+        onStartDemo={handleStartDemo}
+      />
+
+      {/* Guided Tooltip Beacon pointing to Chatbot */}
+      <ChatbotGuideTooltip
+        isVisible={showGuideTooltip && !showMyraChat}
+        onOpenChat={handleMyraClick}
+        onDismiss={() => setShowGuideTooltip(false)}
       />
 
       {/* Flight Results Modal */}

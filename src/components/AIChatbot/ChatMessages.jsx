@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Bookmark, MapPin, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
 import MyraAvatar from './MyraAvatar';
 
-const blockTransition = { duration: 0.9, ease: [0.16, 1, 0.3, 1] };
+const blockTransition = { duration: 0.5, ease: [0.16, 1, 0.3, 1] };
 
 /**
  * Chat turn wrapper — smooth, subtle ease-out entrance with zero spring recoil.
@@ -20,12 +20,12 @@ export const MessageBlock = ({ children }) => (
 );
 
 const wordVariants = {
-  hidden: { opacity: 0, y: 6 },
+  hidden: { opacity: 0, y: 4 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.55,
+      duration: 0.28,
       ease: [0.16, 1, 0.3, 1],
     },
   },
@@ -36,10 +36,39 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.025,
     },
   },
 };
+
+// Roughly how long AnimatedBotText takes to finish revealing a given string
+// (word count × stagger + one word's own transition), so anything that
+// follows the text in the same turn — a button, a card, a carousel — can
+// wait its turn instead of popping in while the text is still typing out.
+export const estimateTextRevealSeconds = (text = '') => {
+  if (!text) return 0.3;
+  const wordCount = text
+    .split('\n')
+    .filter((l) => l.trim() !== '')
+    .reduce((sum, line) => sum + line.trim().split(/\s+/).filter(Boolean).length, 0);
+  return wordCount * 0.025 + 0.28;
+};
+
+/**
+ * Wraps a follow-up element (button, card, carousel) that shares a message
+ * turn with AnimatedBotText, delaying its entrance until the text above it
+ * has finished revealing — so nothing pops in mid-sentence.
+ */
+export const FollowUpReveal = ({ text, children, className }) => (
+  <motion.div
+    className={className}
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.35, ease: 'easeOut', delay: estimateTextRevealSeconds(text) }}
+  >
+    {children}
+  </motion.div>
+);
 
 const AnimatedBotText = ({ text }) => {
   const lines = text.split('\n').filter((l) => l.trim() !== '');
