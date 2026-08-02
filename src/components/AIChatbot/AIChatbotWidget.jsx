@@ -198,14 +198,14 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       if (aiResult.hasLaunchIntent) {
         setSyncStage('confirmed');
         const { kind, text: launchText } = flow.launchMessage();
-        thinkThen({ type: kind, text: launchText }, 800);
+        thinkThen({ type: kind, text: launchText }, 200);
       } else if (aiResult.isAwaitingConfirmation) {
         setSyncStage('awaiting_confirmation');
       }
       return;
     }
 
-    // 2. Offline Smart Fallback Engine
+    // 2. Offline Smart Fallback Engine (Lightning fast <200ms)
     // Step 2: User confirms after AI asked to try sync mode
     if (syncStage === 'awaiting_confirmation' && isConfirmationReply(msg)) {
       setSyncStage('confirmed');
@@ -217,8 +217,8 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
           text: "Awesome! Let's set up your group trip session...",
         }]);
         const { kind, text: launchText } = flow.launchMessage();
-        thinkThen({ type: kind, text: launchText }, 800);
-      }, 600);
+        thinkThen({ type: kind, text: launchText }, 250);
+      }, 150);
       return;
     }
 
@@ -233,7 +233,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
           text: "Group trips are fantastic, but coordinating budgets, dates, and preferences across everyone can be tricky! 🏖️\n\nWould you like to enable **Group Sync Mode** so your friends can easily share their preferences via a quick 2-minute share link?",
         }]);
         setIsTyping(false);
-      }, 700);
+      }, 200);
       return;
     }
 
@@ -246,7 +246,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
         text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (MyRA).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
       }]);
       setIsTyping(false);
-    }, 700);
+    }, 200);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
