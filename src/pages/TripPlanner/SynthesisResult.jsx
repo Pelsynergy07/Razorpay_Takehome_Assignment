@@ -30,11 +30,11 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove }) => {
 
   const [openSections, setOpenSections] = useState({
     dates: true,
-    transport: true,
-    stay: true,
-    activities: true,
-    resolved: true,
-    evidence: true,
+    transport: false,
+    stay: false,
+    activities: false,
+    resolved: false,
+    evidence: false,
   });
 
   // In-panel swap view — replaces the dashboard while active, instead of
@@ -209,7 +209,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove }) => {
             <div className="confidence-badge-row">
               <span className="confidence-tag">
                 <span className="accordion-icon-chip"><CheckCircle2 size={16} /></span>
-                {recState.confidenceLevel === 'high' ? 'High consensus' : 'Moderate consensus'}
+                {recState.confidenceLevel === 'high' ? 'Most people agree' : 'Some people agree'}
               </span>
               <button
                 type="button"
@@ -229,7 +229,11 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove }) => {
                   exit={{ height: 0, opacity: 0 }}
                   style={{ overflow: 'hidden' }}
                 >
-                  <p className="confidence-reasoning">{recState.whyItFits}</p>
+                  <ul className="confidence-reasoning-list">
+                    {recState.whyItFits.map((point, idx) => (
+                      <li key={idx}>{point}</li>
+                    ))}
+                  </ul>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -9,55 +9,126 @@
   animation: bounceIn 550ms var(--ease-decelerate);
 }
 
-.widget-mascot {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(93deg, #53b2fe 0%, #065af3 100%);
+/* Mascot floats above the card, half overlapping its top edge, with its
+   own soft contact shadow instead of sitting inside a solid blue disc. */
+.widget-mascot-wrap {
+  position: relative;
+  height: 124px;
+  margin-bottom: -46px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(0, 140, 255, 0.45);
-  position: absolute;
-  top: -28px;
-  right: var(--space-md);
   z-index: 2;
+  pointer-events: none;
+}
+
+.widget-mascot {
+  width: 120px;
+  height: 120px;
   animation: floatMascot 3s ease-in-out infinite;
+}
+
+.widget-mascot-shadow {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  margin-left: -28.5px;
+  width: 57px;
+  height: 14px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(20, 20, 40, 0.28) 0%, rgba(20, 20, 40, 0) 75%);
+  border-radius: 50%;
+  animation: floatMascotShadow 3s ease-in-out infinite;
+}
+
+.widget-card {
+  position: relative;
+  background: var(--mmt-white);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-chatbot);
+  padding: 56px var(--space-md) var(--space-md);
   overflow: hidden;
 }
 
-.widget-prompts {
-  background: var(--mmt-white);
-  border-radius: var(--radius-lg);
-  padding: var(--space-md);
-  padding-top: 36px;
-  box-shadow: var(--shadow-chatbot);
-  margin-bottom: var(--space-xs);
+/* Soft aurora wash bleeding up from the bottom of the card, behind the
+   suggestion bubbles and input preview. */
+.widget-card-glow {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-myra-wash);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
-.widget-prompt-pill {
-  padding: 10px 14px;
-  background: var(--mmt-blue-tint);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
+.widget-close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
   color: var(--mmt-text-secondary);
-  margin-bottom: var(--space-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
   transition: background var(--duration-base);
 }
 
-.widget-prompt-pill:last-child {
-  margin-bottom: 0;
+.widget-close:hover {
+  background: rgba(0, 0, 0, 0.12);
 }
 
-.widget-prompt-pill:hover {
-  background: var(--mmt-blue-tint-hover);
+.widget-prompts {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.widget-prompt-bubble {
+  max-width: 82%;
+  padding: 10px 14px;
+  background: var(--mmt-white);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  transition: box-shadow var(--duration-base), transform var(--duration-base);
+}
+
+.widget-prompt-bubble:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.widget-prompt-bubble--right {
+  align-self: flex-end;
+  border-radius: var(--radius-lg) var(--radius-xs) var(--radius-lg) var(--radius-lg);
+}
+
+.widget-prompt-bubble--left {
+  align-self: flex-start;
+  border-radius: var(--radius-xs) var(--radius-lg) var(--radius-lg) var(--radius-lg);
+}
+
+.widget-bubble-accent {
+  color: var(--mmt-blue);
+  font-weight: var(--fw-bold);
+}
+
+.widget-bubble-muted {
+  color: var(--mmt-text-primary);
 }
 
 .widget-input-preview {
+  position: relative;
+  z-index: 1;
   background: var(--mmt-white);
+  border: 1.5px solid var(--mmt-blue);
   border-radius: var(--radius-lg);
   padding: 14px 18px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 0 4px rgba(0, 140, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -67,27 +138,7 @@
 }
 
 .widget-input-preview:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.widget-close {
-  position: absolute;
-  top: -32px;
-  right: -4px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.5);
-  color: var(--mmt-white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
-  transition: background var(--duration-base);
-}
-
-.widget-close:hover {
-  background: rgba(0,0,0,0.7);
+  box-shadow: 0 0 0 5px rgba(0, 140, 255, 0.18);
 }
 
 /* ===== CHAT PANEL (desktop docked shell — content is the shared MyRA
@@ -619,6 +670,9 @@
 }
 
 .myra-landing-wordmark-ai {
+  display: inline-block;
+  padding-right: 0.15em;
+  margin-right: -0.15em;
   background: var(--gradient-btn-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -635,7 +689,7 @@
 }
 
 .myra-landing-greeting {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-family);
   font-size: var(--text-4xl);
   font-weight: var(--fw-heavy);
   background: var(--gradient-btn-primary);

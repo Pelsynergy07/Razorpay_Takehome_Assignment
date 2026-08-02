@@ -130,6 +130,13 @@ img {
   50% { transform: translateY(-8px); }
 }
 
+/* Paired with .widget-mascot's floatMascot — shadow shrinks/fades as the
+   mascot rises, instead of the shadow staying a static disc. */
+@keyframes floatMascotShadow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.75); opacity: 0.6; }
+}
+
 @keyframes pulseGlow {
   0%, 100% { box-shadow: var(--shadow-btn-primary); }
   50% { box-shadow: 0 4px 28px rgba(0, 140, 255, 0.55); }

@@ -438,56 +438,161 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.25);
 }
 
-/* Head-to-Head */
-.head-to-head-container {
+/* ===================================================================
+   DESTINATION CAROUSEL — 3D coverflow picker (Q1)
+   =================================================================== */
+.location-carousel-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
   flex: 1;
   min-height: 0;
 }
 
-.head-option-card {
+.location-carousel-stage {
   position: relative;
   flex: 1;
   min-height: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 2.5px solid transparent;
-  cursor: pointer;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  perspective: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.head-option-card.selected {
-  border-color: #008cff;
-  box-shadow: 0 6px 20px rgba(0,140,255,0.28);
+.location-carousel-drag-layer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
 }
 
-.head-card-badge {
+.location-carousel-card {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 3px 8px;
-  background: rgba(255,255,255,0.9);
-  color: #0f172a;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 800;
+  top: 6%;
+  left: 50%;
+  width: 76%;
+  height: 88%;
+  margin-left: -38%;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.28);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.location-carousel-card.is-active {
+  top: 0;
+  height: 100%;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+}
+
+.location-carousel-card.is-selected {
+  outline: 3px solid #008cff;
+  outline-offset: -3px;
+}
+
+.location-carousel-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #008cff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.location-carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.location-carousel-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15,23,42,0.02) 40%, rgba(15,23,42,0.85) 100%);
+}
+
+.location-carousel-label {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   z-index: 2;
 }
 
-.head-card-title {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
-  font-size: 14px;
+.location-carousel-name {
+  font-size: 16px;
   font-weight: 800;
   color: #ffffff;
-  z-index: 2;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.location-carousel-region {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.location-carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+  z-index: 6;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.location-carousel-nav:active { transform: translateY(-50%) scale(0.92); }
+
+.location-carousel-nav:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.location-carousel-nav--prev { left: 2px; }
+.location-carousel-nav--next { right: 2px; }
+
+.location-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.location-carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.location-carousel-dot.active {
+  background: #008cff;
+  transform: scale(1.3);
 }
 
 /* ===================================================================

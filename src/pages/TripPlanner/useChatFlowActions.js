@@ -54,7 +54,8 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
   };
 
   const handleTripFormSubmit = async (formValues) => {
-    echoUser(`${formValues.groupSize} people · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
+    const destinationPart = formValues.destination ? ` · ${formValues.destination}` : '';
+    echoUser(`${formValues.groupSize} people${destinationPart} · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
     const { message } = await flow.submitForm(formValues);
     thinkThen(toMessage(message), 950);
   };
@@ -107,6 +108,23 @@ export function useChatAutoScroll({ messages, isTyping, containerRef, kindField 
         const containerRect = container.getBoundingClientRect();
         const dayRect = dayEl.getBoundingClientRect();
         const target = container.scrollTop + (dayRect.top - containerRect.top) - 16;
+        smoothScrollTo(container, target, 1400);
+      });
+      return;
+    }
+    // Synthesis result: land on this turn's own "Here's what I've put
+    // together" bot bubble instead of the container bottom — scrolling to
+    // bottom here is unpredictable since it depends on however tall
+    // SynthesisResult's card ends up being.
+    if (lastMsg?.[kindField] === 'result') {
+      requestAnimationFrame(() => {
+        if (!container) return;
+        const responseEls = container.querySelectorAll('.bot-response');
+        const resultEl = responseEls[responseEls.length - 1];
+        if (!resultEl) return;
+        const containerRect = container.getBoundingClientRect();
+        const resultRect = resultEl.getBoundingClientRect();
+        const target = container.scrollTop + (resultRect.top - containerRect.top) - 16;
         smoothScrollTo(container, target, 1400);
       });
       return;

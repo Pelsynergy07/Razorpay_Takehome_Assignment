@@ -28,6 +28,7 @@
   --gradient-tint: linear-gradient(99deg, #eaf5ff 0%, #ffffff 97%);                                    /* verified */
   --gradient-price-drop: linear-gradient(120deg, #ffffff 0%, #ffffff 70%, #f5faff 70%, #f5faff 78%, #eaf5ff 78%, #eaf5ff 86%, #d4ebff 86%, #d4ebff 100%); /* verified from screenshot: diagonal stepped band, white left -> pale blue right */
   --gradient-myra: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);                     /* product extension: AI assistant, intentionally off-brand to read as "smart" */
+  --gradient-myra-wash: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 35%, rgba(240,147,251,0.35) 70%, rgba(118,75,162,0.28) 100%); /* product extension: soft aurora bleeding up from the bottom of the widget teaser card */
 
   /* ===================================================================
      COLOR — SURFACE

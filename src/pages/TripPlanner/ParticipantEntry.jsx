@@ -7,6 +7,7 @@ import ParticipantMobileFrame from './ParticipantMobileFrame';
 import ParticipantProgressStepper from './ParticipantProgressStepper';
 import { participantCards } from './participantCards';
 import { useParticipantFlow } from './useParticipantFlow';
+import LocationCarousel from './LocationCarousel';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import './ParticipantFlow.css';
 
@@ -151,28 +152,12 @@ const ParticipantEntry = () => {
             <p className="question-subtitle">{currentCard.subtitle}</p>
           </div>
 
-          {/* Q1: Head-to-Head */}
-          {currentCard.type === 'headToHead' && (
-            <div className="head-to-head-container">
-              {currentCard.options.map((opt) => {
-                const isSelected = selectedValue === opt.value;
-                return (
-                  <div
-                    key={opt.value}
-                    className={`head-option-card ${isSelected ? 'selected' : ''}`}
-                    onClick={() => flow.selectAndAdvance(currentCard.field, opt.value)}
-                  >
-                    <img src={opt.image} alt={opt.label} className="photo-card-bg" />
-                    <div className="photo-card-gradient" />
-                    <span className="head-card-badge">{opt.badge}</span>
-                    <span className="head-card-title">{opt.label}</span>
-                    {isSelected && (
-                      <div className="photo-card-check"><Check size={14} strokeWidth={3} /></div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          {/* Q1: Destination pick — 3D carousel */}
+          {currentCard.type === 'carousel' && (
+            <LocationCarousel
+              options={currentCard.options}
+              onSelect={(value) => flow.selectAndAdvance(currentCard.field, value)}
+            />
           )}
 
           {/* Q2 & Q4: 2×2 Photo Cards — tap to advance */}
@@ -265,7 +250,7 @@ const ParticipantEntry = () => {
 
                 <button
                   type="button"
-                  className="primary-btn-brand range-confirm-btn"
+                  className="secondary-btn-brand range-confirm-btn"
                   onClick={flow.goNext}
                 >
                   Looks right <ArrowRight size={16} />
@@ -304,7 +289,7 @@ const ParticipantEntry = () => {
           <div className="arrival-actions">
             <button
               type="button"
-              className="primary-btn-brand"
+              className="secondary-btn-brand"
               onClick={() => flow.finish(flow.answers.openNote || '')}
             >
               Send it <ArrowRight size={16} />

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
 import ChatFlowShell from './ChatFlowShell';
-import ChatRedirectState from './ChatRedirectState';
 import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock, FollowUpReveal } from './ChatMessages';
 import TypingIndicator from './TypingIndicator';
 import ScrollHintButton from './ScrollHintButton';
@@ -29,6 +28,13 @@ const promptSuggestions = [
   { text: 'Best hotels in Goa under ₹5000', icon: '🏨' },
   { text: 'Weekend trips near Mumbai', icon: '🗺️' },
   { text: 'Family vacation packages to Kerala', icon: '👨‍👩‍👧‍👦' },
+];
+
+// Widget teaser bubbles — each split into an emphasized (blue) phrase and a
+// muted phrase, matching which half reads as the "hook" in the reference.
+const widgetPromptBubbles = [
+  { lead: 'Cheapest flight', rest: 'from Delhi to Spain', emphasis: 'lead', align: 'right' },
+  { lead: 'Plan a relaxing getaway for', rest: 'my parents...', emphasis: 'rest', align: 'left' },
 ];
 
 const flightResults = [
@@ -97,7 +103,6 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [showWidget, setShowWidget] = useState(!isOpen);
   const [chatOpen, setChatOpen] = useState(isOpen || false);
-  const [showRedirect, setShowRedirect] = useState(false);
   const messagesScrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -111,9 +116,6 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   useEffect(() => {
     if (chatOpen) {
       setConversations(listConversations());
-      setShowRedirect(true);
-      const t = setTimeout(() => setShowRedirect(false), 800);
-      return () => clearTimeout(t);
     }
   }, [chatOpen]);
 
@@ -285,7 +287,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
         onClose={closeChat}
         onClearHistory={handleClearHistory}
         messagesRef={messagesScrollRef}
-        belowMessages={!showRedirect && messages.length > 0 && <ScrollHintButton onClick={scrollMessagesDown} />}
+        belowMessages={messages.length > 0 && <ScrollHintButton onClick={scrollMessagesDown} />}
         footer={flow.tripStep !== 'form' && (
           <ChatInputBar
             value={inputValue}
@@ -296,9 +298,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
           />
         )}
       >
-        {showRedirect ? (
-          <ChatRedirectState label="Myra" />
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <ChatLandingScreen
             conversations={conversations}
             suggestions={promptSuggestions.slice(0, 3)}
@@ -391,23 +391,34 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       {/* Floating Widget (Desktop only, collapsed state) */}
       {showWidget && !isMobile && (
         <div className="chatbot-floating-widget" onClick={openChat}>
-          <div className="widget-mascot">
-            <MyraAvatar size="100%" />
+          <div className="widget-mascot-wrap">
+            <div className="widget-mascot-shadow" />
+            <div className="widget-mascot">
+              <MyraAvatar size="100%" />
+            </div>
           </div>
-          <div className="widget-prompts">
-            {promptSuggestions.slice(0, 2).map((s, i) => (
-              <div key={i} className="widget-prompt-pill">
-                <span>{s.text}</span>
-              </div>
-            ))}
+
+          <div className="widget-card">
+            <button className="widget-close" onClick={(e) => { e.stopPropagation(); setShowWidget(false); }}>
+              <X size={16} />
+            </button>
+
+            <div className="widget-card-glow" />
+
+            <div className="widget-prompts">
+              {widgetPromptBubbles.map((b, i) => (
+                <div key={i} className={`widget-prompt-bubble widget-prompt-bubble--${b.align}`}>
+                  <span className={b.emphasis === 'lead' ? 'widget-bubble-accent' : 'widget-bubble-muted'}>{b.lead}</span>{' '}
+                  <span className={b.emphasis === 'rest' ? 'widget-bubble-accent' : 'widget-bubble-muted'}>{b.rest}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="widget-input-preview">
+              <span>Where do you want to go?</span>
+              <Sparkles size={16} className="icon-blue" />
+            </div>
           </div>
-          <div className="widget-input-preview">
-            <span>Where do you want to go?</span>
-            <Sparkles size={16} className="icon-blue" />
-          </div>
-          <button className="widget-close" onClick={(e) => { e.stopPropagation(); setShowWidget(false); }}>
-            <X size={14} />
-          </button>
         </div>
       )}
 

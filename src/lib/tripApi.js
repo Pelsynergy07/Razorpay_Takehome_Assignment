@@ -27,15 +27,16 @@ const writeJSON = (key, value) => {
 };
 
 /**
- * @param {{ organizerName: string, groupSize: number, dateWindow: string, budgetPerPerson: number }} input
+ * @param {{ organizerName: string, groupSize: number, destination?: string|null, dateWindow: string, budgetPerPerson: number }} input
  * @returns {Promise<object>|object}
  */
-export const createSession = async ({ organizerName, groupSize, dateWindow, budgetPerPerson }) => {
+export const createSession = async ({ organizerName, groupSize, destination, dateWindow, budgetPerPerson }) => {
   const sessionId = generateId();
   const session = {
     id: sessionId,
     organizer_name: organizerName,
     group_size: groupSize,
+    destination: destination || null,
     date_window: dateWindow,
     budget_per_person: budgetPerPerson,
     status: 'collecting',
@@ -53,6 +54,7 @@ export const createSession = async ({ organizerName, groupSize, dateWindow, budg
         id: session.id,
         organizer_name: organizerName,
         group_size: groupSize,
+        destination: session.destination,
         date_window: dateWindow,
         budget_per_person: budgetPerPerson,
       }]);

@@ -9,7 +9,7 @@ const STAGES = [
   'Bribing the weather gods…',
   'Wrapping it all up in a bow 🎀',
 ];
-const STAGE_DELAY = 1900;
+const STAGE_DELAY = 1520;
 
 /**
  * Screen 4.1 — processing state. Cycles quirky micro-copy while the mock

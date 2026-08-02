@@ -4,7 +4,8 @@
       "Bash(awk '{print $5, $9}')",
       "Bash(grep -rnoE '#[0-9a-fA-F]{3,8}' --include=\"*.css\" .)",
       "Skill(impeccable)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(xargs grep -l -i \"Where do you\\\\|Cheapest flight\\\\|relaxing getaway\")"
     ]
   }
 }

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Compass, Camera, Navigation, ShieldAlert, Check } from 'lucide-react';
+import { Compass, Camera, Navigation, ShieldAlert, MapPin, Check } from 'lucide-react';
 import { participantCards } from './participantCards';
 
-const ICONS = { Compass, Camera, Navigation, ShieldAlert };
+const ICONS = { Compass, Camera, Navigation, ShieldAlert, MapPin };
 
 /**
  * Stepper: icon circles with blue connector lines between them.

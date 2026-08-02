@@ -32,10 +32,11 @@ export function useTripPlannerFlow() {
     return { kind: 'form', text: 'Great — a few quick details:' };
   };
 
-  const submitForm = async ({ groupSize, dateWindow, budgetPerPerson }) => {
+  const submitForm = async ({ groupSize, destination, dateWindow, budgetPerPerson }) => {
     const created = await createSession({
       organizerName: 'Organizer',
       groupSize,
+      destination,
       dateWindow,
       budgetPerPerson,
     });

@@ -232,8 +232,16 @@ export function synthesizeRecommendation(session, responses) {
     resolvedSummary: customData.resolvedSummary,
     itinerary: customData.itinerary,
     whyItFits: scenario === 'partial'
-      ? `Based on ${responses.length} of ${session.group_size} responses so far, ${VIBE_LABELS[fallbackVibe]} came out ahead, and ${best.destination} (${best.hotel}) fits comfortably within your ${inr(session.budget_per_person)} per-person budget. This may shift once everyone's answered.`
-      : `${VIBE_LABELS[fallbackVibe]} was the clear favorite across your group, and ${best.destination} (${best.hotel}) fits comfortably within your ${inr(session.budget_per_person)} per-person budget.`,
+      ? [
+          `${responses.length} of ${session.group_size} friends have replied so far`,
+          `${VIBE_LABELS[fallbackVibe]} is the top pick right now`,
+          `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
+          `This could change once everyone's answered`,
+        ]
+      : [
+          `${VIBE_LABELS[fallbackVibe]} was the clear favorite for your group`,
+          `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
+        ],
     attributions: buildAttributions(responses, fallbackVibe),
     evidenceSources: [
       {
