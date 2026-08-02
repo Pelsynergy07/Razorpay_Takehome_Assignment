@@ -1,6 +1,6 @@
 import React from 'react';
-import { Bot } from 'lucide-react';
 import SpriteIcon from '../SpriteIcon';
+import MyraAvatar from '../AIChatbot/MyraAvatar';
 import { BOTTOM_NAV_ICONS } from '../../styles/spriteIcons.js';
 import './MobileBottomNav.css';
 
@@ -8,7 +8,7 @@ const MobileBottomNav = ({ activeTab, onTabChange, onMyraClick }) => {
   const tabs = [
     { id: 'home', label: 'Home', icon: 'home' },
     { id: 'trips', label: 'My Trips', icon: 'myTrips' },
-    { id: 'myra', icon: Bot, isCenter: true },
+    { id: 'myra', isCenter: true },
     { id: 'offers', label: 'Offers', icon: 'offers' },
     { id: 'where2go', label: 'Where2Go', icon: 'where2go' },
   ];
@@ -24,11 +24,13 @@ const MobileBottomNav = ({ activeTab, onTabChange, onMyraClick }) => {
               key={tab.id}
               className="bottom-tab center-tab"
               onClick={() => onMyraClick?.()}
-              aria-label="Open MyRA AI Assistant"
+              aria-label="Open Myra AI Assistant"
             >
               <div className="myra-bubble">
-                <div className="myra-mascot">
-                  <Bot size={24} className="icon-white" />
+                <div className="myra-mascot-wrap">
+                  <div className="myra-mascot">
+                    <MyraAvatar size={68} />
+                  </div>
                 </div>
               </div>
             </button>

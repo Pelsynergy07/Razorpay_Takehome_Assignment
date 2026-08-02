@@ -92,7 +92,7 @@ function App() {
             <div className="explore-card">
               <div className="explore-icon">🤖</div>
               <h3>AI-Powered</h3>
-              <p>MyRA AI assistant helps you find the best deals, plan trips, and get personalized recommendations.</p>
+              <p>Myra AI assistant helps you find the best deals, plan trips, and get personalized recommendations.</p>
             </div>
           </div>
         </div>
@@ -112,6 +112,7 @@ function App() {
       <AIChatbotWidget
         isOpen={showMyraChat}
         onClose={handleMyraClose}
+        onOpen={handleMyraClick}
         isMobile={isMobile}
       />
 

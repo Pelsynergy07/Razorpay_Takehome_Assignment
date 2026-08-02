@@ -51,64 +51,7 @@ const widgetPromptBubbles = [
   { lead: 'Plan a relaxing getaway for', rest: 'my parents...', emphasis: 'rest', align: 'left' },
 ];
 
-const flightResults = [
-  { airline: 'IndiGo', code: '6E 2154', depart: '06:25', arrive: '09:10', duration: '2h 45m', stops: 'Non Stop', price: '₹4,562', logo: '🔵' },
-  { airline: 'Air India', code: 'AI 812', depart: '08:00', arrive: '10:55', duration: '2h 55m', stops: 'Non Stop', price: '₹5,120', logo: '🟠' },
-  { airline: 'Vistara', code: 'UK 823', depart: '11:30', arrive: '14:20', duration: '2h 50m', stops: 'Non Stop', price: '₹5,890', logo: '🟣' },
-  { airline: 'Akasa Air', code: 'QP 1347', depart: '15:45', arrive: '18:50', duration: '3h 05m', stops: '1 Stop', price: '₹3,899', logo: '🟡' },
-];
-
-const hotelResults = [
-  { name: 'Taj Holiday Village', location: 'Candolim, Goa', rating: 4.5, reviews: 2841, price: '₹4,200', perNight: '/night', image: '🏨' },
-  { name: 'The Leela Goa', location: 'Cavelossim, Goa', rating: 4.7, reviews: 3102, price: '₹6,800', perNight: '/night', image: '🏖️' },
-];
-
-const destinationResults = [
-  { id: 1, name: 'Thailand', location: 'Thailand', image: 'https://picsum.photos/seed/thailand-trip/400/300' },
-  { id: 2, name: 'Bangkok', location: 'Phuket, Thailand', image: 'https://picsum.photos/seed/bangkok-trip/400/300' },
-  { id: 3, name: 'Bali', location: 'Indonesia', image: 'https://picsum.photos/seed/bali-trip/400/300' },
-  { id: 4, name: 'Vietnam', location: 'Vietnam', image: 'https://picsum.photos/seed/vietnam-trip/400/300' },
-  { id: 5, name: 'Singapore', location: 'Singapore', image: 'https://picsum.photos/seed/singapore-trip/400/300' },
-  { id: 6, name: 'Maldives', location: 'Maldives', image: 'https://picsum.photos/seed/maldives-trip/400/300' },
-  { id: 7, name: 'Sri Lanka', location: 'Sri Lanka', image: 'https://picsum.photos/seed/srilanka-trip/400/300' },
-  { id: 8, name: 'Dubai', location: 'UAE', image: 'https://picsum.photos/seed/dubai-trip/400/300' },
-  { id: 9, name: 'Malaysia', location: 'Malaysia', image: 'https://picsum.photos/seed/malaysia-trip/400/300' },
-];
-
-const generateBotResponse = (userMsg) => {
-  const lower = userMsg.toLowerCase();
-
-  if (lower.includes('flight') || lower.includes('cheapest') || lower.includes('fly')) {
-    return {
-      type: 'flights',
-      text: 'Here are the best flight options I found for you:',
-      results: flightResults,
-    };
-  }
-
-  if (lower.includes('hotel') || lower.includes('stay') || lower.includes('goa')) {
-    return {
-      type: 'hotels',
-      text: 'Here are some highly-rated hotels I recommend:',
-      results: hotelResults,
-    };
-  }
-
-  if (lower.includes('plan') || lower.includes('getaway') || lower.includes('vacation') || lower.includes('trip')) {
-    return {
-      type: 'destinations',
-      text: "Southeast Asia offers a fantastic blend of vibrant culture, stunning landscapes, and delicious food, all within your budget. The key is to choose a destination that balances affordability with unique experiences.\n\n1. **Thailand**: The Classic Choice\n- **What makes it great:** Thailand is renowned for its incredible value, from street food to luxury resorts, offering something for every traveller in your group.",
-      destinations: destinationResults,
-    };
-  }
-
-  return {
-    type: 'text',
-    text: "That's a great question! I can help you find flights, hotels, and plan complete trips. Try asking me about specific destinations, and I'll find the best deals for you! 🌍",
-  };
-};
-
-const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
+const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
   const flow = useTripPlannerFlow();
   const [messages, setMessages] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
@@ -270,7 +213,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
       id: crypto.randomUUID(),
       role: 'bot',
       type: 'text',
-      text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (MyRA).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
+      text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (Myra).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
     }]);
     setIsTyping(false);
   };
@@ -287,6 +230,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
   const openChat = () => {
     setChatOpen(true);
     setShowWidget(false);
+    if (onOpen) onOpen();
   };
 
   const closeChat = () => {
@@ -462,7 +406,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
         </>
       )}
 
-      {/* Desktop Chat Panel — same MyRA components, docked panel shell */}
+      {/* Desktop Chat Panel — same Myra components, docked panel shell */}
       {chatOpen && !isMobile && renderChatBody('chatbot-panel')}
     </>
   );

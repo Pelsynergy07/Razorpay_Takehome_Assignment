@@ -20,7 +20,7 @@ import { blockVariants, BLOCK_STAGGER, BLOCK_Y, EASE, sequenceDelays } from '../
 
 // The Edit -> options-swap transition reads better a bit slower than the
 // standard block entrance (BLOCK_DURATION) — it's a bigger jump in content.
-const SWAP_VIEW_DURATION = 0.8;
+const SWAP_VIEW_DURATION = 1.15;
 
 /**
  * Shared header row for every accordion card — icon + title/subtext on the

@@ -69,7 +69,7 @@
   border-radius: var(--radius-xs);
 }
 
-/* Center MyRA Tab — icon-only, no label, matching the reference footer nav */
+/* Center Myra Tab — icon-only, no label, matching the reference footer nav */
 .center-tab {
   position: relative;
   flex: 1;
@@ -79,13 +79,14 @@
   width: 48px;
   height: 48px;
   border-radius: var(--radius-pill);
-  background: var(--gradient-myra);
+  background: var(--gradient-btn-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: -20px;
   box-shadow: var(--shadow-chatbot);
   position: relative;
+  overflow: visible;
   transition: all var(--duration-base) var(--ease-standard);
 }
 
@@ -93,7 +94,26 @@
   transform: scale(0.92);
 }
 
+/* Mascot renders larger than the bubble itself and overflows its edges —
+   the bubble reads as a glowing anchor/backdrop rather than a container
+   that clips the character, matching the desktop widget's treatment. */
+.myra-mascot-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 68px;
+  height: 68px;
+  margin-top: -34px;
+  margin-left: -34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
 .myra-mascot {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;

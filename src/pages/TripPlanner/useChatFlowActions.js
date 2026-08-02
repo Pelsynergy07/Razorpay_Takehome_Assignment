@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { smoothScrollTo, smoothScrollToBottom } from '../../lib/smoothScroll';
 
 /**
- * Chat-turn choreography shared by the homepage's floating MyRA widget
+ * Chat-turn choreography shared by the homepage's floating Myra widget
  * (AIChatbotWidget) and the full-page /plan route (OrganizerEntry): the
  * "thinking" delay before a bot turn lands, and the handlers for every
  * step transition (form → hub → synthesis → approval) that echo the

@@ -32,10 +32,10 @@ const ChatbotGuideTooltip = ({ isVisible, onOpenChat, onDismiss }) => {
             </button>
           </div>
           <p className="guide-tooltip-text">
-            Click <strong>MyRA AI Assistant</strong> to start planning a trip & see the group flow in action!
+            Click <strong>Myra AI Assistant</strong> to start planning a trip & see the group flow in action!
           </p>
           <div className="guide-tooltip-action">
-            <span>Launch MyRA</span> <ArrowRight size={14} />
+            <span>Launch Myra</span> <ArrowRight size={14} />
           </div>
           <div className="guide-tooltip-arrow" />
         </div>

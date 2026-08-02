@@ -4,7 +4,7 @@ import { synthesizeRecommendation } from '../../lib/synthesizeRecommendation';
 
 /**
  * Shared organizer-flow logic (Screens 1.1 through 4.2) so both the
- * dedicated /plan route and the homepage's floating MyRA widget drive the
+ * dedicated /plan route and the homepage's floating Myra widget drive the
  * exact same step machine and data layer instead of duplicating it.
  */
 export function useTripPlannerFlow() {

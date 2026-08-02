@@ -138,7 +138,7 @@
   box-shadow: 0 0 0 5px rgba(0, 140, 255, 0.18);
 }
 
-/* ===== CHAT PANEL (desktop docked shell — content is the shared MyRA
+/* ===== CHAT PANEL (desktop docked shell — content is the shared Myra
    components below, same as the mobile sheet) ===== */
 .chatbot-panel {
   position: fixed;
@@ -573,69 +573,6 @@
 .chat-sheet-send-btn.active {
   opacity: 1;
   box-shadow: 0 2px 8px rgba(0, 140, 255, 0.3);
-}
-
-/* ----- Redirect / loading state ----- */
-.redirect-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xl);
-  padding: var(--space-xl);
-  text-align: center;
-}
-
-.redirect-orbit-wrap {
-  position: relative;
-  width: 150px;
-  height: 150px;
-}
-
-.redirect-orbit-ring {
-  position: absolute;
-  inset: 10px;
-  border-radius: var(--radius-pill);
-  border: 2px dashed var(--mmt-border);
-  animation: orbitRotate 3.5s linear infinite;
-}
-
-.redirect-glyph-badge,
-.redirect-bot-badge {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-pill);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-md);
-}
-
-.redirect-glyph-badge {
-  top: 4px;
-  left: 4px;
-  background: var(--mmt-blue-tint);
-}
-
-.redirect-bot-badge {
-  bottom: 4px;
-  right: 4px;
-  background: var(--gradient-myra);
-}
-
-.redirect-text {
-  font-size: var(--text-xl);
-  font-weight: var(--fw-bold);
-}
-
-.redirect-text-lead {
-  color: var(--mmt-blue-light);
-}
-
-.redirect-text-target {
-  color: var(--mmt-navy-light);
 }
 
 /* ===== MYRA LANDING SCREEN (greeting + suggestions/history picker) ===== */

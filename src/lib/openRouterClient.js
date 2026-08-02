@@ -1,5 +1,5 @@
 /**
- * OpenRouter AI Integration for MyRA Assistant with High-Speed Fallback Architecture
+ * OpenRouter AI Integration for Myra Assistant with High-Speed Fallback Architecture
  *
  * Performance Optimizations:
  * 1. Strict 2.5s AbortController timeout per model (prevents waiting on free queue stalls).
@@ -22,7 +22,7 @@ export const isOpenRouterConfigured = Boolean(
   !OPENROUTER_API_KEY.includes('YOUR_OPENROUTER_KEY')
 );
 
-const SYSTEM_PROMPT = `You are MyRA, MakeMyTrip's intelligent AI travel assistant.
+const SYSTEM_PROMPT = `You are Myra, MakeMyTrip's intelligent AI travel assistant.
 This interactive prototype is specifically designed to demonstrate MakeMyTrip's AI-Powered Group Trip Planning Experience.
 
 STRICT BEHAVIORAL RULES:
@@ -52,7 +52,7 @@ async function callOpenRouterModel(modelName, formattedMessages, timeoutMs = 250
         'Content-Type': 'application/json',
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'MakeMyTrip MyRA AI Assistant',
+        'X-Title': 'MakeMyTrip Myra AI Assistant',
       },
       body: JSON.stringify({
         model: modelName,
