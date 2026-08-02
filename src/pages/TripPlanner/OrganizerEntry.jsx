@@ -5,6 +5,7 @@ import ChatFlowShell from '../../components/AIChatbot/ChatFlowShell';
 import { UserBubble, BotTextResponse, MessageBlock } from '../../components/AIChatbot/ChatMessages';
 import TypingIndicator from '../../components/AIChatbot/TypingIndicator';
 import ChatInputBar from '../../components/AIChatbot/ChatInputBar';
+import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
 import IntentFormCard from './IntentFormCard';
 import LinkShareCard from './LinkShareCard';
 import LiveAggregationHub from './LiveAggregationHub';
@@ -16,10 +17,8 @@ import './TripPlanner.css';
 
 /**
  * Organizer entry flow — Screens 1.1 (chat intro), 1.2 (intent form),
- * 2.1 (link share). Lives inside the same MyRA chat shell as the homepage
- * widget, just mounted full-page at /plan instead of as a floating overlay.
- * Step logic lives in useTripPlannerFlow so the homepage widget can drive
- * the identical flow inline.
+ * 2.1 (link share). Lives inside the same Myra chat shell as the homepage
+ * widget, mounted full-page at /plan.
  */
 const OrganizerEntry = () => {
   const navigate = useNavigate();
@@ -42,9 +41,8 @@ const OrganizerEntry = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Every transition "thinks" briefly before the next bot turn lands,
-  // instead of popping content in instantly.
-  const thinkThen = (msg, delay = 700) => {
+  // Every transition "thinks" briefly (~600-800ms) before the next bot turn lands.
+  const thinkThen = (msg, delay = 850) => {
     setIsTyping(true);
     setTimeout(() => {
       setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: 'bot', ...msg }]);
@@ -59,7 +57,7 @@ const OrganizerEntry = () => {
     const botReply = flow.detectsTripIntent(text) ? flow.launchMessage() : flow.nudgeMessage();
     setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: 'user', kind: 'text', text }]);
     setInputValue('');
-    thinkThen(botReply, 800);
+    thinkThen(botReply, 950);
   };
 
   const handleKeyDown = (e) => {
@@ -69,11 +67,11 @@ const OrganizerEntry = () => {
     }
   };
 
-  const handleLaunchSyncMode = () => thinkThen(flow.startForm(), 600);
+  const handleLaunchSyncMode = () => thinkThen(flow.startForm(), 850);
 
   const handleFormSubmit = (formValues) => {
     const { message } = flow.submitForm(formValues);
-    thinkThen(message, 1100); // a touch longer — this "creates" the session
+    thinkThen(message, 1200);
   };
 
   const joinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -138,9 +136,9 @@ const OrganizerEntry = () => {
               <>
                 <BotTextResponse text={msg.text} />
                 {msg.kind === 'launch' && (
-                  <button type="button" className="btn-secondary launch-sync-btn" onClick={handleLaunchSyncMode}>
+                  <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
                     Launch sync mode
-                  </button>
+                  </GradientSweepButton>
                 )}
                 {msg.kind === 'form' && <IntentFormCard onSubmit={handleFormSubmit} />}
                 {msg.kind === 'share' && flow.session && (

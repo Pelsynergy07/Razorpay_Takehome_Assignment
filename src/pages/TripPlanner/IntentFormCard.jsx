@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
 
 const budgetOptions = [
   { label: '₹5,000', value: 5000 },
@@ -8,10 +9,34 @@ const budgetOptions = [
   { label: '₹15,000+', value: 20000 },
 ];
 
+const formContainerVariants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.55,
+      ease: [0.16, 1, 0.3, 1],
+      staggerChildren: 0.08,
+      delayChildren: 0.12,
+    },
+  },
+};
+
+const formItemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
 /**
- * Screen 1.2 — base intent form. Rendered inline as a bot turn, not a
- * separate page: group size + trip length share a row, budget is a
- * single-select pill group (not a raw number input).
+ * Screen 1.2 — base intent form with staggered, subtle input field entry.
  */
 const IntentFormCard = ({ onSubmit }) => {
   const [groupSize, setGroupSize] = useState('5');
@@ -34,13 +59,13 @@ const IntentFormCard = ({ onSubmit }) => {
     <motion.form
       className="intent-form-card"
       onSubmit={handleSubmit}
-      initial={{ opacity: 0, scale: 0.97 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      variants={formContainerVariants}
+      initial="hidden"
+      animate="visible"
     >
       <div className="intent-form-row">
-        <div className="intent-form-field">
-          <label htmlFor="groupSize">Group size</label>
+        <motion.div className="intent-form-field" variants={formItemVariants}>
+          <label htmlFor="groupSize">How many of you?</label>
           <input
             id="groupSize"
             type="number"
@@ -50,9 +75,9 @@ const IntentFormCard = ({ onSubmit }) => {
             onChange={(e) => setGroupSize(e.target.value)}
             required
           />
-        </div>
-        <div className="intent-form-field">
-          <label htmlFor="numberOfDays">Number of days</label>
+        </motion.div>
+        <motion.div className="intent-form-field" variants={formItemVariants}>
+          <label htmlFor="numberOfDays">When are you thinking?</label>
           <input
             id="numberOfDays"
             type="number"
@@ -60,13 +85,14 @@ const IntentFormCard = ({ onSubmit }) => {
             max="30"
             value={numberOfDays}
             onChange={(e) => setNumberOfDays(e.target.value)}
+            placeholder="No. of days"
             required
           />
-        </div>
+        </motion.div>
       </div>
 
-      <div className="intent-form-field">
-        <label>Budget per person</label>
+      <motion.div className="intent-form-field" variants={formItemVariants}>
+        <label>What's the budget looking like per head?</label>
         <div className="budget-pill-group">
           {budgetOptions.map((opt) => (
             <motion.button
@@ -75,21 +101,23 @@ const IntentFormCard = ({ onSubmit }) => {
               className={`budget-pill ${budget === opt.value ? 'active' : ''}`}
               onClick={() => setBudget(opt.value)}
               whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               {opt.label}
             </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      <motion.button
-        type="submit"
-        className="btn-secondary intent-form-submit"
-        disabled={!canSubmit}
-        whileTap={canSubmit ? { scale: 0.98 } : undefined}
-      >
-        Create trip session
-      </motion.button>
+      <motion.div variants={formItemVariants}>
+        <GradientSweepButton
+          type="submit"
+          className="intent-form-submit"
+          disabled={!canSubmit}
+        >
+          Create trip session
+        </GradientSweepButton>
+      </motion.div>
     </motion.form>
   );
 };

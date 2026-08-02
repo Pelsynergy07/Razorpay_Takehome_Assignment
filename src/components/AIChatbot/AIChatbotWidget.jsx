@@ -7,6 +7,7 @@ import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, Messa
 import TypingIndicator from './TypingIndicator';
 import ScrollHintButton from './ScrollHintButton';
 import ChatInputBar from './ChatInputBar';
+import GradientSweepButton from './GradientSweepButton';
 import IntentFormCard from '../../pages/TripPlanner/IntentFormCard';
 import LinkShareCard from '../../pages/TripPlanner/LinkShareCard';
 import LiveAggregationHub from '../../pages/TripPlanner/LiveAggregationHub';
@@ -122,7 +123,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
   // Every bot turn "thinks" briefly before landing, instead of popping in
   // instantly.
-  const thinkThen = (kind, text, delay) => {
+  const thinkThen = (kind, text, delay = 850) => {
     setIsTyping(true);
     setTimeout(() => {
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', type: kind, text }]);
@@ -140,7 +141,7 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
     if (flow.tripStep === 'intro' && flow.detectsTripIntent(msg)) {
       const { kind, text: launchText } = flow.launchMessage();
-      thinkThen(kind, launchText, 800);
+      thinkThen(kind, launchText, 900);
       return;
     }
 
@@ -155,12 +156,12 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
   const handleLaunchSyncMode = () => {
     const { kind, text } = flow.startForm();
-    thinkThen(kind, text, 600);
+    thinkThen(kind, text, 850);
   };
 
   const handleTripFormSubmit = (formValues) => {
     const { message } = flow.submitForm(formValues);
-    thinkThen(message.kind, message.text, 1100); // a touch longer — "creates" the session
+    thinkThen(message.kind, message.text, 1200);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
@@ -257,9 +258,9 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                         <DestinationCarousel destinations={msg.destinations} />
                       )}
                       {msg.type === 'launch' && (
-                        <button type="button" className="btn-secondary launch-sync-btn" onClick={handleLaunchSyncMode}>
+                        <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
                           Launch sync mode
-                        </button>
+                        </GradientSweepButton>
                       )}
                       {msg.type === 'form' && <IntentFormCard onSubmit={handleTripFormSubmit} />}
                       {msg.type === 'share' && flow.session && (

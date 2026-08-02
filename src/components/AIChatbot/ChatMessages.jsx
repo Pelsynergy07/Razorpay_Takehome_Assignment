@@ -2,17 +2,15 @@ import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Bookmark, MapPin, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
 
-const blockTransition = { duration: 0.35, ease: [0.16, 1, 0.3, 1] };
+const blockTransition = { duration: 0.65, ease: [0.16, 1, 0.3, 1] };
 
 /**
- * Every chat turn (user bubble, bot response, typing indicator) mounts
- * through this so new messages settle in with one consistent, subtle
- * fade + rise instead of popping in instantly.
+ * Chat turn wrapper — smooth, subtle ease-out entrance with zero spring recoil.
  */
 export const MessageBlock = ({ children }) => (
   <motion.div
     className="chat-sheet-msg-block"
-    initial={{ opacity: 0, y: 14 }}
+    initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
     transition={blockTransition}
   >
@@ -20,33 +18,91 @@ export const MessageBlock = ({ children }) => (
   </motion.div>
 );
 
-const parseBold = (line) => {
-  const parts = line.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
-  return parts.map((part, i) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? <strong key={i}>{part.slice(2, -2)}</strong>
-      : <React.Fragment key={i}>{part}</React.Fragment>
-  );
+const wordVariants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.38,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
 };
 
-const formatBotText = (text) => {
+const containerVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.035,
+    },
+  },
+};
+
+const AnimatedBotText = ({ text }) => {
   const lines = text.split('\n').filter((l) => l.trim() !== '');
-  return lines.map((line, i) => {
-    const trimmed = line.trim();
-    const numbered = trimmed.match(/^(\d+)\.\s+(.*)/);
-    const bullet = trimmed.match(/^-\s+(.*)/);
-    if (numbered) {
-      return (
-        <p key={i} className="bot-text-numbered">
-          <strong>{numbered[1]}.</strong> {parseBold(numbered[2])}
-        </p>
-      );
-    }
-    if (bullet) {
-      return <p key={i} className="bot-text-bullet">{parseBold(bullet[1])}</p>;
-    }
-    return <p key={i} className="bot-text-line">{parseBold(trimmed)}</p>;
-  });
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="animated-bot-text"
+    >
+      {lines.map((line, lineIdx) => {
+        const trimmed = line.trim();
+        const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+        const bulletMatch = trimmed.match(/^-\s+(.*)/);
+
+        let contentStr = trimmed;
+        let prefix = null;
+        let pClass = 'bot-text-line';
+
+        if (numberedMatch) {
+          prefix = <strong>{numberedMatch[1]}. </strong>;
+          contentStr = numberedMatch[2];
+          pClass = 'bot-text-numbered';
+        } else if (bulletMatch) {
+          prefix = <span className="bullet-dot">• </span>;
+          contentStr = bulletMatch[1];
+          pClass = 'bot-text-bullet';
+        }
+
+        const parts = contentStr.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+        const wordTokens = [];
+
+        parts.forEach((part) => {
+          const isBold = part.startsWith('**') && part.endsWith('**');
+          const cleanPart = isBold ? part.slice(2, -2) : part;
+          const words = cleanPart.split(/\s+/).filter(Boolean);
+
+          words.forEach((w) => {
+            wordTokens.push({ word: w, isBold });
+          });
+        });
+
+        return (
+          <p key={lineIdx} className={pClass}>
+            {prefix && (
+              <motion.span variants={wordVariants} style={{ display: 'inline-block', marginRight: '0.25em' }}>
+                {prefix}
+              </motion.span>
+            )}
+            {wordTokens.map((item, wIdx) => (
+              <motion.span
+                key={wIdx}
+                variants={wordVariants}
+                style={{ display: 'inline-block', marginRight: '0.25em', whiteSpace: 'pre-wrap' }}
+              >
+                {item.isBold ? <strong>{item.word}</strong> : item.word}
+              </motion.span>
+            ))}
+          </p>
+        );
+      })}
+    </motion.div>
+  );
 };
 
 export const UserBubble = ({ text }) => (
@@ -59,7 +115,9 @@ export const BotTextResponse = ({ text }) => (
       <span className="myra-label-text">Myra</span>
       <Sparkles size={13} className="myra-sparkle" />
     </div>
-    <div className="bot-response-text">{formatBotText(text)}</div>
+    <div className="bot-response-text">
+      <AnimatedBotText text={text} />
+    </div>
   </div>
 );
 

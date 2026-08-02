@@ -45,7 +45,7 @@ export function useTripPlannerFlow() {
       session: created,
       message: {
         kind: 'share',
-        text: "You're all set! Share this link with your friends — no login or app install needed on their end.",
+        text: "Alright, we're set. Drop this link in your group chat, they'll take 2 minutes to fill it in, no signup, no app install, promise.",
       },
     };
   };

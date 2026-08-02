@@ -1,0 +1,6 @@
+@echo off
+echo Starting MakeMyTrip AI Agent local dev server...
+echo Opening browser to http://localhost:5173 ...
+start http://localhost:5173
+npm run dev
+pause
