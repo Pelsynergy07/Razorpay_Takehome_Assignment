@@ -173,7 +173,7 @@ export const subscribeToResponses = (sessionId, callback) => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'responses',
           filter: `session_id=eq.${sessionId}`,

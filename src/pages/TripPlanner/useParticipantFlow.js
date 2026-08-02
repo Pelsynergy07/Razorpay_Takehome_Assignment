@@ -10,7 +10,7 @@ import { participantCards } from './participantCards';
  * - directional transition state
  */
 export function useParticipantFlow(sessionId) {
-  const [session] = useState(() => getSession(sessionId));
+  const [session, setSession] = useState(null);
 
   const steps = [
     'arrival',
@@ -19,10 +19,20 @@ export function useParticipantFlow(sessionId) {
     'thanks',
   ];
 
-  const [stepIndex, setStepIndex] = useState(session ? 0 : -1);
+  const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [participantName, setParticipantName] = useState('');
   const [direction, setDirection] = useState('forward');
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.resolve(getSession(sessionId)).then((s) => {
+      if (isMounted && s) {
+        setSession(s);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [sessionId]);
 
   const currentStep = stepIndex >= 0 ? steps[stepIndex] : 'not-found';
   const totalQuestions = participantCards.length;
@@ -68,11 +78,11 @@ export function useParticipantFlow(sessionId) {
     }
   };
 
-  const finish = (openNote) => {
+  const finish = async (openNote) => {
     setDirection('forward');
     const idx = steps.indexOf('thanks');
     setStepIndex(idx);
-    submitResponse(sessionId, {
+    await submitResponse(sessionId, {
       ...answers,
       openNote,
       participantName,
@@ -80,10 +90,10 @@ export function useParticipantFlow(sessionId) {
     });
   };
 
-  const deferAll = () => {
+  const deferAll = async () => {
     setDirection('forward');
     setStepIndex(steps.indexOf('thanks'));
-    submitResponse(sessionId, { deferred: true, participantName });
+    await submitResponse(sessionId, { deferred: true, participantName });
   };
 
   return {
