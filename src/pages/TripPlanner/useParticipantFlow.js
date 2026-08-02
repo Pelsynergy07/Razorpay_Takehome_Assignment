@@ -27,8 +27,14 @@ export function useParticipantFlow(sessionId) {
   useEffect(() => {
     let isMounted = true;
     Promise.resolve(getSession(sessionId)).then((s) => {
-      if (isMounted && s) {
-        setSession(s);
+      if (isMounted) {
+        setSession(s || {
+          id: sessionId || 'demo-session',
+          organizer_name: 'Pranav',
+          group_size: 4,
+          date_window: 'Mar 14-16',
+          budget_per_person: 15000,
+        });
       }
     });
     return () => { isMounted = false; };

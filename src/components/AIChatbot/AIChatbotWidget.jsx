@@ -332,9 +332,12 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
                           <IntentFormCard onSubmit={handleTripFormSubmit} />
                         </FollowUpReveal>
                       )}
-                      {msg.type === 'share' && flow.session && (
+                      {msg.type === 'share' && (
                         <FollowUpReveal text={msg.text}>
-                          <LinkShareCard joinUrl={tripJoinUrl} onEnterHub={handleEnterHub} />
+                          <LinkShareCard
+                            joinUrl={tripJoinUrl || `${window.location.origin}/join/${flow.session?.id || 'demo'}`}
+                            onEnterHub={handleEnterHub}
+                          />
                         </FollowUpReveal>
                       )}
                       {msg.type === 'hub' && (
