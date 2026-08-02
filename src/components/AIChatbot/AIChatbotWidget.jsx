@@ -169,6 +169,14 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
     handleApprove,
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'type' });
 
+  const [syncStage, setSyncStage] = useState('idle'); // 'idle' | 'awaiting_confirmation' | 'confirmed'
+
+  const isConfirmationReply = (text) =>
+    /yes|yeah|sure|yep|ok|okay|let's|do it|sounds good|absolutely|definitely|go ahead|start|proceed|yup|affirmative/i.test(text);
+
+  const isTripIntent = (text) =>
+    /friends|trip|vacation|holiday|getaway|goa|manali|rishikesh|group|plan|flight|hotel|weekend|travel|squad|fly|stay|pack|explore/i.test(text);
+
   const handleSend = async (text) => {
     const msg = text || inputValue.trim();
     if (!msg || isTyping) return;
@@ -180,33 +188,65 @@ const AIChatbotWidget = ({ isOpen, onClose, isMobile }) => {
 
     setIsTyping(true);
 
-    // Try OpenRouter AI first
+    // 1. Try OpenRouter AI first
     const aiResult = await generateMyraAIResponse(msg, messages);
 
     if (aiResult) {
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'bot', type: 'text', text: aiResult.text }]);
       setIsTyping(false);
 
-      if (aiResult.hasLaunchIntent || (flow.tripStep === 'intro' && flow.detectsTripIntent(msg))) {
+      if (aiResult.hasLaunchIntent) {
+        setSyncStage('confirmed');
         const { kind, text: launchText } = flow.launchMessage();
         thinkThen({ type: kind, text: launchText }, 800);
+      } else if (aiResult.isAwaitingConfirmation) {
+        setSyncStage('awaiting_confirmation');
       }
       return;
     }
 
-    // Offline Smart Fallback
-    if (flow.tripStep === 'intro' && flow.detectsTripIntent(msg)) {
-      const { kind, text: launchText } = flow.launchMessage();
-      thinkThen({ type: kind, text: launchText }, 900);
+    // 2. Offline Smart Fallback Engine
+    // Step 2: User confirms after AI asked to try sync mode
+    if (syncStage === 'awaiting_confirmation' && isConfirmationReply(msg)) {
+      setSyncStage('confirmed');
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'bot',
+          type: 'text',
+          text: "Awesome! Let's set up your group trip session...",
+        }]);
+        const { kind, text: launchText } = flow.launchMessage();
+        thinkThen({ type: kind, text: launchText }, 800);
+      }, 600);
       return;
     }
 
+    // Step 1: User expresses trip intent
+    if (syncStage === 'idle' && isTripIntent(msg)) {
+      setSyncStage('awaiting_confirmation');
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'bot',
+          type: 'text',
+          text: "Group trips are fantastic, but coordinating budgets, dates, and preferences across everyone can be tricky! 🏖️\n\nWould you like to enable **Group Sync Mode** so your friends can easily share their preferences via a quick 2-minute share link?",
+        }]);
+        setIsTyping(false);
+      }, 700);
+      return;
+    }
+
+    // Off-topic / Irrelevant prompt fallback
     setTimeout(() => {
-      const response = generateBotResponse(msg);
-      const botMsg = { id: crypto.randomUUID(), role: 'bot', ...response };
-      setMessages(prev => [...prev, botMsg]);
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'bot',
+        type: 'text',
+        text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (MyRA).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
+      }]);
       setIsTyping(false);
-    }, 700 + Math.random() * 400);
+    }, 700);
   };
 
   const tripJoinUrl = flow.session ? `${window.location.origin}/join/${flow.session.id}` : '';
