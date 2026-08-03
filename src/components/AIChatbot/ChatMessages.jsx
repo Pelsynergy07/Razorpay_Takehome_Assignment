@@ -33,7 +33,17 @@ export const FollowUpReveal = ({ children, className }) => {
 };
 
 const AnimatedBotText = ({ text, startDelay = 0 }) => {
-  const lines = text.split('\n').filter((l) => l.trim() !== '');
+  const sanitizedText = String(text || '')
+    .replace(/\[LAUNCH_SYNC_MODE\]/gi, '')
+    .replace(/\[AWAITING_CONFIRMATION\]/gi, '')
+    .replace(/\[+\s*$/g, '')
+    .replace(/\[\s*\]/g, '')
+    .trim();
+
+  const lines = sanitizedText.split('\n').filter((l) => {
+    const t = l.trim();
+    return t !== '' && t !== '[' && t !== ']';
+  });
 
   return (
     <motion.div

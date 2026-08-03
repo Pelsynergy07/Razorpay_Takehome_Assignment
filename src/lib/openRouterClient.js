@@ -100,8 +100,10 @@ export async function generateMyraAIResponse(userMessage, chatHistory = []) {
       const hasLaunchIntent = content.includes('[LAUNCH_SYNC_MODE]');
       const isAwaitingConfirmation = content.includes('[AWAITING_CONFIRMATION]');
       const cleanText = content
-        .replace('[LAUNCH_SYNC_MODE]', '')
-        .replace('[AWAITING_CONFIRMATION]', '')
+        .replace(/\[LAUNCH_SYNC_MODE\]/gi, '')
+        .replace(/\[AWAITING_CONFIRMATION\]/gi, '')
+        .replace(/\[+\s*$/g, '')
+        .replace(/\[\s*\]/g, '')
         .trim();
 
       return {
