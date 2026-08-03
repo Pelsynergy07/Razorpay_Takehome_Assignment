@@ -11,6 +11,21 @@ import {
   sequenceDelays,
 } from '../../components/AIChatbot/motionConfig';
 
+const getTimeLeftLabel = (createdAt) => {
+  if (!createdAt) return '3h left';
+  const start = new Date(createdAt).getTime();
+  if (isNaN(start)) return '3h left';
+  const expiresAt = start + 3 * 60 * 60 * 1000;
+  const diffMs = expiresAt - Date.now();
+  if (diffMs <= 0) return 'Expired';
+  const totalMins = Math.floor(diffMs / 60000);
+  const hrs = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m left`;
+  if (hrs > 0) return `${hrs}h left`;
+  return `${mins}m left`;
+};
+
 const VIBE_META = {
   mountains: { label: 'Mountains', emoji: '⛰️' },
   beach: { label: 'Beach', emoji: '🏖️' },
@@ -80,6 +95,7 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
   const pendingCount = Math.max(0, session.group_size - respondedCount);
   const progressPct = session.group_size > 0 ? Math.min(100, Math.round((respondedCount / session.group_size) * 100)) : 0;
   const vibeTally = summarizeVibes(responses);
+  const timeLeftLabel = getTimeLeftLabel(session?.created_at);
 
   const handleProceed = () => {
     setProceeded(true);
@@ -96,13 +112,13 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
   return (
     <div className="hub-screen">
       <motion.div className="hub-header" variants={blockVariants} custom={headerDelay} initial="hidden" animate="visible">
-        <span className="hub-header-icon">
-          <Users2 size={16} className="icon-white" />
-        </span>
         <div className="hub-header-copy">
           <h3 className="hub-title">Live responses</h3>
           <p className="hub-subtitle">{respondedCount} of {session.group_size} friends have chimed in</p>
         </div>
+        <span className="hub-expiry-badge">
+          {timeLeftLabel}
+        </span>
       </motion.div>
 
       <motion.div className="hub-progress-track" variants={blockVariants} custom={progressDelay} initial="hidden" animate="visible">
@@ -132,7 +148,7 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
             <span className="hub-status-text">
               Waiting on {pendingCount} more {pendingCount === 1 ? 'friend' : 'friends'} to respond…
             </span>
-            <span className="hub-status-hint">This can take a while, feel free to come back later.</span>
+            <span className="hub-status-hint">Link will be active for 3 hours — feel free to come back later.</span>
           </div>
         </motion.div>
       ) : (

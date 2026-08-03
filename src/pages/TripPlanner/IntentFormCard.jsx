@@ -39,7 +39,7 @@ const IntentFormSkeleton = () => (
   </div>
 );
 
-const SKELETON_DELAY_MS = 600;
+const SKELETON_DELAY_MS = 1500;
 
 /**
  * Screen 1.2 — asked as two short, sequential turns (who + where, then
@@ -108,8 +108,8 @@ const IntentFormCard = ({ onSubmit, startDelay = 0 }) => {
               </button>
             )}
             <div className="intent-step-progress">
-              <span className={`intent-step-dot ${step >= 1 ? 'active' : ''}`} />
-              <span className={`intent-step-dot ${step >= 2 ? 'active' : ''}`} />
+              <span className={`intent-step-segment ${step >= 1 ? 'active' : ''}`} />
+              <span className={`intent-step-segment ${step >= 2 ? 'active' : ''}`} />
             </div>
           </div>
 

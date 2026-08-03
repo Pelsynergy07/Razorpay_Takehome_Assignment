@@ -32,9 +32,10 @@ export const blockVariants = {
 // finish before it can begin.
 export const BLOCK_STAGGER = 0.18;
 
-// Word-by-word bot text reveal.
-export const WORD_DURATION = 0.4;
-export const WORD_STAGGER = 0.035;
+// Word-by-word bot text reveal. (Trimmed 20% off both duration and stagger
+// so text finishes revealing faster without losing the cascading feel.)
+export const WORD_DURATION = 0.32;
+export const WORD_STAGGER = 0.028;
 export const WORD_Y = 14;
 
 export const wordVariants = {

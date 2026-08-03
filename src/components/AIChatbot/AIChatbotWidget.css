@@ -160,18 +160,28 @@
 .typing-indicator-row {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
+}
+
+.typing-indicator-text-window {
+  display: inline-grid;
+  overflow: hidden;
+  height: 1.4em;
+  line-height: 1.4em;
+  padding-right: 4px;
 }
 
 .typing-indicator-text {
+  grid-column: 1;
+  grid-row: 1;
+  white-space: nowrap;
   font-size: var(--text-sm);
   color: var(--mmt-blue);
   font-style: italic;
 }
 
 .typing-indicator-spinner {
-  display: inline-block;
-  font-size: 15px;
+  display: inline-flex;
   line-height: 1;
 }
 

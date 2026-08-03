@@ -129,6 +129,7 @@ const OrganizerEntry = () => {
                       recommendation={flow.recommendation}
                       onUpdate={flow.updateRecommendation}
                       onApprove={handleApprove}
+                      scrollContainerRef={messagesScrollRef}
                     />
                   </FollowUpReveal>
                 )}

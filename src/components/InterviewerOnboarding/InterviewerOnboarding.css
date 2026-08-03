@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+
 /* Modal Backdrop */
 .evaluator-modal-backdrop {
   position: fixed;
@@ -44,16 +46,18 @@
 }
 
 .evaluator-hello {
-  font-size: 22px;
-  font-weight: 800;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
   color: #0f172a;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   letter-spacing: -0.01em;
 }
 
 .evaluator-greeting {
+  font-family: 'Instrument Sans', sans-serif;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 500;
   color: #0f172a;
   margin: 0;
   letter-spacing: -0.01em;
@@ -65,18 +69,20 @@
 }
 
 .evaluator-context {
+  font-family: 'Instrument Sans', sans-serif;
   font-size: 14px;
   color: #475569;
   line-height: 1.55;
-  margin: 0 0 24px;
+  margin: 0 0 10px;
 }
 
 .evaluator-context strong {
   color: #0f172a;
+  font-weight: 700;
 }
 
 .evaluator-presentation-link-line {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .evaluator-presentation-link {
@@ -93,45 +99,13 @@
   border-bottom-color: #008cff;
 }
 
-/* Steps — plain rows, no boxes/borders, just icon + text with breathing room */
-.evaluator-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
-.evaluator-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.evaluator-step-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #eaf5ff;
-  color: #008cff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.evaluator-step p {
-  font-size: 13.5px;
-  color: #334155;
-  line-height: 1.5;
-  margin: 3px 0 0;
-}
-
 .evaluator-start-btn {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
   background: linear-gradient(93deg, #53b2fe 0%, #065af3 100%);
   color: #ffffff;
+  font-family: 'Instrument Sans', sans-serif;
   font-size: 15px;
   font-weight: 800;
   border: none;

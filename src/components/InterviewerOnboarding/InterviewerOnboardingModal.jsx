@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Link2, Users2, Sparkles, ExternalLink, X } from 'lucide-react';
+import { Sparkles, ExternalLink, X } from 'lucide-react';
 import './InterviewerOnboarding.css';
 
 const PRESENTATION_URL = 'https://razorpay-presentation.vercel.app/';
 
-const STEPS = [
-  { icon: MapPin, text: 'Click the Myra assistant in the bottom-right corner and say something like "planning a trip with my friends."' },
-  { icon: Link2, text: 'Set the group size, dates, and budget — Myra generates a shareable link, no login needed for friends to fill in.' },
-  { icon: Users2, text: 'Once responses come in, Myra reconciles everyone\'s input into one recommended itinerary.' },
-];
-
 const easeOut = [0.16, 1, 0.3, 1];
-const GREETING_REVEAL_MS = 1300; // how long the hello/thanks card sits alone before it pushes up and grows
-const REST_STAGGER = 0.15;
+const GREETING_REVEAL_MS = 2200; // how long the hello/thanks card sits alone before it pushes up and grows
+const REST_STAGGER = 0.22;
 
 const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
   const [showRest, setShowRest] = useState(false);
@@ -48,19 +42,19 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
           <motion.div className="evaluator-greeting-block">
             <motion.p
               className="evaluator-hello"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: easeOut }}
+              transition={{ duration: 0.9, ease: easeOut }}
             >
-              Hello
+              Hello!
             </motion.p>
             <motion.p
               className="evaluator-greeting"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: easeOut, delay: 0.3 }}
+              transition={{ duration: 0.9, ease: easeOut, delay: 1 }}
             >
-              Thank you for taking the time to do this with me.
+              Thanks for taking the time to go through this demo!
             </motion.p>
           </motion.div>
 
@@ -77,21 +71,21 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
                   className="evaluator-context"
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, ease: easeOut }}
+                  transition={{ duration: 0.6, ease: easeOut }}
                 >
-                  This is a demo showcasing the "Group Sync Mode" of Myra, the AI travel agent
-                  of MakeMyTrip. This new feature lets a trip organizer collect everyone's
-                  preferences without a group chat back-and-forth and presents with options
-                  that work for everyone.
+                  This is a demo showcasing the <strong>"Group Sync Mode"</strong> of Myra, the AI
+                  travel agent of MakeMyTrip. This new feature lets a trip organizer{' '}
+                  <strong>collect everyone's preferences without a group chat back-and-forth</strong>{' '}
+                  and presents with options that work for everyone.
                 </motion.p>
 
                 <motion.p
                   className="evaluator-context evaluator-presentation-link-line"
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, ease: easeOut, delay: REST_STAGGER }}
+                  transition={{ duration: 0.6, ease: easeOut, delay: REST_STAGGER }}
                 >
-                  This demo directly showcases the flow of this proposed feature.
+                  This demo <strong>directly showcases the flow of this proposed feature</strong>.
                   To get more context about this, please refer to the{' '}
                   <a
                     href={PRESENTATION_URL}
@@ -100,31 +94,16 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
                     className="evaluator-presentation-link"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    presentation below <ExternalLink size={12} />
+                    project case study <ExternalLink size={12} />
                   </a>.
                 </motion.p>
-
-                <div className="evaluator-steps">
-                  {STEPS.map(({ icon: Icon, text }, i) => (
-                    <motion.div
-                      key={i}
-                      className="evaluator-step"
-                      initial={{ opacity: 0, y: 14 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, ease: easeOut, delay: REST_STAGGER * 2 + i * REST_STAGGER }}
-                    >
-                      <span className="evaluator-step-icon"><Icon size={15} /></span>
-                      <p>{text}</p>
-                    </motion.div>
-                  ))}
-                </div>
 
                 <motion.button
                   type="button"
                   className="evaluator-start-btn"
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: easeOut, delay: REST_STAGGER * 2 + STEPS.length * REST_STAGGER }}
+                  transition={{ duration: 0.55, ease: easeOut, delay: REST_STAGGER * 2 }}
                   onClick={() => {
                     onStartDemo();
                     onClose();

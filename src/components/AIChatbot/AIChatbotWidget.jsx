@@ -32,7 +32,7 @@ const WIDGET_CARD_DURATION = 0.6;
 // when the underlying response (AI call or offline fallback) resolves
 // almost instantly — otherwise it reads as an obviously canned response.
 // Randomized per message so it doesn't feel like a fixed canned delay.
-const MIN_THINKING_MS_RANGE = [1500, 3000];
+const MIN_THINKING_MS_RANGE = [900, 1300];
 const randomThinkingMs = () =>
   Math.round(MIN_THINKING_MS_RANGE[0] + Math.random() * (MIN_THINKING_MS_RANGE[1] - MIN_THINKING_MS_RANGE[0]));
 
@@ -323,6 +323,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                             recommendation={flow.recommendation}
                             onUpdate={flow.updateRecommendation}
                             onApprove={handleApprove}
+                            scrollContainerRef={messagesScrollRef}
                           />
                         </FollowUpReveal>
                       )}

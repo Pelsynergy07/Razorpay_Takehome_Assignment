@@ -52,7 +52,7 @@ const TripSummaryCard = ({ recommendation, startDelay = 0 }) => {
   const generatedOn = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const handleBook = (label) => {
-    toast(`${label} isn't wired up in this demo — this is where real booking would happen.`, {
+    toast(`${label} isn't wired up in this demo. Clicking on this button will open the booking flow of MMT`, {
       duration: 3000,
       style: toastStyle,
     });

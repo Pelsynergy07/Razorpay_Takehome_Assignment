@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -14,9 +14,16 @@ import {
   CheckCircle2,
   Check,
   MessageSquareQuote,
-  Info,
 } from 'lucide-react';
-import { blockVariants, BLOCK_STAGGER, BLOCK_Y, EASE, sequenceDelays } from '../../components/AIChatbot/motionConfig';
+import {
+  blockVariants,
+  BLOCK_STAGGER,
+  BLOCK_Y,
+  EASE,
+  sequenceDelays,
+  peerContainerVariants,
+  peerItemVariants,
+} from '../../components/AIChatbot/motionConfig';
 
 // The Edit -> options-swap transition reads better a bit slower than the
 // standard block entrance (BLOCK_DURATION) — it's a bigger jump in content.
@@ -122,7 +129,7 @@ const TagBadge = ({ label, isOpen, onToggle, tooltipText, asSpan = false }) => {
  * approve button — reveal top to bottom, each waiting for the one above it
  * to finish before it starts.
  */
-const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }) => {
+const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0, scrollContainerRef }) => {
   const [recState, setRecState] = useState(recommendation);
 
   const [openSections, setOpenSections] = useState({
@@ -138,10 +145,6 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
   // a modal rendered outside the chat sheet.
   const [swapView, setSwapView] = useState(null); // { categoryKey, title, options } | null
 
-  // Tiny "why" source icon on the confidence card — reasoning stays
-  // collapsed by default, tap to reveal.
-  const [showReasoning, setShowReasoning] = useState(false);
-
   // Tapping a "Reconciled Effort" / "Top Vibe Match" style badge reveals who
   // it's attributed to, instead of just being static, unexplained text.
   const [openBadge, setOpenBadge] = useState(null); // 'transport' | 'activities' | null
@@ -149,6 +152,38 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
   const votedByNames = recState.attributions && recState.attributions.length > 0
     ? recState.attributions.map((a) => a.sourceParticipant).join(', ')
     : null;
+
+  // The dashboard's entrance animation (hero, confidence card, accordions)
+  // should only ever play once — not every time the user backs out of an
+  // Edit swap view and the dashboard remounts.
+  const hasShownDashboardRef = useRef(false);
+  useEffect(() => {
+    hasShownDashboardRef.current = true;
+  }, []);
+  const entranceInitial = hasShownDashboardRef.current ? false : 'hidden';
+
+  // Scroll position captured right before opening an Edit swap view, so
+  // closing it (via Back or picking an option) can drop the user back
+  // exactly where they were instead of wherever the swap view happened to
+  // leave the scroll.
+  const savedScrollTopRef = useRef(null);
+  const swapBackRef = useRef(null);
+
+  useEffect(() => {
+    if (swapView) {
+      requestAnimationFrame(() => {
+        swapBackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    } else if (savedScrollTopRef.current != null && scrollContainerRef?.current) {
+      const savedTop = savedScrollTopRef.current;
+      savedScrollTopRef.current = null;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = savedTop;
+        });
+      });
+    }
+  }, [swapView, scrollContainerRef]);
 
   const toggleSection = (key) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -162,6 +197,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
   const totalCost = activeTransport.cost + activeStay.cost + activeActivity.cost;
 
   const handleOpenSwap = (categoryKey, title, options) => {
+    savedScrollTopRef.current = scrollContainerRef?.current?.scrollTop ?? null;
     setSwapView({ categoryKey, title, options });
   };
 
@@ -195,7 +231,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: SWAP_VIEW_DURATION, ease: EASE }}
       >
-        <button type="button" className="synthesis-swap-back" onClick={handleCloseSwap}>
+        <button type="button" ref={swapBackRef} className="synthesis-swap-back" onClick={handleCloseSwap}>
           <ArrowLeft size={16} /> Back
         </button>
 
@@ -204,13 +240,14 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
           <p className="synthesis-swap-subtitle">Select an alternative option considered by Myra</p>
         </div>
 
-        <div className="synthesis-swap-list">
+        <motion.div className="synthesis-swap-list" variants={peerContainerVariants(0.15)} initial="hidden" animate="visible">
           {swapView.options.map((opt) => {
             const isSelected = opt.selected;
             return (
-              <button
+              <motion.button
                 key={opt.id}
                 type="button"
+                variants={peerItemVariants}
                 className={`synthesis-swap-option ${isSelected ? 'selected' : ''}`}
                 onClick={() => handleSelectOption(opt.id)}
               >
@@ -253,10 +290,10 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
                     </span>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
       </motion.div>
     );
   }
@@ -264,7 +301,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
   return (
     <div className="synthesis-revamped-dashboard">
       {/* ── HERO HEADER ────────────────────────── */}
-      <motion.div className="synthesis-hero-banner" variants={blockVariants} custom={heroDelay} initial="hidden" animate="visible">
+      <motion.div className="synthesis-hero-banner" variants={blockVariants} custom={heroDelay} initial={entranceInitial} animate="visible">
         <img src={recState.heroImage} alt={recState.destination} className="synthesis-hero-img" />
         <div className="synthesis-hero-overlay" />
         <div className="synthesis-hero-content">
@@ -281,33 +318,20 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
       </motion.div>
 
       {/* ── CONFIDENCE SUMMARY ──────────────────── */}
-      <motion.div className="synthesis-confidence-card" variants={blockVariants} custom={confidenceDelay} initial="hidden" animate="visible">
+      <motion.div className="synthesis-confidence-card" variants={blockVariants} custom={confidenceDelay} initial={entranceInitial} animate="visible">
         <div className="confidence-badge-row">
           <span className="confidence-tag">
             <span className="accordion-icon-chip"><CheckCircle2 size={16} /></span>
             Synthesis
           </span>
-          <button
-            type="button"
-            className="confidence-source-btn"
-            onClick={() => setShowReasoning((s) => !s)}
-            aria-label="Why this recommendation"
-          >
-            <Info size={13} />
-          </button>
         </div>
 
-        {showReasoning && (
-          <motion.ul
-            className="confidence-reasoning-list"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          >
+        {recState.whyItFits && recState.whyItFits.length > 0 && (
+          <ul className="confidence-reasoning-list">
             {recState.whyItFits.map((point, idx) => (
               <li key={idx}>{point}</li>
             ))}
-          </motion.ul>
+          </ul>
         )}
       </motion.div>
 
@@ -315,7 +339,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
       <div className="synthesis-accordions-group">
 
         {/* DATES */}
-        <motion.div className="accordion-card" variants={blockVariants} custom={datesDelay} initial="hidden" animate="visible">
+        <motion.div className="accordion-card" variants={blockVariants} custom={datesDelay} initial={entranceInitial} animate="visible">
           <AccordionHeaderRow
             icon={<Calendar size={16} />}
             heading="Dates"
@@ -336,7 +360,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
         </motion.div>
 
         {/* GETTING THERE */}
-        <motion.div className="accordion-card" variants={blockVariants} custom={transportDelay} initial="hidden" animate="visible">
+        <motion.div className="accordion-card" variants={blockVariants} custom={transportDelay} initial={entranceInitial} animate="visible">
           <AccordionHeaderRow
             icon={<Navigation size={16} />}
             heading="Getting there"
@@ -366,7 +390,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
         </motion.div>
 
         {/* STAY */}
-        <motion.div className="accordion-card" variants={blockVariants} custom={stayDelay} initial="hidden" animate="visible">
+        <motion.div className="accordion-card" variants={blockVariants} custom={stayDelay} initial={entranceInitial} animate="visible">
           <AccordionHeaderRow
             icon={<Home size={16} />}
             heading="Stay"
@@ -396,7 +420,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
         </motion.div>
 
         {/* THINGS TO DO */}
-        <motion.div className="accordion-card" variants={blockVariants} custom={activitiesDelay} initial="hidden" animate="visible">
+        <motion.div className="accordion-card" variants={blockVariants} custom={activitiesDelay} initial={entranceInitial} animate="visible">
           <AccordionHeaderRow
             icon={<Compass size={16} />}
             heading="Things to do"
@@ -432,7 +456,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
         </motion.div>
 
         {/* WHAT WE RESOLVED */}
-        <motion.div className="accordion-card" variants={blockVariants} custom={resolvedDelay} initial="hidden" animate="visible">
+        <motion.div className="accordion-card" variants={blockVariants} custom={resolvedDelay} initial={entranceInitial} animate="visible">
           <AccordionHeaderRow
             icon={<Scale size={16} />}
             heading="What we resolved"
@@ -468,7 +492,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
         </motion.div>
 
         {/* REAL-WORLD EVIDENCE & COMMUNITY PROOF */}
-        <motion.div className="accordion-card" variants={blockVariants} custom={evidenceDelay} initial="hidden" animate="visible">
+        <motion.div className="accordion-card" variants={blockVariants} custom={evidenceDelay} initial={entranceInitial} animate="visible">
           <AccordionHeaderRow
             icon={<MessageSquareQuote size={16} />}
             heading="Real-world evidence & reviews"
@@ -499,7 +523,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0 }
       </div>
 
       {/* ── FOOTER APPROVAL ────────────────────────── */}
-      <motion.div className="synthesis-footer-action" variants={blockVariants} custom={approveDelay} initial="hidden" animate="visible">
+      <motion.div className="synthesis-footer-action" variants={blockVariants} custom={approveDelay} initial={entranceInitial} animate="visible">
         <button
           type="button"
           className="btn-secondary approve-itinerary-btn"

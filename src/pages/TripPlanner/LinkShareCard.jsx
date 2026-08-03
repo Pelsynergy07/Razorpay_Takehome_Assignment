@@ -45,7 +45,7 @@ const LinkShareCard = ({ joinUrl, onEnterHub, startDelay = 0 }) => {
         onClick={onEnterHub}
         startDelay={startDelay + BLOCK_STAGGER}
       >
-        Peek at the live responses 👀
+        Peek at the live responses
         <ArrowRight size={16} />
       </GradientSweepButton>
     </div>
