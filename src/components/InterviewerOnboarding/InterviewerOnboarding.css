@@ -14,7 +14,17 @@
 }
 
 .evaluator-modal-card,
-.evaluator-modal-card * {
+.evaluator-modal-card *,
+.evaluator-modal-card p,
+.evaluator-modal-card div,
+.evaluator-modal-card span,
+.evaluator-modal-card strong,
+.evaluator-modal-card button,
+.evaluator-modal-card a,
+.evaluator-hello,
+.evaluator-greeting,
+.evaluator-context,
+.evaluator-start-btn {
   font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 

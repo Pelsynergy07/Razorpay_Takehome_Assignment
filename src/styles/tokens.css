@@ -72,6 +72,7 @@
      TYPOGRAPHY
      =================================================================== */
   --font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* verified */
+  --font-family-instrument: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-family-serif: Georgia, Cambria, 'Times New Roman', serif; /* Myra landing greeting only — matches reference's serif "Hi, Pranav" */
 
   --text-2xs: 10px;

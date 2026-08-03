@@ -39,6 +39,7 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
       <div className="evaluator-modal-backdrop" onClick={onClose}>
         <motion.div
           className="evaluator-modal-card"
+          style={{ fontFamily: "'Instrument Sans', sans-serif" }}
           onClick={(e) => e.stopPropagation()}
           variants={containerVariants}
           initial="hidden"
