@@ -13,6 +13,11 @@
   padding: 16px;
 }
 
+.evaluator-modal-card,
+.evaluator-modal-card * {
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
 .evaluator-modal-card {
   position: relative;
   width: 100%;
