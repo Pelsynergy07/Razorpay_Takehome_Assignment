@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
 
 /* Modal Backdrop */
 .evaluator-modal-backdrop {
@@ -21,23 +22,30 @@
 .evaluator-modal-card strong,
 .evaluator-modal-card button,
 .evaluator-modal-card a,
-.evaluator-hello,
-.evaluator-greeting,
 .evaluator-context,
 .evaluator-start-btn {
   font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
+.evaluator-modal-card .evaluator-hello,
+.evaluator-modal-card .evaluator-greeting,
+.evaluator-modal-card .evaluator-hello *,
+.evaluator-modal-card .evaluator-greeting * {
+  font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', serif !important;
+  font-optical-sizing: auto;
+}
+
 .evaluator-modal-card {
   position: relative;
   width: 100%;
-  max-width: 460px;
+  max-width: 500px;
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
   padding: 32px 28px 28px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .evaluator-modal-close {
@@ -61,22 +69,20 @@
 }
 
 .evaluator-hello {
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 24px;
-  font-weight: 500;
+  font-size: 30px;
+  font-weight: 400;
   color: #0f172a;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   letter-spacing: -0.01em;
 }
 
 .evaluator-greeting {
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 400;
   color: #0f172a;
   margin: 0;
   letter-spacing: -0.01em;
-  text-wrap: balance;
+  line-height: 1.35;
 }
 
 .evaluator-rest-block {
@@ -84,10 +90,10 @@
 }
 
 .evaluator-context {
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 500;
   color: #475569;
-  line-height: 1.55;
+  line-height: 1.6;
   margin: 0 0 10px;
 }
 
@@ -214,6 +220,29 @@
   border-right: 2px solid #008cff;
   border-bottom: 2px solid #008cff;
   transform: rotate(45deg);
+}
+
+/* On mobile, the Myra button is the centered icon in the bottom nav bar
+   (not bottom-right like the desktop floating widget), so the beacon needs
+   to re-anchor to bottom-center with its arrow pointing straight down. */
+@media (max-width: 768px) {
+  .chatbot-guide-tooltip-anchor {
+    /* Framer Motion writes its own inline `transform` (for the y/scale
+       reveal animation) onto this same element, which clobbers any
+       transform set here — so center with margin-left instead of
+       translateX(-50%), which would silently get overridden. */
+    left: 50%;
+    right: auto;
+    bottom: 88px;
+    width: 250px;
+    margin-left: -125px;
+  }
+
+  .guide-tooltip-arrow {
+    right: auto;
+    left: 50%;
+    margin-left: -8px;
+  }
 }
 
 /* Header context button */

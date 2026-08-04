@@ -18,7 +18,7 @@ const ChatbotGuideTooltip = ({ isVisible, onOpenChat, onDismiss }) => {
         <div className="guide-tooltip-bubble" onClick={onOpenChat}>
           <div className="guide-tooltip-header">
             <span className="guide-tooltip-badge">
-              <Sparkles size={12} /> Step 1: Start Prototype
+              <Sparkles size={12} /> Step 1: Start Demo
             </span>
             <button
               type="button"
