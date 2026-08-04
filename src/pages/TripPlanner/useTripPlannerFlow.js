@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createSession, getResponses } from '../../lib/tripApi';
+import { createSession, getSession, getResponses } from '../../lib/tripApi';
 import { synthesizeRecommendation } from '../../lib/synthesizeRecommendation';
 
 /**
@@ -69,6 +69,27 @@ export function useTripPlannerFlow() {
   // Screen 5.1 — final screen, nothing after this.
   const approve = () => setTripStep('closed');
 
+  // Re-hydrates `session`/`recommendation` after switching back to a
+  // previously-saved conversation: those two only ever lived in this hook's
+  // React state, never in the persisted chat messages, so a fresh mount
+  // otherwise leaves session/recommendation null while the restored
+  // messages still render screens (hub/result/closed) that assume they
+  // exist — session data itself is safe to re-fetch since tripApi always
+  // persists it (and responses) to localStorage keyed by session id.
+  const restore = async ({ sessionId, tripStep: restoredStep }) => {
+    if (!sessionId) return;
+    const restoredSession = await getSession(sessionId);
+    if (!restoredSession) return;
+    setSession(restoredSession);
+
+    if (restoredStep === 'result' || restoredStep === 'closed') {
+      const responses = await getResponses(sessionId);
+      setRecommendation(synthesizeRecommendation(restoredSession, responses));
+    }
+
+    setTripStep(restoredStep || 'share');
+  };
+
   return {
     tripStep,
     session,
@@ -83,5 +104,6 @@ export function useTripPlannerFlow() {
     completeSynthesis,
     updateRecommendation,
     approve,
+    restore,
   };
 }

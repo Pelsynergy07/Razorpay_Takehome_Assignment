@@ -56,28 +56,28 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
   const handleTripFormSubmit = async (formValues) => {
     const destinationPart = formValues.destination ? ` · ${formValues.destination}` : '';
     echoUser(`${formValues.groupSize} people${destinationPart} · ${formValues.dateWindow} · ₹${formValues.budgetPerPerson.toLocaleString('en-IN')} per person`);
-    const { message } = await flow.submitForm(formValues);
-    thinkThen(toMessage(message), 950);
+    const { session, message } = await flow.submitForm(formValues);
+    thinkThen(toMessage({ ...message, sessionId: session.id }), 950);
   };
 
   const handleEnterHub = () => {
     echoUser('Enter live aggregation hub');
-    advanceThen(flow.enterHub, { [kindField]: 'hub', text: "Here's the live hub — I'll update this as responses come in." }, 600);
+    advanceThen(flow.enterHub, { [kindField]: 'hub', text: "Here's the live hub — I'll update this as responses come in.", sessionId: flow.session?.id }, 600);
   };
 
   const handleProceedToSynthesis = () => {
     echoUser('Proceed to synthesis now');
-    advanceThen(flow.startSynthesis, { [kindField]: 'processing' }, 600);
+    advanceThen(flow.startSynthesis, { [kindField]: 'processing', sessionId: flow.session?.id }, 600);
   };
 
   const handleCompleteSynthesis = async () => {
     await flow.completeSynthesis();
-    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:" });
+    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:", sessionId: flow.session?.id });
   };
 
   const handleApprove = () => {
     echoUser('Approve itinerary');
-    advanceThen(flow.approve, { [kindField]: 'closed', text: "You're all set! Here's your itinerary:" }, 750);
+    advanceThen(flow.approve, { [kindField]: 'closed', text: "You're all set! Here's your itinerary:", sessionId: flow.session?.id }, 750);
   };
 
   return {

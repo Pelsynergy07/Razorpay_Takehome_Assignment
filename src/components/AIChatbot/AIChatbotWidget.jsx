@@ -95,9 +95,20 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
 
   const handleSelectConversation = (id) => {
     const conv = getConversation(id);
-    if (conv) {
-      setActiveConversationId(id);
-      setMessages(conv.messages);
+    if (!conv) return;
+    setActiveConversationId(id);
+    setMessages(conv.messages);
+    setSyncStage('idle');
+
+    // Screens past the trip form (hub/processing/result/closed) render off
+    // `flow.session` / `flow.recommendation` — those only ever lived in
+    // useTripPlannerFlow's React state, never in the persisted messages, so
+    // a freshly mounted flow has them as null and those screens crash the
+    // instant they render. Re-hydrate from whichever flow-bearing message
+    // was last in this conversation before swapping the messages in.
+    const lastFlowMsg = [...conv.messages].reverse().find((m) => m.sessionId);
+    if (lastFlowMsg) {
+      flow.restore({ sessionId: lastFlowMsg.sessionId, tripStep: lastFlowMsg.type });
     }
   };
 
