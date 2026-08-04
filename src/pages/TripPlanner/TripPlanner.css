@@ -1134,9 +1134,10 @@
 /* ===== Edge case — real-world risk overrides a popular pick =====
    Plain white card (no purple confidence-card gradient — this isn't a
    confident synthesis, it's a flagged choice) topped with the existing
-   .risk-flag banner and .community-proof-card evidence treatment, then
-   the flagged pick and safer alternative as two synthesis-swap-option
-   cards side by side. */
+   .risk-flag banner, the evidence quote as plain flowing text (no boxed
+   card — that pattern reads as out of place floating at the top of a
+   plain panel like this), then the flagged pick and safer alternative
+   as two synthesis-swap-option cards side by side. */
 .risk-choice-panel {
   background: var(--mmt-white);
   border: 1px solid var(--mmt-border);
@@ -1148,6 +1149,21 @@
   gap: var(--space-sm);
 }
 
+.risk-evidence-text {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-regular);
+  font-style: italic;
+  color: var(--mmt-text-secondary);
+  line-height: var(--leading-base);
+  margin: 0;
+}
+
+.risk-evidence-source {
+  font-style: normal;
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-blue);
+}
+
 .risk-choice-options {
   display: flex;
   flex-direction: column;
@@ -1157,6 +1173,23 @@
 
 .risk-choice-option {
   width: 100%;
+}
+
+/* More breathing room than the default swap-option list (dates/transport/
+   stay swaps elsewhere stay untouched at --space-3xs) — these two cards
+   are a bigger decision moment and read cramped at the default gap. */
+.risk-choice-option .synthesis-swap-option-body {
+  gap: var(--space-sm);
+}
+
+.risk-choice-option .synthesis-swap-option-footer {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3xs);
+}
+
+.risk-choice-option .active-item-price {
+  white-space: nowrap;
 }
 
 @media (min-width: 640px) {

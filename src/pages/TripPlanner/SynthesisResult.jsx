@@ -270,18 +270,16 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
 
     return (
       <div className="risk-choice-panel">
-        <h3 className="honest-state-title">Most of the group leaned toward {flaggedPick.destination}</h3>
+        <h3 className="honest-state-title">Most leaned toward {flaggedPick.destination}, but I found a risk during your travel window</h3>
         <div className="risk-flag">
           <span>{flaggedPick.riskFlag}</span>
         </div>
 
         {flaggedPick.riskEvidence && (
-          <div className="community-proof-card">
-            <div className="proof-card-header">
-              <span className="proof-platform-tag">{flaggedPick.riskEvidence.platform}</span>
-            </div>
-            <p className="proof-quote">{flaggedPick.riskEvidence.quote}</p>
-          </div>
+          <p className="risk-evidence-text">
+            {flaggedPick.riskEvidence.quote}
+            <span className="risk-evidence-source"> — {flaggedPick.riskEvidence.platform}</span>
+          </p>
         )}
 
         <div className="risk-choice-options">

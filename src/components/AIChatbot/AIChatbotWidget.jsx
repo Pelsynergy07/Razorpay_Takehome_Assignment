@@ -303,7 +303,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                         <FollowUpReveal text={msg.text}>
                           <div className="chat-confirm-actions">
                             <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedYes}>Yes, continue</button>
-                            <button type="button" className="btn-tertiary" onClick={handleConfirmEmptyProceedNo}>No, wait</button>
+                            <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedNo}>No, wait</button>
                           </div>
                         </FollowUpReveal>
                       )}
