@@ -37,9 +37,9 @@ const randomThinkingMs = () =>
   Math.round(MIN_THINKING_MS_RANGE[0] + Math.random() * (MIN_THINKING_MS_RANGE[1] - MIN_THINKING_MS_RANGE[0]));
 
 const promptSuggestions = [
-  { text: 'Cheapest flight from Delhi to Spain', icon: '✈️' },
-  { text: 'Plan a relaxing getaway for my parents...', icon: '🏖️' },
-  { text: 'Best hotels in Goa under ₹5000', icon: '🏨' },
+  { text: 'Plan a trip with my friends', icon: '🧑‍🤝‍🧑' },
+  { text: 'Plan a trip for my family', icon: '👨‍👩‍👧‍👦' },
+  { text: 'Plan a romantic getaway with my partner', icon: '💑' },
   { text: 'Weekend trips near Mumbai', icon: '🗺️' },
   { text: 'Family vacation packages to Kerala', icon: '👨‍👩‍👧‍👦' },
 ];
