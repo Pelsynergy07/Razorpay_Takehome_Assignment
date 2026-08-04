@@ -72,10 +72,21 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
 
   // Zero-responses edge case — the proceed button stays clickable even
   // with no responses in, but clicking it with nothing to synthesize from
-  // just gets a bot reply asking to wait, instead of advancing the flow.
+  // gets a bot reply asking whether to proceed anyway, with a Yes/No
+  // choice, instead of silently advancing the flow.
   const handleEmptyProceedAttempt = () => {
     echoUser('Proceed to synthesis now');
-    thinkThen({ [kindField]: 'text', text: "Hold that thought — no one's responded yet. Let's wait a bit longer before I put something together." }, 700);
+    thinkThen({ [kindField]: 'zero_response_confirm', text: "Hold that thought — no one's responded yet. Do you still want to continue?" }, 700);
+  };
+
+  const handleConfirmEmptyProceedYes = () => {
+    echoUser('Yes, continue anyway');
+    advanceThen(flow.startSynthesis, { [kindField]: 'processing', sessionId: flow.session?.id }, 600);
+  };
+
+  const handleConfirmEmptyProceedNo = () => {
+    echoUser("No, I'll wait");
+    thinkThen({ [kindField]: 'text', text: "No worries — I'll keep the hub open above. Let me know when you're ready to try again." }, 600);
   };
 
   const handleCompleteSynthesis = async () => {
@@ -96,6 +107,23 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     advanceThen(flow.enterHub, { [kindField]: 'hub', text: "Sure — I'll keep listening for responses. Come back whenever you're ready.", sessionId: flow.session?.id }, 600);
   };
 
+  // Risk-override edge case — picking either choice card echoes what was
+  // selected as its own chat turn, then plays the same processing/"thinking"
+  // beat as the main synthesis flow before landing on the resolved dashboard.
+  const handleChooseRiskOption = (item, isFlaggedChoice, flaggedPick) => {
+    const label = isFlaggedChoice
+      ? `Continue with ${item.destination} despite the flagged risk`
+      : `Go with ${item.destination} instead`;
+    echoUser(label);
+    flow.startRiskChoiceResolution(item, isFlaggedChoice, flaggedPick);
+    thinkThen({ [kindField]: 'risk_processing', sessionId: flow.session?.id }, 500);
+  };
+
+  const handleCompleteRiskChoiceResolution = () => {
+    flow.completeRiskChoiceResolution();
+    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:", sessionId: flow.session?.id });
+  };
+
   return {
     thinkThen,
     handleLaunchSyncMode,
@@ -103,9 +131,13 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     handleEnterHub,
     handleProceedToSynthesis,
     handleEmptyProceedAttempt,
+    handleConfirmEmptyProceedYes,
+    handleConfirmEmptyProceedNo,
     handleCompleteSynthesis,
     handleApprove,
     handleExtendRound,
+    handleChooseRiskOption,
+    handleCompleteRiskChoiceResolution,
   };
 }
 

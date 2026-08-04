@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Check,
   MessageSquareQuote,
-  AlertTriangle,
 } from 'lucide-react';
 import {
   blockVariants,
@@ -132,7 +131,7 @@ const TagBadge = ({ label, isOpen, onToggle, tooltipText, asSpan = false }) => {
  * approve button — reveal top to bottom, each waiting for the one above it
  * to finish before it starts.
  */
-const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, startDelay = 0, scrollContainerRef }) => {
+const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, onChooseRiskOption, startDelay = 0, scrollContainerRef }) => {
   const [recState, setRecState] = useState(recommendation);
 
   const [openSections, setOpenSections] = useState({
@@ -266,29 +265,13 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, s
     const { flaggedPick, saferAlternative } = recState;
 
     const handleChooseRisk = (item, isFlaggedChoice) => {
-      const rec = buildRecommendationFromInventoryItem(item, {
-        scenario: 'risk_override_resolved',
-        whyItFits: isFlaggedChoice
-          ? [
-              `Most of the signal pointed to ${item.destination} — going with it despite the flagged risk.`,
-              `${item.hotel} fits your group's budget at ₹${item.costPerPerson.toLocaleString('en-IN')} per person.`,
-            ]
-          : [
-              `Picked to avoid the flagged risk on ${flaggedPick.destination}.`,
-              `${item.hotel} in ${item.destination} fits your group's budget at ₹${item.costPerPerson.toLocaleString('en-IN')} per person.`,
-            ],
-        riskFlag: isFlaggedChoice ? item.riskFlag : null,
-        extraEvidence: isFlaggedChoice && item.riskEvidence ? [item.riskEvidence] : [],
-      });
-      setRecState(rec);
-      onUpdate?.(rec);
+      onChooseRiskOption?.(item, isFlaggedChoice, flaggedPick);
     };
 
     return (
       <div className="risk-choice-panel">
         <h3 className="honest-state-title">Most of the group leaned toward {flaggedPick.destination}</h3>
         <div className="risk-flag">
-          <AlertTriangle size={15} />
           <span>{flaggedPick.riskFlag}</span>
         </div>
 
@@ -296,7 +279,6 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, s
           <div className="community-proof-card">
             <div className="proof-card-header">
               <span className="proof-platform-tag">{flaggedPick.riskEvidence.platform}</span>
-              <span className="proof-author">{flaggedPick.riskEvidence.author}</span>
             </div>
             <p className="proof-quote">{flaggedPick.riskEvidence.quote}</p>
           </div>

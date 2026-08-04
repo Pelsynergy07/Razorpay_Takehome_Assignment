@@ -136,9 +136,13 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     handleEnterHub,
     handleProceedToSynthesis,
     handleEmptyProceedAttempt,
+    handleConfirmEmptyProceedYes,
+    handleConfirmEmptyProceedNo,
     handleCompleteSynthesis,
     handleApprove,
     handleExtendRound,
+    handleChooseRiskOption,
+    handleCompleteRiskChoiceResolution,
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'type' });
 
   const [syncStage, setSyncStage] = useState('idle'); // 'idle' | 'awaiting_confirmation' | 'confirmed'
@@ -294,7 +298,15 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                     <UserBubble text={msg.text} />
                   ) : (
                     <>
-                      {msg.type !== 'processing' && <BotTextResponse text={msg.text} />}
+                      {msg.type !== 'processing' && msg.type !== 'risk_processing' && <BotTextResponse text={msg.text} />}
+                      {msg.type === 'zero_response_confirm' && (
+                        <FollowUpReveal text={msg.text}>
+                          <div className="chat-confirm-actions">
+                            <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedYes}>Yes, continue</button>
+                            <button type="button" className="btn-tertiary" onClick={handleConfirmEmptyProceedNo}>No, wait</button>
+                          </div>
+                        </FollowUpReveal>
+                      )}
                       {msg.type === 'destinations' && msg.destinations && (
                         <FollowUpReveal text={msg.text}>
                           <DestinationCarousel destinations={msg.destinations} />
@@ -330,6 +342,11 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                           <ProcessingScreen onComplete={handleCompleteSynthesis} />
                         </FollowUpReveal>
                       )}
+                      {msg.type === 'risk_processing' && (
+                        <FollowUpReveal text={msg.text}>
+                          <ProcessingScreen onComplete={handleCompleteRiskChoiceResolution} />
+                        </FollowUpReveal>
+                      )}
                       {msg.type === 'result' && (
                         <FollowUpReveal text={msg.text}>
                           <SynthesisResult
@@ -337,6 +354,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                             onUpdate={flow.updateRecommendation}
                             onApprove={handleApprove}
                             onExtendRound={handleExtendRound}
+                            onChooseRiskOption={handleChooseRiskOption}
                             scrollContainerRef={messagesScrollRef}
                           />
                         </FollowUpReveal>
@@ -346,7 +364,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                           <TripSummaryCard recommendation={flow.recommendation} />
                         </FollowUpReveal>
                       )}
-                      {!['launch', 'form', 'share', 'hub', 'processing', 'result', 'closed'].includes(msg.type) && (
+                      {!['launch', 'form', 'share', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm'].includes(msg.type) && (
                         <FollowUpReveal text={msg.text}>
                           <MessageActions />
                         </FollowUpReveal>

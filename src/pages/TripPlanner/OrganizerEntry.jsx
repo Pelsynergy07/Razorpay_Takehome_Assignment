@@ -51,9 +51,13 @@ const OrganizerEntry = () => {
     handleEnterHub,
     handleProceedToSynthesis,
     handleEmptyProceedAttempt,
+    handleConfirmEmptyProceedYes,
+    handleConfirmEmptyProceedNo,
     handleCompleteSynthesis,
     handleApprove,
     handleExtendRound,
+    handleChooseRiskOption,
+    handleCompleteRiskChoiceResolution,
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'kind' });
 
   const handleSend = () => {
@@ -97,7 +101,15 @@ const OrganizerEntry = () => {
               <UserBubble text={msg.text} />
             ) : (
               <>
-                {msg.kind !== 'processing' && <BotTextResponse text={msg.text} />}
+                {msg.kind !== 'processing' && msg.kind !== 'risk_processing' && <BotTextResponse text={msg.text} />}
+                {msg.kind === 'zero_response_confirm' && (
+                  <FollowUpReveal text={msg.text}>
+                    <div className="chat-confirm-actions">
+                      <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedYes}>Yes, continue</button>
+                      <button type="button" className="btn-tertiary" onClick={handleConfirmEmptyProceedNo}>No, wait</button>
+                    </div>
+                  </FollowUpReveal>
+                )}
                 {msg.kind === 'launch' && (
                   <FollowUpReveal text={msg.text}>
                     <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
@@ -125,6 +137,11 @@ const OrganizerEntry = () => {
                     <ProcessingScreen onComplete={handleCompleteSynthesis} />
                   </FollowUpReveal>
                 )}
+                {msg.kind === 'risk_processing' && (
+                  <FollowUpReveal text={msg.text}>
+                    <ProcessingScreen onComplete={handleCompleteRiskChoiceResolution} />
+                  </FollowUpReveal>
+                )}
                 {msg.kind === 'result' && (
                   <FollowUpReveal text={msg.text}>
                     <SynthesisResult
@@ -132,6 +149,7 @@ const OrganizerEntry = () => {
                       onUpdate={flow.updateRecommendation}
                       onApprove={handleApprove}
                       onExtendRound={handleExtendRound}
+                      onChooseRiskOption={handleChooseRiskOption}
                       scrollContainerRef={messagesScrollRef}
                     />
                   </FollowUpReveal>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createSession, getSession, getResponses, submitResponse } from '../../lib/tripApi';
-import { synthesizeRecommendation, hasRiskFlagForDestination } from '../../lib/synthesizeRecommendation';
+import { synthesizeRecommendation, hasRiskFlagForDestination, buildRecommendationFromInventoryItem } from '../../lib/synthesizeRecommendation';
 
 /**
  * Shared organizer-flow logic (Screens 1.1 through 4.2) so both the
@@ -80,6 +80,39 @@ export function useTripPlannerFlow() {
 
   const updateRecommendation = (partial) => setRecommendation((prev) => ({ ...prev, ...partial }));
 
+  // Risk-override edge case — the organizer picked one of the two choice
+  // cards (the flagged pick or the safer alternative). Kept separate from
+  // completeSynthesis since re-running synthesizeRecommendation here would
+  // just land back on risk_override_pending (session.destination hasn't
+  // changed); this builds straight from the chosen inventory item instead.
+  const [pendingRiskChoice, setPendingRiskChoice] = useState(null);
+
+  const startRiskChoiceResolution = (item, isFlaggedChoice, flaggedPick) => {
+    setPendingRiskChoice({ item, isFlaggedChoice, flaggedPick });
+  };
+
+  const completeRiskChoiceResolution = () => {
+    if (!pendingRiskChoice) return recommendation;
+    const { item, isFlaggedChoice, flaggedPick } = pendingRiskChoice;
+    const rec = buildRecommendationFromInventoryItem(item, {
+      scenario: 'risk_override_resolved',
+      whyItFits: isFlaggedChoice
+        ? [
+            `Most of the signal pointed to ${item.destination} — going with it despite the flagged risk.`,
+            `${item.hotel} fits your group's budget at ₹${item.costPerPerson.toLocaleString('en-IN')} per person.`,
+          ]
+        : [
+            `Picked to avoid the flagged risk on ${flaggedPick.destination}.`,
+            `${item.hotel} in ${item.destination} fits your group's budget at ₹${item.costPerPerson.toLocaleString('en-IN')} per person.`,
+          ],
+      riskFlag: isFlaggedChoice ? item.riskFlag : null,
+      extraEvidence: isFlaggedChoice && item.riskEvidence ? [item.riskEvidence] : [],
+    });
+    setRecommendation(rec);
+    setPendingRiskChoice(null);
+    return rec;
+  };
+
   // Screen 5.1 — final screen, nothing after this.
   const approve = () => setTripStep('closed');
 
@@ -117,6 +150,8 @@ export function useTripPlannerFlow() {
     startSynthesis,
     completeSynthesis,
     updateRecommendation,
+    startRiskChoiceResolution,
+    completeRiskChoiceResolution,
     approve,
     restore,
   };

@@ -1092,11 +1092,11 @@
 }
 
 .honest-state-title {
-  font-family: var(--font-family-serif);
   font-size: var(--text-xl);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-black);
   color: var(--mmt-text-primary);
   margin: 0;
+  line-height: var(--leading-tight);
 }
 
 .honest-state-text {
@@ -1112,6 +1112,15 @@
   align-items: center;
   gap: var(--space-sm);
   margin-top: var(--space-md);
+}
+
+/* Yes/No confirm row under a plain chat bot message (zero-responses
+   "do you still want to continue?" prompt) — same button family/spacing
+   as everywhere else, just not inside a card. */
+.chat-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 .honest-state-picker {
