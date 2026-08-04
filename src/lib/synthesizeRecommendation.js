@@ -37,8 +37,30 @@ const buildAttributions = (responses, vibe) => responses
   .filter(({ r }) => r.vibe === vibe)
   .map(({ i }) => ({ text: `Wants a ${VIBE_LABELS[vibe] || vibe} trip`, sourceParticipant: `Friend ${i + 1}` }));
 
+// Finds a mock inventory entry whose destination matches whatever the
+// organizer typed on the intake form's "Where to?" field, restricted to
+// entries carrying a riskFlag. This (rather than vibe tally) is the signal
+// used for the risk-override edge case, since the participant flow's real
+// question fields don't currently populate `vibe` on submitted responses.
+const findRiskOverrideMatch = (session) => {
+  const target = (session.destination || '').trim().toLowerCase();
+  if (!target) return null;
+  return mockInventory.find((i) => i.riskFlag && i.destination.toLowerCase() === target) || null;
+};
+
+// Cheapest same-vibe entry with no riskFlag, as the "safer alternative"
+// offered alongside a flagged popular pick.
+const findSaferAlternative = (flaggedItem) => {
+  const sameVibeNoRisk = mockInventory.filter((i) => i.vibe === flaggedItem.vibe && !i.riskFlag && i.id !== flaggedItem.id);
+  const pool = sameVibeNoRisk.length ? sameVibeNoRisk : mockInventory.filter((i) => !i.riskFlag && i.id !== flaggedItem.id);
+  return pool.slice().sort((a, b) => a.costPerPerson - b.costPerPerson)[0];
+};
+
 const determineScenario = (session, responses) => {
+  if (responses.length > 0 && responses.every((r) => r.deferred)) return 'all_deferred';
   if (responses.length < session.group_size) return 'partial';
+
+  if (findRiskOverrideMatch(session)) return 'risk_override_pending';
 
   const counts = Object.values(
     responses.reduce((acc, r) => {
@@ -221,24 +243,46 @@ const DESTINATION_OPTIONS = {
   }
 };
 
-export function synthesizeRecommendation(session, responses) {
-  const scenario = determineScenario(session, responses);
-  const [primaryVibe, secondaryVibe] = topVibes(responses, 2);
-  const fallbackVibe = primaryVibe || 'offbeat';
+const DEFAULT_EVIDENCE_SOURCES = [
+  {
+    platform: 'Reddit (r/IndiaTravel)',
+    platformType: 'reddit',
+    quote: '"If you\'re 4-6 friends going to Rishikesh, Backpackers Hostel + Shivpuri 16km rafting package is the undisputed best value. Clean decks, zero middleman markup."',
+    author: 'u/wanderlust_delhi • 84 upvotes'
+  },
+  {
+    platform: 'Google Reviews',
+    platformType: 'google',
+    quote: '"Verified 4.7★ across 1,280+ group stays. Quiet riverfront location, excellent cafe access, and seamless bus transport."',
+    author: 'Google Local Guides'
+  },
+  {
+    platform: 'MakeMyTrip Verified',
+    platformType: 'mmt',
+    quote: '"Ideal 4-day pace for young working professionals. Rafting in the morning, sunset Aarti in the evening."',
+    author: 'MakeMyTrip Verified Traveler'
+  }
+];
 
-  const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
-  const destKey = DESTINATION_OPTIONS[best.destination] ? best.destination : 'Rishikesh';
+// Shared assembly step for every scenario that ends in a full synthesis
+// dashboard (normal, partial, budget_ceiling, polarized, plus the manual
+// pick / risk-choice resolutions) — looks up the winning inventory item's
+// full destination detail and builds the exact shape SynthesisResult.jsx
+// consumes.
+const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], attributions = [], riskFlag = null, confidenceLevel = 'high', extraEvidence = [] } = {}) => {
+  const destKey = DESTINATION_OPTIONS[item.destination] ? item.destination : 'Rishikesh';
   const customData = DESTINATION_OPTIONS[destKey];
 
-  const estimatedCost = customData.transports.find(t=>t.selected).cost +
-                        customData.stays.find(s=>s.selected).cost +
-                        customData.activities.find(a=>a.selected).cost;
+  const estimatedCost = customData.transports.find((t) => t.selected).cost +
+    customData.stays.find((s) => s.selected).cost +
+    customData.activities.find((a) => a.selected).cost;
 
   return {
-    destination: best.destination,
-    dates: best.dates,
+    scenario,
+    destination: item.destination,
+    dates: item.dates,
     estimatedCost,
-    heroImage: customData.heroImage || DESTINATION_HEROES[best.destination] || DESTINATION_HEROES.Default,
+    heroImage: customData.heroImage || DESTINATION_HEROES[item.destination] || DESTINATION_HEROES.Default,
     weather: customData.weather,
     dateOptions: customData.dateOptions,
     transports: customData.transports,
@@ -246,41 +290,70 @@ export function synthesizeRecommendation(session, responses) {
     activities: customData.activities,
     resolvedSummary: customData.resolvedSummary,
     itinerary: customData.itinerary,
-    whyItFits: scenario === 'partial'
-      ? [
-          `${responses.length} of ${session.group_size} friends have replied so far`,
-          `${VIBE_LABELS[fallbackVibe]} is the top pick right now`,
-          `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
-          `This could change once everyone's answered`,
-        ]
-      : [
-          `${VIBE_LABELS[fallbackVibe]} was the clear favorite for your group`,
-          `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
-        ],
+    whyItFits,
+    attributions,
+    evidenceSources: extraEvidence.length > 0 ? [...extraEvidence, ...DEFAULT_EVIDENCE_SOURCES] : DEFAULT_EVIDENCE_SOURCES,
+    riskFlag,
+    confidenceLevel,
+  };
+};
+
+export function synthesizeRecommendation(session, responses) {
+  const scenario = determineScenario(session, responses);
+
+  // Edge case — everyone who responded chose "you decide for me": there's
+  // no preference data to honestly synthesize from, so this short-circuits
+  // before any destination is picked. SynthesisResult.jsx renders a
+  // dedicated honest-state panel for this shape instead of the dashboard.
+  if (scenario === 'all_deferred') {
+    return {
+      scenario,
+      groupSize: session.group_size,
+      respondedCount: responses.length,
+      budgetPerPerson: session.budget_per_person,
+    };
+  }
+
+  // Edge case — the organizer's named destination is a known risk-flagged
+  // pick. Also short-circuits before assembling a dashboard: the organizer
+  // has to choose between the flagged pick and a safer alternative first.
+  if (scenario === 'risk_override_pending') {
+    const flaggedPick = findRiskOverrideMatch(session);
+    const saferAlternative = findSaferAlternative(flaggedPick);
+    return { scenario, flaggedPick, saferAlternative };
+  }
+
+  const [primaryVibe] = topVibes(responses, 2);
+  const fallbackVibe = primaryVibe || 'offbeat';
+
+  const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
+
+  const whyItFits = scenario === 'partial'
+    ? [
+        `${responses.length} of ${session.group_size} friends have replied so far`,
+        `${VIBE_LABELS[fallbackVibe]} is the top pick right now`,
+        `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
+        `This could change once everyone's answered`,
+      ]
+    : [
+        `${VIBE_LABELS[fallbackVibe]} was the clear favorite for your group`,
+        `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
+      ];
+
+  return assembleRecommendation(best, {
+    scenario,
+    whyItFits,
     attributions: buildAttributions(responses, fallbackVibe),
-    evidenceSources: [
-      {
-        platform: 'Reddit (r/IndiaTravel)',
-        platformType: 'reddit',
-        quote: '"If you\'re 4-6 friends going to Rishikesh, Backpackers Hostel + Shivpuri 16km rafting package is the undisputed best value. Clean decks, zero middleman markup."',
-        author: 'u/wanderlust_delhi • 84 upvotes'
-      },
-      {
-        platform: 'Google Reviews',
-        platformType: 'google',
-        quote: '"Verified 4.7★ across 1,280+ group stays. Quiet riverfront location, excellent cafe access, and seamless bus transport."',
-        author: 'Google Local Guides'
-      },
-      {
-        platform: 'MakeMyTrip Verified',
-        platformType: 'mmt',
-        quote: '"Ideal 4-day pace for young working professionals. Rafting in the morning, sunset Aarti in the evening."',
-        author: 'MakeMyTrip Verified Traveler'
-      }
-    ],
     riskFlag: scenario === 'budget_ceiling' ? 'Option is close to per-person budget limit.' : null,
     confidenceLevel: scenario === 'partial' ? 'moderate' : 'high',
-  };
+  });
+}
+
+// Builds a full synthesis dashboard from an organizer-chosen inventory item
+// — used to resolve the "everyone deferred" manual pick and the
+// "risk override" flagged-vs-alternative choice into a normal recommendation.
+export function buildRecommendationFromInventoryItem(item, { scenario = 'manual_pick', whyItFits = [], riskFlag = null, extraEvidence = [] } = {}) {
+  return assembleRecommendation(item, { scenario, whyItFits, attributions: [], riskFlag, confidenceLevel: 'high', extraEvidence });
 }
 
 /**
