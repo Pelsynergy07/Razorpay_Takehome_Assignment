@@ -70,6 +70,14 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     advanceThen(flow.startSynthesis, { [kindField]: 'processing', sessionId: flow.session?.id }, 600);
   };
 
+  // Zero-responses edge case — the proceed button stays clickable even
+  // with no responses in, but clicking it with nothing to synthesize from
+  // just gets a bot reply asking to wait, instead of advancing the flow.
+  const handleEmptyProceedAttempt = () => {
+    echoUser('Proceed to synthesis now');
+    thinkThen({ [kindField]: 'text', text: "Hold that thought — no one's responded yet. Let's wait a bit longer before I put something together." }, 700);
+  };
+
   const handleCompleteSynthesis = async () => {
     await flow.completeSynthesis();
     pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:", sessionId: flow.session?.id });
@@ -94,6 +102,7 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     handleTripFormSubmit,
     handleEnterHub,
     handleProceedToSynthesis,
+    handleEmptyProceedAttempt,
     handleCompleteSynthesis,
     handleApprove,
     handleExtendRound,

@@ -135,6 +135,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     handleTripFormSubmit,
     handleEnterHub,
     handleProceedToSynthesis,
+    handleEmptyProceedAttempt,
     handleCompleteSynthesis,
     handleApprove,
     handleExtendRound,
@@ -321,7 +322,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       )}
                       {msg.type === 'hub' && (
                         <FollowUpReveal text={msg.text}>
-                          <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                          <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} />
                         </FollowUpReveal>
                       )}
                       {msg.type === 'processing' && (

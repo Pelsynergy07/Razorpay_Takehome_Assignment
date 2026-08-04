@@ -50,6 +50,7 @@ const OrganizerEntry = () => {
     handleTripFormSubmit: handleFormSubmit,
     handleEnterHub,
     handleProceedToSynthesis,
+    handleEmptyProceedAttempt,
     handleCompleteSynthesis,
     handleApprove,
     handleExtendRound,
@@ -116,7 +117,7 @@ const OrganizerEntry = () => {
                 )}
                 {msg.kind === 'hub' && (
                   <FollowUpReveal text={msg.text}>
-                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} />
+                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} />
                   </FollowUpReveal>
                 )}
                 {msg.kind === 'processing' && (

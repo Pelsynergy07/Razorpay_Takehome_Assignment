@@ -73,7 +73,7 @@ const FunAvatarFace = ({ index = 0, muted = false }) => {
  * reveal top to bottom, each waiting for the one above it to finish before
  * it starts — then the CTA at the very end.
  */
-const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
+const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDelay = 0 }) => {
   const [responses, setResponses] = useState([]);
   const [proceeded, setProceeded] = useState(false);
 
@@ -98,6 +98,10 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
   const timeLeftLabel = getTimeLeftLabel(session?.created_at);
 
   const handleProceed = () => {
+    if (respondedCount === 0) {
+      onEmptyProceedAttempt?.();
+      return;
+    }
     setProceeded(true);
     onProceed?.();
   };
@@ -146,7 +150,7 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
           <span className="hub-wait-spinner" />
           <div className="hub-status-copy">
             <span className="hub-status-text">No one's responded yet</span>
-            <span className="hub-status-hint">Want to wait a bit longer? The link stays active for 3 hours.</span>
+            <span className="hub-status-hint">Feel free to come back later — the link stays active for 3 hours.</span>
           </div>
         </motion.div>
       ) : pendingCount > 0 ? (
@@ -182,7 +186,7 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
         type="button"
         className="hub-proceed-btn"
         onClick={handleProceed}
-        disabled={proceeded || respondedCount === 0}
+        disabled={proceeded}
         startDelay={buttonDelay}
       >
         Alright, let's cook this trip
