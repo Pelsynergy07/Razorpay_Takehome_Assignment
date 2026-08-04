@@ -52,6 +52,7 @@ const OrganizerEntry = () => {
     handleProceedToSynthesis,
     handleCompleteSynthesis,
     handleApprove,
+    handleExtendRound,
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'kind' });
 
   const handleSend = () => {
@@ -129,6 +130,7 @@ const OrganizerEntry = () => {
                       recommendation={flow.recommendation}
                       onUpdate={flow.updateRecommendation}
                       onApprove={handleApprove}
+                      onExtendRound={handleExtendRound}
                       scrollContainerRef={messagesScrollRef}
                     />
                   </FollowUpReveal>

@@ -80,6 +80,14 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     advanceThen(flow.approve, { [kindField]: 'closed', text: "You're all set! Here's your itinerary:", sessionId: flow.session?.id }, 750);
   };
 
+  // Everyone-deferred edge case's "give it more time" path — drops the
+  // organizer back into the live hub to keep collecting responses instead
+  // of forcing a pick right away.
+  const handleExtendRound = () => {
+    echoUser('Extend the round');
+    advanceThen(flow.enterHub, { [kindField]: 'hub', text: "Sure — I'll keep listening for responses. Come back whenever you're ready.", sessionId: flow.session?.id }, 600);
+  };
+
   return {
     thinkThen,
     handleLaunchSyncMode,
@@ -88,6 +96,7 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     handleProceedToSynthesis,
     handleCompleteSynthesis,
     handleApprove,
+    handleExtendRound,
   };
 }
 

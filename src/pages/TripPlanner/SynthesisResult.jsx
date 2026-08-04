@@ -24,6 +24,8 @@ import {
   peerContainerVariants,
   peerItemVariants,
 } from '../../components/AIChatbot/motionConfig';
+import { mockInventory } from '../../lib/mockInventory';
+import { buildRecommendationFromInventoryItem } from '../../lib/synthesizeRecommendation';
 
 // The Edit -> options-swap transition reads better a bit slower than the
 // standard block entrance (BLOCK_DURATION) — it's a bigger jump in content.
@@ -129,7 +131,7 @@ const TagBadge = ({ label, isOpen, onToggle, tooltipText, asSpan = false }) => {
  * approve button — reveal top to bottom, each waiting for the one above it
  * to finish before it starts.
  */
-const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0, scrollContainerRef }) => {
+const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, startDelay = 0, scrollContainerRef }) => {
   const [recState, setRecState] = useState(recommendation);
 
   const [openSections, setOpenSections] = useState({
@@ -140,6 +142,10 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0, 
     resolved: false,
     evidence: false,
   });
+
+  // Everyone-deferred edge case's "pick a destination myself" list — only
+  // ever relevant while recState.scenario === 'all_deferred'.
+  const [manualPickOpen, setManualPickOpen] = useState(false);
 
   // In-panel swap view — replaces the dashboard while active, instead of
   // a modal rendered outside the chat sheet.
@@ -188,6 +194,65 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, startDelay = 0, 
   const toggleSection = (key) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // ── EDGE CASE — everyone deferred ("you decide for me") ──────────────
+  // Every response received chose defer, so there's no real preference
+  // data to honestly synthesize a pick from. Renders a dedicated honest
+  // state instead of the normal dashboard — the organizer either picks
+  // from the inventory themselves or waits for more responses.
+  if (recState.scenario === 'all_deferred') {
+    const handleManualPick = (item) => {
+      const budgetLabel = (recState.budgetPerPerson || item.costPerPerson).toLocaleString('en-IN');
+      const rec = buildRecommendationFromInventoryItem(item, {
+        scenario: 'manual_pick',
+        whyItFits: [
+          `You picked ${item.destination} (${item.hotel}) yourself since no one had a strong preference.`,
+          `Fits within your ₹${budgetLabel} per-person budget.`,
+        ],
+      });
+      setRecState(rec);
+      onUpdate?.(rec);
+    };
+
+    return (
+      <div className="honest-state-card">
+        <span className="honest-state-icon">🤷</span>
+        <h3 className="honest-state-title">Everyone left this up to you</h3>
+        <p className="honest-state-text">
+          {recState.respondedCount} of {recState.groupSize} friends replied, and everyone chose "you decide for me" — no strong preferences came in. Rather than guess, here's what you can do:
+        </p>
+
+        {!manualPickOpen ? (
+          <div className="honest-state-actions">
+            <button type="button" className="btn-secondary" onClick={() => setManualPickOpen(true)}>
+              Pick a destination myself
+            </button>
+            <button type="button" className="btn-tertiary" onClick={() => onExtendRound?.()}>
+              Give it more time
+            </button>
+          </div>
+        ) : (
+          <div className="synthesis-swap-list honest-state-picker">
+            {mockInventory.map((item) => (
+              <button key={item.id} type="button" className="synthesis-swap-option" onClick={() => handleManualPick(item)}>
+                <div className="synthesis-swap-option-body">
+                  <div className="synthesis-swap-option-top">
+                    <h4 className="synthesis-swap-option-title">{item.destination} — {item.hotel}</h4>
+                  </div>
+                  <span className="synthesis-swap-option-type">{item.vibe} • {item.pace}</span>
+                  <p className="active-item-desc">{item.evidence}</p>
+                  <div className="synthesis-swap-option-footer">
+                    <span className="active-item-price">₹{item.costPerPerson.toLocaleString('en-IN')} / person</span>
+                    <span className="synthesis-swap-select-hint">Select</span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const activeDate = recState.dateOptions?.find((d) => d.selected) || recState.dateOptions?.[0] || { title: recState.dates, desc: '' };
   const activeTransport = recState.transports.find((t) => t.selected) || recState.transports[0];

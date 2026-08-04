@@ -1067,6 +1067,61 @@
   margin-top: auto;
 }
 
+/* ===== Edge case — everyone deferred ("you decide for me") =====
+   Same elevated white-card treatment as the rest of the synthesis
+   dashboard, just centered/celebratory instead of a data-dense accordion,
+   since there's no synthesis data to show. Reuses .synthesis-swap-option
+   for the manual-pick list so it reads as the same "choose an option"
+   pattern used everywhere else in this flow. */
+.honest-state-card {
+  background: var(--mmt-white);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-lg) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2xs);
+}
+
+.honest-state-icon {
+  font-size: 28px;
+  margin-bottom: var(--space-2xs);
+}
+
+.honest-state-title {
+  font-family: var(--font-family-serif);
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+  margin: 0;
+}
+
+.honest-state-text {
+  font-size: var(--text-sm);
+  color: var(--mmt-text-secondary);
+  line-height: var(--leading-base);
+  max-width: 42ch;
+  margin: 0;
+}
+
+.honest-state-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.honest-state-picker {
+  width: 100%;
+  margin-top: var(--space-md);
+  max-height: 420px;
+  overflow-y: auto;
+  text-align: left;
+}
+
 /* ===== Screen 5.1 — final day-by-day itinerary =====
    Same elevated-card treatment as every other card in this flow (white
    bg, radius-lg, shadow-sm) — the hero photo bleeds to the card's own

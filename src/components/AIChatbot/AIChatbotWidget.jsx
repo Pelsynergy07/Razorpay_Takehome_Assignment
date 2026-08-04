@@ -137,6 +137,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     handleProceedToSynthesis,
     handleCompleteSynthesis,
     handleApprove,
+    handleExtendRound,
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'type' });
 
   const [syncStage, setSyncStage] = useState('idle'); // 'idle' | 'awaiting_confirmation' | 'confirmed'
@@ -334,6 +335,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                             recommendation={flow.recommendation}
                             onUpdate={flow.updateRecommendation}
                             onApprove={handleApprove}
+                            onExtendRound={handleExtendRound}
                             scrollContainerRef={messagesScrollRef}
                           />
                         </FollowUpReveal>
