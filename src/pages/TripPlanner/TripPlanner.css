@@ -1186,6 +1186,11 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3xs);
+  /* Pins the price to the bottom of the card regardless of how much
+     title/description text is above it, so both cards' price lines
+     align across the row instead of trailing right after their own
+     (differently-lengthed) content. */
+  margin-top: auto;
 }
 
 .risk-choice-option .active-item-price {
