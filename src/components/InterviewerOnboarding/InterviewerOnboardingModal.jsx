@@ -11,8 +11,10 @@ const easeOut = [0.16, 1, 0.3, 1];
 const SPEED = 1.25;
 const s = (seconds) => seconds * SPEED;
 
-// How long the card's `layout` height-expand animation takes (kept in sync
-// with cardVariants.visible.transition.layout.duration below).
+// How long the card's height-expand animation takes (kept in sync with the
+// `.evaluator-rest-grid` grid-template-rows transition duration in the CSS —
+// a pure CSS grid-rows reveal, not a transform/scale-based layout animation,
+// so the text never gets stretched/squished while the box grows).
 const CARD_EXPAND_S = s(0.5);
 
 const cardVariants = {
@@ -21,7 +23,7 @@ const cardVariants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { duration: s(0.4), ease: easeOut, layout: { duration: CARD_EXPAND_S, ease: easeOut } },
+    transition: { duration: s(0.4), ease: easeOut },
   },
 };
 
@@ -40,6 +42,27 @@ const wordsContainer = (startDelay, stagger) => ({
 const Word = ({ children, bold }) => (
   <motion.span variants={wordVariants} style={{ display: 'inline-block' }}>
     {bold ? <strong>{children}</strong> : children}
+  </motion.span>
+);
+
+const waveVariants = {
+  wave: {
+    rotate: [0, 16, -6, 16, -4, 10, 0],
+    transition: { duration: 1.1, ease: easeOut },
+  },
+};
+
+// Fades in with the rest of the "Hello there!" cascade (inherits the "visible"
+// state from the words container), then waves a few times and stops.
+const WavingHand = () => (
+  <motion.span variants={wordVariants} style={{ display: 'inline-block', marginLeft: '2px' }}>
+    <motion.span
+      animate="wave"
+      variants={waveVariants}
+      style={{ display: 'inline-block', transformOrigin: '70% 70%' }}
+    >
+      👋
+    </motion.span>
   </motion.span>
 );
 
@@ -64,16 +87,22 @@ const HELLO_STAGGER = s(0.06);
 const GREETING_STAGGER = s(0.05);
 const PARAGRAPH_STAGGER = s(0.022);
 
-const HELLO_CHUNKS = [{ text: 'Hello!' }];
+const HELLO_CHUNKS = [{ text: 'Hello there!' }];
+// +1 for the waving hand, which staggers in right after the text as one more item.
+const HELLO_ITEM_COUNT = countWords(HELLO_CHUNKS) + 1;
 const GREETING_CHUNKS = [{ text: 'Thanks for taking the time to go through this demo!' }];
 
 const HELLO_START = s(0.15);
-const GREETING_START = HELLO_START + (countWords(HELLO_CHUNKS) - 1) * HELLO_STAGGER + s(0.3);
+const HELLO_END = HELLO_START + (HELLO_ITEM_COUNT - 1) * HELLO_STAGGER + WORD_DURATION;
+
+// A deliberate beat after "Hello there!" finishes before the greeting line starts.
+const POST_HELLO_PAUSE_S = 0.3;
+const GREETING_START = HELLO_END + POST_HELLO_PAUSE_S;
 const GREETING_END = GREETING_START + (countWords(GREETING_CHUNKS) - 1) * GREETING_STAGGER + WORD_DURATION;
 
 // A deliberate 1.5s beat after "Hello! / <greeting line>" finishes before the
 // rest of the modal starts expanding in.
-const POST_GREETING_PAUSE_S = 1.5;
+const POST_GREETING_PAUSE_S = 1;
 const DETAILS_MOUNT_MS = (GREETING_END + POST_GREETING_PAUSE_S) * 1000;
 
 // Detail text starts cascading in while the card's expand animation is most
@@ -122,7 +151,6 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
       <div className="evaluator-modal-backdrop" onClick={onClose}>
         <motion.div
           className="evaluator-modal-card"
-          layout
           onClick={(e) => e.stopPropagation()}
           variants={cardVariants}
           initial="hidden"
@@ -141,6 +169,7 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
               variants={wordsContainer(HELLO_START, HELLO_STAGGER)}
             >
               {renderChunks(HELLO_CHUNKS, 'hello')}
+              <WavingHand />
             </motion.p>
             <motion.p
               className="evaluator-greeting"
@@ -152,53 +181,55 @@ const InterviewerOnboardingModal = ({ isOpen, onClose, onStartDemo }) => {
             </motion.p>
           </div>
 
-          {showDetails && (
-            <div className="evaluator-rest-block">
-              <motion.p
-                className="evaluator-context"
-                initial="hidden"
-                animate="visible"
-                variants={wordsContainer(PARA_1_START, PARAGRAPH_STAGGER)}
-              >
-                {renderChunks(PARAGRAPH_1_CHUNKS, 'p1')}
-              </motion.p>
+          <div className={`evaluator-rest-grid${showDetails ? ' is-expanded' : ''}`}>
+            <div className="evaluator-rest-grid-inner">
+              <div className="evaluator-rest-block">
+                <motion.p
+                  className="evaluator-context"
+                  initial="hidden"
+                  animate={showDetails ? 'visible' : 'hidden'}
+                  variants={wordsContainer(PARA_1_START, PARAGRAPH_STAGGER)}
+                >
+                  {renderChunks(PARAGRAPH_1_CHUNKS, 'p1')}
+                </motion.p>
 
-              <motion.p
-                className="evaluator-context evaluator-presentation-link-line"
-                initial="hidden"
-                animate="visible"
-                variants={wordsContainer(PARA_2_START, PARAGRAPH_STAGGER)}
-              >
-                {renderChunks(PARAGRAPH_2_CHUNKS, 'p2')}
-                <motion.span variants={wordVariants} style={{ display: 'inline-block' }}>
-                  <a
-                    href={PRESENTATION_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="evaluator-presentation-link"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    project case study <ExternalLink size={12} />
-                  </a>
-                </motion.span>
-                .
-              </motion.p>
+                <motion.p
+                  className="evaluator-context evaluator-presentation-link-line"
+                  initial="hidden"
+                  animate={showDetails ? 'visible' : 'hidden'}
+                  variants={wordsContainer(PARA_2_START, PARAGRAPH_STAGGER)}
+                >
+                  {renderChunks(PARAGRAPH_2_CHUNKS, 'p2')}
+                  <motion.span variants={wordVariants} style={{ display: 'inline-block' }}>
+                    <a
+                      href={PRESENTATION_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="evaluator-presentation-link"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      project presentation <ExternalLink size={12} />
+                    </a>
+                  </motion.span>
+                  .
+                </motion.p>
 
-              <motion.button
-                type="button"
-                className="evaluator-start-btn"
-                initial="hidden"
-                animate="visible"
-                variants={buttonVariants}
-                onClick={() => {
-                  onStartDemo();
-                  onClose();
-                }}
-              >
-                <Sparkles size={15} /> Start the demo
-              </motion.button>
+                <motion.button
+                  type="button"
+                  className="evaluator-start-btn"
+                  initial="hidden"
+                  animate={showDetails ? 'visible' : 'hidden'}
+                  variants={buttonVariants}
+                  onClick={() => {
+                    onStartDemo();
+                    onClose();
+                  }}
+                >
+                  <Sparkles size={15} /> Start the demo
+                </motion.button>
+              </div>
             </div>
-          )}
+          </div>
         </motion.div>
       </div>
     </AnimatePresence>

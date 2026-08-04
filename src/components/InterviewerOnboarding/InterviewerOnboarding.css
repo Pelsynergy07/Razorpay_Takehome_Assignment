@@ -85,8 +85,24 @@
   line-height: 1.35;
 }
 
-.evaluator-rest-block {
+/* Grid-rows height reveal instead of a transform/scale-based layout
+   animation — the box grows by real reflow, so the text inside never gets
+   stretched/squished mid-transition. Duration here must stay in sync with
+   CARD_EXPAND_S in InterviewerOnboardingModal.jsx (0.5s * SPEED 1.25). */
+.evaluator-rest-grid {
+  display: grid;
+  grid-template-rows: 0fr;
   margin-top: 20px;
+  transition: grid-template-rows 0.625s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.evaluator-rest-grid.is-expanded {
+  grid-template-rows: 1fr;
+}
+
+.evaluator-rest-grid-inner {
+  overflow: hidden;
+  min-height: 0;
 }
 
 .evaluator-context {
