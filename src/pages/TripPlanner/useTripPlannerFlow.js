@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { createSession, getSession, getResponses } from '../../lib/tripApi';
-import { synthesizeRecommendation } from '../../lib/synthesizeRecommendation';
+import { createSession, getSession, getResponses, submitResponse } from '../../lib/tripApi';
+import { synthesizeRecommendation, hasRiskFlagForDestination } from '../../lib/synthesizeRecommendation';
 
 /**
  * Shared organizer-flow logic (Screens 1.1 through 4.2) so both the
@@ -41,6 +41,20 @@ export function useTripPlannerFlow() {
       budgetPerPerson,
     });
     setSession(created);
+
+    // Demo convenience for the risk-override edge case: a destination
+    // that's already known to carry a real-world risk flag auto-fills the
+    // group's responses, so the flow can be walked through end to end
+    // right away instead of needing group_size real participants to
+    // actually open the join link first.
+    if (destination && hasRiskFlagForDestination(destination)) {
+      await Promise.all(
+        Array.from({ length: groupSize }, (_, i) =>
+          submitResponse(created.id, { participantName: `Friend ${i + 1}`, deferred: false })
+        )
+      );
+    }
+
     setTripStep('share');
     return {
       session: created,

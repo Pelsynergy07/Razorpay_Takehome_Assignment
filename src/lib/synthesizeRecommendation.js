@@ -48,6 +48,14 @@ const findRiskOverrideMatch = (session) => {
   return mockInventory.find((i) => i.riskFlag && i.destination.toLowerCase() === target) || null;
 };
 
+// Lets the intake form flow check, right when the organizer names a
+// destination, whether it's one that carries a risk flag — used to
+// auto-fill the group's responses so the risk-override edge case can be
+// demoed end to end without needing group_size real participants to join.
+export function hasRiskFlagForDestination(destination) {
+  return Boolean(findRiskOverrideMatch({ destination }));
+}
+
 // Cheapest same-vibe entry with no riskFlag, as the "safer alternative"
 // offered alongside a flagged popular pick.
 const findSaferAlternative = (flaggedItem) => {
@@ -240,7 +248,87 @@ const DESTINATION_OPTIONS = {
         bookable: ['transport'],
       },
     ],
-  }
+  },
+  // Only populated so the risk-override edge case (organizer names
+  // "Manali") shows real Manali content instead of falling back to
+  // Rishikesh's cards — same shape as the two entries above.
+  Manali: {
+    heroImage: DESTINATION_HEROES.Manali,
+    weather: '6°C Crisp & Snowy | Clear skies',
+    dateOptions: [
+      { id: 'dt1', title: 'Dec 20 – Dec 24', badge: 'Winter season', desc: 'Peak snow season in Manali — pine forests and the higher slopes are freshly snowed in, giving the town a proper winter-holiday feel.', selected: true },
+      { id: 'dt2', title: 'Dec 27 – Dec 31', badge: 'New Year rush', desc: 'Same winter conditions, but expect packed markets and higher hotel rates over the New Year weekend.', selected: false },
+      { id: 'dt3', title: 'Jan 10 – Jan 14', badge: 'Quieter & cheaper', desc: 'Same snowy scenery with thinner crowds and better rates once the holiday season winds down.', selected: false },
+    ],
+    transports: [
+      { id: 't1', title: 'AC Volvo Bus (Delhi–Manali)', duration: 'Overnight 12h', cost: 1800, badge: 'Popular Route', desc: 'Direct overnight route with reclining seats, drops right into Mall Road', selected: true },
+      { id: 't2', title: 'Flight to Bhuntar (Kullu) + Taxi', duration: '3h total', cost: 5200, badge: 'Fastest', desc: 'Flight to Kullu-Manali Airport (KUU) + 50m cab ride to Manali', selected: false },
+      { id: 't3', title: 'Shared Innova Cab from Delhi', duration: '10h', cost: 2400, badge: 'Door to Door', desc: 'Direct cab, no transfers, flexible pickup times', selected: false },
+    ],
+    stays: [
+      { id: 's1', title: 'The Himalayan', rating: '4.6★', cost: 9500, type: 'Mountain View Hotel', image: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=400&q=80', desc: 'Calm mountain-facing rooms with a bonfire deck and in-house cafe', selected: true },
+      { id: 's2', title: 'Zostel Manali', rating: '4.5★', cost: 5500, type: 'Social Hostel', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=400&q=80', desc: 'Popular backpacker hostel with a lively common area and trek meetups', selected: false },
+    ],
+    activities: [
+      { id: 'a1', title: 'Solang Valley Snow Day + Old Manali Cafe Walk', cost: 2200, badge: 'Chill Pace', image: 'https://images.unsplash.com/photo-1517824806704-9040b037703b?auto=format&fit=crop&w=400&q=80', items: ['Solang Valley snow activities', 'Hidimba Devi Temple walk', 'Old Manali cafe hopping'], selected: true },
+      { id: 'a2', title: 'Rohtang Pass Excursion + River Rafting', cost: 3600, badge: 'High Energy', image: DESTINATION_HEROES.Manali, items: ['Rohtang Pass day trip (subject to road status)', 'Beas River rafting', 'Vashisht hot springs'], selected: false },
+    ],
+    resolvedSummary: [
+      { label: 'Group vibe', detail: 'Mountains was the strongest signal, with a calm, chill pace preferred' },
+      { label: 'Budget fit', detail: 'The Himalayan stay + Solang Valley day keeps the trip within a comfortable per-person budget' },
+      { label: 'Risk note', detail: 'The Rohtang Pass corridor is weather-dependent this time of year — flagged separately before this pick was confirmed' },
+    ],
+    itinerary: [
+      {
+        day: 1,
+        dateLabel: 'Dec 20',
+        title: 'Arrival & Mall Road Evening',
+        emoji: '🛬',
+        description: 'Arrive and get settled in.',
+        activities: ['Check-in at The Himalayan', 'Evening stroll on Mall Road', 'Trip briefing with the group'],
+        transportMode: 'AC Volvo Bus (Delhi–Manali)',
+        image: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=400&q=80',
+        rating: '4.6★',
+        bookable: ['transport', 'stay'],
+      },
+      {
+        day: 2,
+        dateLabel: 'Dec 21',
+        title: 'Solang Valley Snow Day',
+        emoji: '❄️',
+        description: 'A full day in the snow.',
+        activities: ['Solang Valley snow activities', 'Cable car ride', 'Hot chocolate at a valley cafe'],
+        transportMode: null,
+        image: 'https://images.unsplash.com/photo-1517824806704-9040b037703b?auto=format&fit=crop&w=400&q=80',
+        rating: '4.5★',
+        bookable: ['activity'],
+      },
+      {
+        day: 3,
+        dateLabel: 'Dec 22',
+        title: 'Old Manali & Hidimba Temple',
+        emoji: '🛕',
+        description: 'A slower cultural day.',
+        activities: ['Hidimba Devi Temple walk', 'Old Manali cafe hopping', 'Local craft market'],
+        transportMode: null,
+        image: null,
+        rating: '4.4★',
+        bookable: ['activity'],
+      },
+      {
+        day: 4,
+        dateLabel: 'Dec 24',
+        title: 'Final Morning & Departure',
+        emoji: '🌄',
+        description: 'Wrap up and head home.',
+        activities: ['Morning walk by the Beas river', 'Check-out and pack up', 'Return via AC Volvo Bus'],
+        transportMode: 'AC Volvo Bus (Delhi–Manali)',
+        image: null,
+        rating: null,
+        bookable: ['transport'],
+      },
+    ],
+  },
 };
 
 const DEFAULT_EVIDENCE_SOURCES = [
