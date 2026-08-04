@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Check,
   MessageSquareQuote,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   blockVariants,
@@ -250,6 +251,85 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, s
             ))}
           </div>
         )}
+      </div>
+    );
+  }
+
+  // ── EDGE CASE — real-world risk overrides a popular pick ──────────────
+  // The organizer's named destination matches a riskFlag-carrying mock
+  // inventory entry. Instead of quietly folding this into the budget or
+  // polarized-split cases, the organizer sees the flagged pick and a
+  // safer alternative side by side, with the risk evidence surfaced the
+  // same way real-world evidence is elsewhere in this flow, and picks
+  // either one before a dashboard is assembled.
+  if (recState.scenario === 'risk_override_pending') {
+    const { flaggedPick, saferAlternative } = recState;
+
+    const handleChooseRisk = (item, isFlaggedChoice) => {
+      const rec = buildRecommendationFromInventoryItem(item, {
+        scenario: 'risk_override_resolved',
+        whyItFits: isFlaggedChoice
+          ? [
+              `Most of the signal pointed to ${item.destination} — going with it despite the flagged risk.`,
+              `${item.hotel} fits your group's budget at ₹${item.costPerPerson.toLocaleString('en-IN')} per person.`,
+            ]
+          : [
+              `Picked to avoid the flagged risk on ${flaggedPick.destination}.`,
+              `${item.hotel} in ${item.destination} fits your group's budget at ₹${item.costPerPerson.toLocaleString('en-IN')} per person.`,
+            ],
+        riskFlag: isFlaggedChoice ? item.riskFlag : null,
+        extraEvidence: isFlaggedChoice && item.riskEvidence ? [item.riskEvidence] : [],
+      });
+      setRecState(rec);
+      onUpdate?.(rec);
+    };
+
+    return (
+      <div className="risk-choice-panel">
+        <h3 className="honest-state-title">Most of the group leaned toward {flaggedPick.destination}</h3>
+        <div className="risk-flag">
+          <AlertTriangle size={15} />
+          <span>{flaggedPick.riskFlag}</span>
+        </div>
+
+        {flaggedPick.riskEvidence && (
+          <div className="community-proof-card">
+            <div className="proof-card-header">
+              <span className="proof-platform-tag">{flaggedPick.riskEvidence.platform}</span>
+              <span className="proof-author">{flaggedPick.riskEvidence.author}</span>
+            </div>
+            <p className="proof-quote">{flaggedPick.riskEvidence.quote}</p>
+          </div>
+        )}
+
+        <div className="risk-choice-options">
+          <button type="button" className="synthesis-swap-option risk-choice-option" onClick={() => handleChooseRisk(flaggedPick, true)}>
+            <div className="synthesis-swap-option-body">
+              <div className="synthesis-swap-option-top">
+                <h4 className="synthesis-swap-option-title">{flaggedPick.destination} — {flaggedPick.hotel}</h4>
+              </div>
+              <span className="synthesis-swap-option-type">Popular pick • has the flagged risk</span>
+              <p className="active-item-desc">{flaggedPick.evidence}</p>
+              <div className="synthesis-swap-option-footer">
+                <span className="active-item-price">₹{flaggedPick.costPerPerson.toLocaleString('en-IN')} / person</span>
+                <span className="synthesis-swap-select-hint">Select anyway</span>
+              </div>
+            </div>
+          </button>
+          <button type="button" className="synthesis-swap-option risk-choice-option" onClick={() => handleChooseRisk(saferAlternative, false)}>
+            <div className="synthesis-swap-option-body">
+              <div className="synthesis-swap-option-top">
+                <h4 className="synthesis-swap-option-title">{saferAlternative.destination} — {saferAlternative.hotel}</h4>
+              </div>
+              <span className="synthesis-swap-option-type">Safer alternative • avoids the risk</span>
+              <p className="active-item-desc">{saferAlternative.evidence}</p>
+              <div className="synthesis-swap-option-footer">
+                <span className="active-item-price">₹{saferAlternative.costPerPerson.toLocaleString('en-IN')} / person</span>
+                <span className="synthesis-swap-select-hint">Select instead</span>
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
     );
   }

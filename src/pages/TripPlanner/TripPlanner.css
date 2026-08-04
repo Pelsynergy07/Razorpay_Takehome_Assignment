@@ -1122,6 +1122,44 @@
   text-align: left;
 }
 
+/* ===== Edge case — real-world risk overrides a popular pick =====
+   Plain white card (no purple confidence-card gradient — this isn't a
+   confident synthesis, it's a flagged choice) topped with the existing
+   .risk-flag banner and .community-proof-card evidence treatment, then
+   the flagged pick and safer alternative as two synthesis-swap-option
+   cards side by side. */
+.risk-choice-panel {
+  background: var(--mmt-white);
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.risk-choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-2xs);
+}
+
+.risk-choice-option {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .risk-choice-options {
+    flex-direction: row;
+  }
+
+  .risk-choice-option {
+    flex: 1;
+  }
+}
+
 /* ===== Screen 5.1 — final day-by-day itinerary =====
    Same elevated-card treatment as every other card in this flow (white
    bg, radius-lg, shadow-sm) — the hero photo bleeds to the card's own
