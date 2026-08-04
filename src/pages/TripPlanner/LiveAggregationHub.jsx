@@ -141,7 +141,15 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
         ))}
       </motion.div>
 
-      {pendingCount > 0 ? (
+      {respondedCount === 0 ? (
+        <motion.div className="hub-status-row" variants={blockVariants} custom={statusDelay} initial="hidden" animate="visible">
+          <span className="hub-wait-spinner" />
+          <div className="hub-status-copy">
+            <span className="hub-status-text">No one's responded yet</span>
+            <span className="hub-status-hint">Want to wait a bit longer? The link stays active for 3 hours.</span>
+          </div>
+        </motion.div>
+      ) : pendingCount > 0 ? (
         <motion.div className="hub-status-row" variants={blockVariants} custom={statusDelay} initial="hidden" animate="visible">
           <span className="hub-wait-spinner" />
           <div className="hub-status-copy">
@@ -174,7 +182,7 @@ const LiveAggregationHub = ({ session, onProceed, startDelay = 0 }) => {
         type="button"
         className="hub-proceed-btn"
         onClick={handleProceed}
-        disabled={proceeded}
+        disabled={proceeded || respondedCount === 0}
         startDelay={buttonDelay}
       >
         Alright, let's cook this trip
