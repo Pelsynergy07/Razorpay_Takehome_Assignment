@@ -44,9 +44,11 @@
 }
 
 .btn-gradient-sweep:disabled {
-  opacity: 0.5;
+  opacity: 1;
   cursor: not-allowed;
-  background: var(--mmt-white);
+  background: var(--mmt-bg-page);
+  color: var(--mmt-text-light);
+  border-color: var(--mmt-border);
 }
 
 .btn-gradient-sweep:disabled::after {
@@ -196,9 +198,14 @@
 .skeleton-bar,
 .skeleton-pill {
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--mmt-border-light) 25%, var(--mmt-bg-page) 50%, var(--mmt-border-light) 75%);
+  background: linear-gradient(90deg, var(--mmt-border-subtle) 25%, var(--mmt-blue-tint) 50%, var(--mmt-border-subtle) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.2s ease-in-out infinite;
+  animation: skeletonShimmer 2.4s linear infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .skeleton-bar--label {
