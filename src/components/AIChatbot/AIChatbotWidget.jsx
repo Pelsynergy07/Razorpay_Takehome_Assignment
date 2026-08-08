@@ -36,6 +36,11 @@ const MIN_THINKING_MS_RANGE = [900, 1300];
 const randomThinkingMs = () =>
   Math.round(MIN_THINKING_MS_RANGE[0] + Math.random() * (MIN_THINKING_MS_RANGE[1] - MIN_THINKING_MS_RANGE[0]));
 
+// Shown as the off-topic fallback, and reused verbatim once the organizer
+// exits Group Sync mode — after exiting, the demo stays on this canned
+// reply for anything typed next instead of re-detecting trip intent.
+const GENERIC_PROMPT_MESSAGE = "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (Myra).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!";
+
 const promptSuggestions = [
   { text: 'Plan a trip with my friends', icon: '🧑‍🤝‍🧑' },
   { text: 'Plan a trip for my family', icon: '👨‍👩‍👧‍👦' },
@@ -149,6 +154,10 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'type' });
 
   const [syncStage, setSyncStage] = useState('idle'); // 'idle' | 'awaiting_confirmation' | 'confirmed'
+  // Once true, Group Sync mode was exited on purpose — the chat stays open
+  // (nothing is cleared), but any further input gets the generic demo
+  // prompt instead of re-detecting trip intent and re-offering sync mode.
+  const [syncExited, setSyncExited] = useState(false);
 
   const isConfirmationReply = (text) =>
     /yes|yeah|sure|yep|ok|okay|let's|do it|sounds good|absolutely|definitely|go ahead|start|proceed|yup|affirmative/i.test(text);
@@ -170,8 +179,13 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     setTimeout(() => {
       flow.reset();
       setSyncStage('idle');
-      setMessages([]);
-      setActiveConversationId(null);
+      setSyncExited(true);
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'bot',
+        type: 'text',
+        text: "Okay, you've exited Group Sync mode. You can keep chatting here.",
+      }]);
       setIsTyping(false);
     }, 500);
   };
@@ -209,6 +223,16 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
         await new Promise((resolve) => setTimeout(resolve, minThinkingMs - elapsed));
       }
     };
+
+    // Post-exit demo dead-end — once Group Sync mode has been exited on
+    // purpose, keep replying with the generic prompt instead of letting the
+    // AI or offline intent-detection silently re-launch sync mode.
+    if (syncExited) {
+      await waitOutMinThinkTime();
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'bot', type: 'text', text: GENERIC_PROMPT_MESSAGE }]);
+      setIsTyping(false);
+      return;
+    }
 
     // 1. Try OpenRouter AI first
     const aiResult = await generateMyraAIResponse(msg, messages);
@@ -264,7 +288,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
       id: crypto.randomUUID(),
       role: 'bot',
       type: 'text',
-      text: "Welcome! 👋 This interactive prototype is tailored specifically to showcase MakeMyTrip's AI Group Travel Planning experience (Myra).\n\nTo test the prototype, try sending a message about planning a trip with your friends — for example: **'I want to plan a weekend trip to Rishikesh with my squad'**!",
+      text: GENERIC_PROMPT_MESSAGE,
     }]);
     setIsTyping(false);
   };
