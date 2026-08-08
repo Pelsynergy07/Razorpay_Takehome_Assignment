@@ -93,23 +93,26 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     return id;
   };
 
-  const handleSelectConversation = (id) => {
+  const handleSelectConversation = async (id) => {
     const conv = getConversation(id);
     if (!conv) return;
-    setActiveConversationId(id);
-    setMessages(conv.messages);
-    setSyncStage('idle');
 
     // Screens past the trip form (hub/processing/result/closed) render off
     // `flow.session` / `flow.recommendation` — those only ever lived in
     // useTripPlannerFlow's React state, never in the persisted messages, so
-    // a freshly mounted flow has them as null and those screens crash the
-    // instant they render. Re-hydrate from whichever flow-bearing message
-    // was last in this conversation before swapping the messages in.
+    // a freshly mounted flow (e.g. right after a page reload) has them as
+    // null and those screens crash the instant they render. Re-hydrate from
+    // whichever flow-bearing message was last in this conversation and wait
+    // for it to land BEFORE swapping the messages in, so we never render a
+    // hub/result/closed screen against a still-null session/recommendation.
     const lastFlowMsg = [...conv.messages].reverse().find((m) => m.sessionId);
     if (lastFlowMsg) {
-      flow.restore({ sessionId: lastFlowMsg.sessionId, tripStep: lastFlowMsg.type });
+      await flow.restore({ sessionId: lastFlowMsg.sessionId, tripStep: lastFlowMsg.type });
     }
+
+    setActiveConversationId(id);
+    setMessages(conv.messages);
+    setSyncStage('idle');
   };
 
   const handleClearHistory = () => {
@@ -153,9 +156,40 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
   const isTripIntent = (text) =>
     /friends|trip|vacation|holiday|getaway|goa|manali|rishikesh|group|plan|flight|hotel|weekend|travel|squad|fly|stay|pack|explore/i.test(text);
 
+  // Exit-flow edge case — once Group Sync mode has actually started
+  // (past the pre-launch intro step), typing "exit" asks for confirmation
+  // instead of falling through to the AI/offline reply logic below.
+  const handleExitAttempt = () => {
+    ensureConversationId();
+    echoUser('exit');
+    thinkThen({ type: 'exit_confirm', text: "Are you sure you want to exit? This will reset the demo and take you back to the start." }, 500);
+  };
+
+  const handleConfirmExitYes = () => {
+    setIsTyping(true);
+    setTimeout(() => {
+      flow.reset();
+      setSyncStage('idle');
+      setMessages([]);
+      setActiveConversationId(null);
+      setIsTyping(false);
+    }, 500);
+  };
+
+  const handleConfirmExitNo = () => {
+    echoUser('No, stay');
+    thinkThen({ type: 'text', text: "No worries — let's pick up right where we left off." }, 600);
+  };
+
   const handleSend = async (text) => {
     const msg = text || inputValue.trim();
     if (!msg || isTyping) return;
+
+    if (flow.tripStep !== 'intro' && /^exit$/i.test(msg.trim())) {
+      setInputValue('');
+      handleExitAttempt();
+      return;
+    }
 
     ensureConversationId();
     const userMsg = { id: crypto.randomUUID(), role: 'user', type: 'text', text: msg };
@@ -307,6 +341,14 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                           </div>
                         </FollowUpReveal>
                       )}
+                      {msg.type === 'exit_confirm' && (
+                        <FollowUpReveal text={msg.text}>
+                          <div className="chat-confirm-actions">
+                            <button type="button" className="btn-secondary" onClick={handleConfirmExitYes}>Yes, exit</button>
+                            <button type="button" className="btn-secondary" onClick={handleConfirmExitNo}>No, stay</button>
+                          </div>
+                        </FollowUpReveal>
+                      )}
                       {msg.type === 'destinations' && msg.destinations && (
                         <FollowUpReveal text={msg.text}>
                           <DestinationCarousel destinations={msg.destinations} />
@@ -334,7 +376,11 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       )}
                       {msg.type === 'hub' && (
                         <FollowUpReveal text={msg.text}>
-                          <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} />
+                          {flow.session ? (
+                            <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} />
+                          ) : (
+                            <BotTextResponse text="This trip session couldn't be restored — it may have been cleared from this browser." />
+                          )}
                         </FollowUpReveal>
                       )}
                       {msg.type === 'processing' && (
@@ -349,22 +395,30 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       )}
                       {msg.type === 'result' && (
                         <FollowUpReveal text={msg.text}>
-                          <SynthesisResult
-                            recommendation={flow.recommendation}
-                            onUpdate={flow.updateRecommendation}
-                            onApprove={handleApprove}
-                            onExtendRound={handleExtendRound}
-                            onChooseRiskOption={handleChooseRiskOption}
-                            scrollContainerRef={messagesScrollRef}
-                          />
+                          {flow.recommendation ? (
+                            <SynthesisResult
+                              recommendation={flow.recommendation}
+                              onUpdate={flow.updateRecommendation}
+                              onApprove={handleApprove}
+                              onExtendRound={handleExtendRound}
+                              onChooseRiskOption={handleChooseRiskOption}
+                              scrollContainerRef={messagesScrollRef}
+                            />
+                          ) : (
+                            <BotTextResponse text="This recommendation couldn't be restored — the trip session may have been cleared from this browser." />
+                          )}
                         </FollowUpReveal>
                       )}
                       {msg.type === 'closed' && (
                         <FollowUpReveal text={msg.text}>
-                          <TripSummaryCard recommendation={flow.recommendation} />
+                          {flow.recommendation ? (
+                            <TripSummaryCard recommendation={flow.recommendation} />
+                          ) : (
+                            <BotTextResponse text="This trip summary couldn't be restored — the trip session may have been cleared from this browser." />
+                          )}
                         </FollowUpReveal>
                       )}
-                      {!['launch', 'form', 'share', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm'].includes(msg.type) && (
+                      {!['launch', 'form', 'share', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm', 'exit_confirm'].includes(msg.type) && (
                         <FollowUpReveal text={msg.text}>
                           <MessageActions />
                         </FollowUpReveal>

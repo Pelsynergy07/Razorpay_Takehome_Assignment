@@ -116,6 +116,16 @@ export function useTripPlannerFlow() {
   // Screen 5.1 — final screen, nothing after this.
   const approve = () => setTripStep('closed');
 
+  // Exit-flow edge case — drops the organizer's in-progress session and
+  // takes the step machine back to its pre-launch state, so the chat can
+  // return to the landing screen as if Group Sync mode had never started.
+  const reset = () => {
+    setTripStep('intro');
+    setSession(null);
+    setRecommendation(null);
+    setPendingRiskChoice(null);
+  };
+
   // Re-hydrates `session`/`recommendation` after switching back to a
   // previously-saved conversation: those two only ever lived in this hook's
   // React state, never in the persisted chat messages, so a fresh mount
@@ -154,5 +164,6 @@ export function useTripPlannerFlow() {
     completeRiskChoiceResolution,
     approve,
     restore,
+    reset,
   };
 }
