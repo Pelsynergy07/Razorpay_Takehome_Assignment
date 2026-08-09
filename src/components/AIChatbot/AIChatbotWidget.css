@@ -256,8 +256,13 @@
 
 /* ----- Messages ----- */
 .chat-sheet-messages {
+  position: relative; /* positioning context for .synthesis-swap-view's full-cover overlay */
   flex: 1;
   overflow-y: auto;
+  /* Without this, scrolling past the top/bottom edge of this list chains
+     into the page behind the chat (desktop panel) or the sheet backdrop
+     (mobile) — a "ghost scroll" where the background visibly moves. */
+  overscroll-behavior: contain;
   padding: 0 var(--space-md);
   display: flex;
   flex-direction: column;
@@ -539,10 +544,40 @@
 
 /* ----- Input bar ----- */
 .chat-sheet-input-area {
+  position: relative; /* positioning context for .chat-input-tooltip */
   padding: var(--space-sm) var(--space-md);
   padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
   background: var(--mmt-white);
   flex-shrink: 0;
+}
+
+/* Prompts the user to type into this same bar instead of a separate field —
+   used by the "show more options" flow on the synthesis swap screen
+   (SynthesisResult.jsx). Same dark-bubble language as .badge-tooltip
+   elsewhere in the app, just pointing down into the input instead of up. */
+.chat-input-tooltip {
+  position: absolute;
+  left: var(--space-md);
+  right: var(--space-md);
+  bottom: 100%;
+  margin-bottom: var(--space-xs);
+  background: var(--mmt-text-primary);
+  color: var(--mmt-white);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  line-height: var(--leading-base);
+}
+
+.chat-input-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: var(--space-lg);
+  border: 5px solid transparent;
+  border-top-color: var(--mmt-text-primary);
 }
 
 .chat-sheet-input-wrapper {

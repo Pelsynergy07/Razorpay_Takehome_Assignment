@@ -5,7 +5,6 @@ import { EASE } from './motionConfig';
 import ChatFlowShell from './ChatFlowShell';
 import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock, FollowUpReveal } from './ChatMessages';
 import TypingIndicator from './TypingIndicator';
-import ScrollHintButton from './ScrollHintButton';
 import ChatInputBar from './ChatInputBar';
 import GradientSweepButton from './GradientSweepButton';
 import IntentFormCard from '../../pages/TripPlanner/IntentFormCard';
@@ -81,6 +80,18 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     }
   }, [chatOpen]);
 
+  // Lock the page behind the chat from scrolling while it's open — without
+  // this, wheel/touch input over the chat (or chaining past the message
+  // list's top/bottom edge) visibly scrolls the homepage underneath.
+  useEffect(() => {
+    if (!chatOpen) return;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [chatOpen]);
+
   useChatAutoScroll({ messages, isTyping, containerRef: messagesScrollRef, kindField: 'type' });
 
   // Persist the active conversation to localStorage on every change, so it
@@ -148,6 +159,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     handleConfirmEmptyProceedNo,
     handleCompleteSynthesis,
     handleApprove,
+    handleEditAfterApprove,
     handleExtendRound,
     handleChooseRiskOption,
     handleCompleteRiskChoiceResolution,
@@ -158,6 +170,15 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
   // (nothing is cleared), but any further input gets the generic demo
   // prompt instead of re-detecting trip intent and re-offering sync mode.
   const [syncExited, setSyncExited] = useState(false);
+
+  // "Show more options" (SynthesisResult.jsx's edit/swap screen) is driven
+  // through this real chat input rather than a field of its own — tapping
+  // that button sets which category is waiting for the next message
+  // (surfaces a tooltip on the input, see ChatInputBar below); the next
+  // message sent is routed to that category's search instead of the normal
+  // AI/offline reply logic, then handed back down as `moreOptionsQuery`.
+  const [moreOptionsCategory, setMoreOptionsCategory] = useState(null);
+  const [moreOptionsQuery, setMoreOptionsQuery] = useState(null);
 
   const isConfirmationReply = (text) =>
     /yes|yeah|sure|yep|ok|okay|let's|do it|sounds good|absolutely|definitely|go ahead|start|proceed|yup|affirmative/i.test(text);
@@ -202,6 +223,21 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     if (flow.tripStep !== 'intro' && /^exit$/i.test(msg.trim())) {
       setInputValue('');
       handleExitAttempt();
+      return;
+    }
+
+    if (moreOptionsCategory) {
+      // Deliberately not pushed to `messages` — the query isn't shown as a
+      // chat bubble, it's handled entirely inside the still-open edit
+      // screen (loader -> new cards). Pushing it would also re-trigger
+      // useChatAutoScroll's scroll-to-bottom on .chat-sheet-messages, the
+      // same container the edit screen is absolutely positioned inside —
+      // that scroll would carry the edit screen out of view and make it
+      // look like the user got bounced back to the chat underneath it.
+      const category = moreOptionsCategory;
+      setInputValue('');
+      setMoreOptionsCategory(null);
+      setMoreOptionsQuery({ categoryKey: category, query: msg, nonce: Date.now() });
       return;
     }
 
@@ -318,11 +354,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     if (onClose) onClose();
   };
 
-  const scrollMessagesDown = () => {
-    const el = messagesScrollRef.current;
-    if (el) el.scrollBy({ top: 220, behavior: 'smooth' });
-  };
-
   const renderChatBody = (rootClassName) => {
     return (
       <ChatFlowShell
@@ -330,7 +361,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
         onClose={closeChat}
         onClearHistory={handleClearHistory}
         messagesRef={messagesScrollRef}
-        belowMessages={messages.length > 0 && <ScrollHintButton onClick={scrollMessagesDown} />}
         footer={flow.tripStep !== 'form' && (
           <ChatInputBar
             value={inputValue}
@@ -338,6 +368,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
             onSend={() => handleSend()}
             onKeyDown={handleKeyDown}
             inputRef={inputRef}
+            tooltip={moreOptionsCategory ? "Chat with your preferences on what you'd like to see instead" : null}
           />
         )}
       >
@@ -394,8 +425,14 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                         <FollowUpReveal text={msg.text}>
                           <LinkShareCard
                             joinUrl={tripJoinUrl || `${window.location.origin}/join/${flow.session?.id || 'demo'}`}
-                            onEnterHub={handleEnterHub}
                           />
+                        </FollowUpReveal>
+                      )}
+                      {msg.type === 'self_ack' && (
+                        <FollowUpReveal text={msg.text}>
+                          <GradientSweepButton onClick={handleEnterHub} className="link-share-hub-btn">
+                            Look at the live responses
+                          </GradientSweepButton>
                         </FollowUpReveal>
                       )}
                       {msg.type === 'hub' && (
@@ -427,6 +464,9 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                               onExtendRound={handleExtendRound}
                               onChooseRiskOption={handleChooseRiskOption}
                               scrollContainerRef={messagesScrollRef}
+                              onMoreOptionsCategoryChange={setMoreOptionsCategory}
+                              moreOptionsActiveCategory={moreOptionsCategory}
+                              moreOptionsQuery={moreOptionsQuery}
                             />
                           ) : (
                             <BotTextResponse text="This recommendation couldn't be restored — the trip session may have been cleared from this browser." />
@@ -436,13 +476,13 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       {msg.type === 'closed' && (
                         <FollowUpReveal text={msg.text}>
                           {flow.recommendation ? (
-                            <TripSummaryCard recommendation={flow.recommendation} />
+                            <TripSummaryCard recommendation={flow.recommendation} onEdit={handleEditAfterApprove} />
                           ) : (
                             <BotTextResponse text="This trip summary couldn't be restored — the trip session may have been cleared from this browser." />
                           )}
                         </FollowUpReveal>
                       )}
-                      {!['launch', 'form', 'share', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm', 'exit_confirm'].includes(msg.type) && (
+                      {!['launch', 'form', 'share', 'self_ack', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm', 'exit_confirm'].includes(msg.type) && (
                         <FollowUpReveal text={msg.text}>
                           <MessageActions />
                         </FollowUpReveal>

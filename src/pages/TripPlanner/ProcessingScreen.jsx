@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-const STAGES = [
+const DEFAULT_STAGES = [
   'Doing the impossible…',
   'Searching across the globe…',
   'Looking for a mountain with a beach 🙄',
   'Bribing the weather gods…',
   'Wrapping it all up in a bow 🎀',
 ];
-const STAGE_DELAY = 1520;
+const DEFAULT_STAGE_DELAY = 1520;
 
 /**
  * Screen 4.1 — processing state. Cycles quirky micro-copy while the mock
  * synthesizer (standing in for the Phase 5 Edge Function) runs, then
  * hands off to the result screen.
+ *
+ * `stages`/`stageDelay` let other flows (e.g. the itinerary swap-confirm
+ * loading beat in SynthesisResult.jsx) reuse this exact visual pattern with
+ * their own shorter, context-specific micro-copy instead of the playful
+ * default lines, without duplicating the spinner/cycling-text markup.
  */
-const ProcessingScreen = ({ onComplete }) => {
+const ProcessingScreen = ({ onComplete, stages = DEFAULT_STAGES, stageDelay = DEFAULT_STAGE_DELAY }) => {
   const [stageIndex, setStageIndex] = useState(0);
 
   // onComplete (handleCompleteSynthesis in the parent) is a new function
@@ -28,7 +33,7 @@ const ProcessingScreen = ({ onComplete }) => {
   const completedRef = useRef(false);
 
   useEffect(() => {
-    const isLastStage = stageIndex >= STAGES.length - 1;
+    const isLastStage = stageIndex >= stages.length - 1;
     const t = setTimeout(() => {
       if (isLastStage) {
         if (!completedRef.current) {
@@ -38,9 +43,9 @@ const ProcessingScreen = ({ onComplete }) => {
       } else {
         setStageIndex((i) => i + 1);
       }
-    }, STAGE_DELAY);
+    }, stageDelay);
     return () => clearTimeout(t);
-  }, [stageIndex]);
+  }, [stageIndex, stages.length, stageDelay]);
 
   return (
     <div className="processing-screen">
@@ -50,7 +55,7 @@ const ProcessingScreen = ({ onComplete }) => {
         autoplay
         style={{ width: 140, height: 140 }}
       />
-      <p className="processing-stage-text">{STAGES[stageIndex]}</p>
+      <p className="processing-stage-text">{stages[stageIndex]}</p>
     </div>
   );
 };

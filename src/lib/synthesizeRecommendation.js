@@ -104,10 +104,23 @@ const DESTINATION_OPTIONS = {
       { id: 'dt3', title: 'Jan 9 – Jan 12', badge: 'Quieter & cheaper', desc: 'Same winter rafting conditions with fewer crowds and lower prices once the holiday rush clears.', selected: false },
     ],
     transports: [
-      { id: 't1', title: 'AC Sleeper Volvo Bus', duration: 'Overnight 7h', cost: 1200, badge: 'Reconciled Effort', desc: 'Direct overnight route with lie-flat seating', selected: true },
-      { id: 't2', title: 'Indigo Flight + Taxi Transfer', duration: '3h total', cost: 3400, badge: 'Fastest', desc: 'Flight to Dehradun (DED) + 40m cab ride to Rishikesh', selected: false },
-      { id: 't3', title: 'Vande Bharat Express Train', duration: '4.5h', cost: 1600, badge: 'Scenic Rail', desc: 'Delhi to Haridwar station + 30m local cab', selected: false },
+      { id: 't1', title: 'AC Sleeper Volvo Bus', duration: 'Overnight 7h', cost: 1200, badge: 'Reconciled Effort', desc: 'Direct overnight route with lie-flat seating', arrivalTime: '6:00 AM', selected: true },
+      { id: 't2', title: 'Indigo Flight + Taxi Transfer', duration: '3h total', cost: 3400, badge: 'Fastest', desc: 'Flight to Dehradun (DED) + 40m cab ride to Rishikesh', arrivalTime: '9:40 AM', selected: false },
+      { id: 't3', title: 'Vande Bharat Express Train', duration: '4.5h', cost: 1600, badge: 'Scenic Rail', desc: 'Delhi to Haridwar station + 30m local cab', arrivalTime: '11:15 AM', selected: false },
     ],
+    // "Show more options" search pool — only wired for Rishikesh's transport
+    // category (the flagship demo path for the swap flow). Free-text search
+    // in SynthesisResult.jsx scores against `tags`/title/desc; other
+    // categories/destinations have no pool here, so that search honestly
+    // reports it has nothing to search rather than fabricating results.
+    morePool: {
+      transports: [
+        { id: 't4', title: 'Shared Innova Cab', duration: '9h door-to-door', cost: 2000, arrivalTime: '3:00 PM', desc: 'Direct shared cab, no transfers or waiting around', tags: ['cheap', 'budget', 'cab', 'car', 'door', 'shared'] },
+        { id: 't5', title: 'Private Cab (Just Your Group)', duration: '7h', cost: 6000, arrivalTime: '1:00 PM', desc: 'Private car for just your group, flexible stops on the way', tags: ['private', 'luxury', 'comfortable', 'flexible', 'fast'] },
+        { id: 't6', title: 'Budget AC Seater Bus', duration: 'Overnight 8h', cost: 900, arrivalTime: '7:00 AM', desc: 'Cheapest AC seater option — no sleeper berths', tags: ['cheap', 'cheapest', 'budget', 'bus', 'lowest', 'affordable'] },
+        { id: 't7', title: 'Himalayan Queen + Cab', duration: '6h', cost: 2100, arrivalTime: '12:30 PM', desc: 'Scenic mountain train with a connecting cab into town', tags: ['scenic', 'train', 'views', 'relaxed', 'nature'] },
+      ],
+    },
     stays: [
       { id: 's1', title: 'Backpackers Hostel', rating: '4.6★', cost: 2500, type: 'Riverside Dorm', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=400&q=80', desc: 'Social vibe with bonfire, river view decks, and breakfast included', selected: true },
       { id: 's2', title: 'Ganga Kinare Resort', rating: '4.8★', cost: 5500, type: 'Heritage Hotel', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80', desc: 'Luxury private riverfront property with private ghat access', selected: false },
@@ -131,6 +144,11 @@ const DESTINATION_OPTIONS = {
         emoji: '🛬',
         description: 'Arrive and get settled in for the days ahead.',
         activities: ['Check-in at Backpackers Hostel', 'Evening bonfire by the river', 'Trip briefing with the group'],
+        // Timing-sensitive Day 1 activities that ride on arrival time — the
+        // impact-preview / swap-confirm flow in SynthesisResult.jsx reads
+        // this when the organizer swaps transport options, so a later/
+        // earlier arrival honestly flags what else it touches.
+        timeSensitiveActivities: ['evening bonfire', 'trip briefing'],
         transportMode: 'AC Sleeper Volvo Bus',
         image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=400&q=80',
         rating: '4.6★',
@@ -183,8 +201,8 @@ const DESTINATION_OPTIONS = {
       { id: 'dt3', title: 'Jan 5 – Jan 8', badge: 'Quieter & cheaper', desc: 'Same great winter weather with thinner crowds and better rates once the holiday season winds down.', selected: false },
     ],
     transports: [
-      { id: 't1', title: 'Direct Flight (IndiGo)', duration: '2.5h', cost: 4500, badge: 'Direct Flight', desc: 'Direct flight to Mopa (GOX) with shared airport cab', selected: true },
-      { id: 't2', title: 'Tejas Express Train', duration: '10h', cost: 1800, badge: 'Budget Rail', desc: 'Overnight train with catering and recliner seats', selected: false },
+      { id: 't1', title: 'Direct Flight (IndiGo)', duration: '2.5h', cost: 4500, badge: 'Direct Flight', desc: 'Direct flight to Mopa (GOX) with shared airport cab', arrivalTime: '11:30 AM', selected: true },
+      { id: 't2', title: 'Tejas Express Train', duration: '10h', cost: 1800, badge: 'Budget Rail', desc: 'Overnight train with catering and recliner seats', arrivalTime: '9:00 PM', selected: false },
     ],
     stays: [
       { id: 's1', title: 'Taj Holiday Village', rating: '4.8★', cost: 12000, type: 'Boutique Resort', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=400&q=80', desc: 'Beachfront cottages with palm garden and sunset lounge', selected: true },
@@ -206,6 +224,7 @@ const DESTINATION_OPTIONS = {
         emoji: '🛬',
         description: 'Arrive and get settled in.',
         activities: ['Check-in at Taj Holiday Village', 'Evening at the palm garden lounge', 'Welcome dinner by the beach'],
+        timeSensitiveActivities: ['evening lounge time', 'welcome dinner'],
         transportMode: 'Direct Flight (IndiGo)',
         image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=400&q=80',
         rating: '4.8★',
@@ -261,9 +280,9 @@ const DESTINATION_OPTIONS = {
       { id: 'dt3', title: 'Jan 10 – Jan 14', badge: 'Quieter & cheaper', desc: 'Same snowy scenery with thinner crowds and better rates once the holiday season winds down.', selected: false },
     ],
     transports: [
-      { id: 't1', title: 'AC Volvo Bus (Delhi–Manali)', duration: 'Overnight 12h', cost: 1800, badge: 'Popular Route', desc: 'Direct overnight route with reclining seats, drops right into Mall Road', selected: true },
-      { id: 't2', title: 'Flight to Bhuntar (Kullu) + Taxi', duration: '3h total', cost: 5200, badge: 'Fastest', desc: 'Flight to Kullu-Manali Airport (KUU) + 50m cab ride to Manali', selected: false },
-      { id: 't3', title: 'Shared Innova Cab from Delhi', duration: '10h', cost: 2400, badge: 'Door to Door', desc: 'Direct cab, no transfers, flexible pickup times', selected: false },
+      { id: 't1', title: 'AC Volvo Bus (Delhi–Manali)', duration: 'Overnight 12h', cost: 1800, badge: 'Popular Route', desc: 'Direct overnight route with reclining seats, drops right into Mall Road', arrivalTime: '7:30 AM', selected: true },
+      { id: 't2', title: 'Flight to Bhuntar (Kullu) + Taxi', duration: '3h total', cost: 5200, badge: 'Fastest', desc: 'Flight to Kullu-Manali Airport (KUU) + 50m cab ride to Manali', arrivalTime: '11:00 AM', selected: false },
+      { id: 't3', title: 'Shared Innova Cab from Delhi', duration: '10h', cost: 2400, badge: 'Door to Door', desc: 'Direct cab, no transfers, flexible pickup times', arrivalTime: '6:00 PM', selected: false },
     ],
     stays: [
       { id: 's1', title: 'The Himalayan', rating: '4.6★', cost: 9500, type: 'Mountain View Hotel', image: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=400&q=80', desc: 'Calm mountain-facing rooms with a bonfire deck and in-house cafe', selected: true },
@@ -286,6 +305,7 @@ const DESTINATION_OPTIONS = {
         emoji: '🛬',
         description: 'Arrive and get settled in.',
         activities: ['Check-in at The Himalayan', 'Evening stroll on Mall Road', 'Trip briefing with the group'],
+        timeSensitiveActivities: ['evening stroll', 'trip briefing'],
         transportMode: 'AC Volvo Bus (Delhi–Manali)',
         image: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=400&q=80',
         rating: '4.6★',
@@ -357,7 +377,7 @@ const DEFAULT_EVIDENCE_SOURCES = [
 // pick / risk-choice resolutions) — looks up the winning inventory item's
 // full destination detail and builds the exact shape SynthesisResult.jsx
 // consumes.
-const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], attributions = [], riskFlag = null, confidenceLevel = 'high', extraEvidence = [] } = {}) => {
+const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], attributions = [], riskFlag = null, confidenceLevel = 'high', extraEvidence = [], budgetPerPerson = null } = {}) => {
   const destKey = DESTINATION_OPTIONS[item.destination] ? item.destination : 'Rishikesh';
   const customData = DESTINATION_OPTIONS[destKey];
 
@@ -370,6 +390,7 @@ const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], att
     destination: item.destination,
     dates: item.dates,
     estimatedCost,
+    budgetPerPerson,
     heroImage: customData.heroImage || DESTINATION_HEROES[item.destination] || DESTINATION_HEROES.Default,
     weather: customData.weather,
     dateOptions: customData.dateOptions,
@@ -378,6 +399,7 @@ const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], att
     activities: customData.activities,
     resolvedSummary: customData.resolvedSummary,
     itinerary: customData.itinerary,
+    morePool: customData.morePool || {},
     whyItFits,
     attributions,
     evidenceSources: extraEvidence.length > 0 ? [...extraEvidence, ...DEFAULT_EVIDENCE_SOURCES] : DEFAULT_EVIDENCE_SOURCES,
@@ -434,14 +456,15 @@ export function synthesizeRecommendation(session, responses) {
     attributions: buildAttributions(responses, fallbackVibe),
     riskFlag: scenario === 'budget_ceiling' ? 'Option is close to per-person budget limit.' : null,
     confidenceLevel: scenario === 'partial' ? 'moderate' : 'high',
+    budgetPerPerson: session.budget_per_person,
   });
 }
 
 // Builds a full synthesis dashboard from an organizer-chosen inventory item
 // — used to resolve the "everyone deferred" manual pick and the
 // "risk override" flagged-vs-alternative choice into a normal recommendation.
-export function buildRecommendationFromInventoryItem(item, { scenario = 'manual_pick', whyItFits = [], riskFlag = null, extraEvidence = [] } = {}) {
-  return assembleRecommendation(item, { scenario, whyItFits, attributions: [], riskFlag, confidenceLevel: 'high', extraEvidence });
+export function buildRecommendationFromInventoryItem(item, { scenario = 'manual_pick', whyItFits = [], riskFlag = null, extraEvidence = [], budgetPerPerson = null } = {}) {
+  return assembleRecommendation(item, { scenario, whyItFits, attributions: [], riskFlag, confidenceLevel: 'high', extraEvidence, budgetPerPerson });
 }
 
 /**

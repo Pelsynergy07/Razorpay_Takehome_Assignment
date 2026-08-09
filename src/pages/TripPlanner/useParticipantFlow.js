@@ -9,7 +9,7 @@ import { participantCards } from './participantCards';
  * - back navigation restoring previous answers
  * - directional transition state
  */
-export function useParticipantFlow(sessionId) {
+export function useParticipantFlow(sessionId, { initialName = '' } = {}) {
   const [session, setSession] = useState(null);
 
   const steps = [
@@ -21,7 +21,7 @@ export function useParticipantFlow(sessionId) {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [participantName, setParticipantName] = useState('');
+  const [participantName, setParticipantName] = useState(initialName);
   const [direction, setDirection] = useState('forward');
 
   useEffect(() => {

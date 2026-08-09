@@ -244,16 +244,64 @@
 }
 
 .arrival-badge {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
   background: #eaf5ff;
   color: #003b95;
+  border: none;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.arrival-badge:hover {
+  background: #d9edff;
+}
+
+.arrival-badge:active {
+  transform: scale(0.97);
+}
+
+/* Diagonal light band glides across every 5s — same "AI moment" nudge
+   logic as .btn-gradient-sweep (TripPlanner.css), scoped locally here so
+   it signals the badge is tappable. */
+.arrival-badge::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -40px;
+  width: 24px;
+  background: linear-gradient(
+    to right,
+    rgba(83, 178, 254, 0.5) 0%,
+    rgba(6, 90, 243, 0.65) 100%
+  );
+  transform: skewX(-20deg);
+  animation: badgeNudgeSweep 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes badgeNudgeSweep {
+  0% { left: -40px; }
+  20% { left: calc(100% + 40px); }
+  100% { left: calc(100% + 40px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival-badge::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .arrival-title {
@@ -907,4 +955,85 @@
   line-height: 1.5;
   max-width: 270px;
   margin: 0;
+}
+
+/* ===================================================================
+   "WHO IS MYRA?" CONTEXT MODAL
+   =================================================================== */
+.myra-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 20;
+}
+
+.myra-modal-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  padding: 28px 22px 22px;
+  box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  box-sizing: border-box;
+}
+
+.myra-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.myra-modal-close:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.myra-modal-avatar {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.myra-modal-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 10px;
+}
+
+.myra-modal-body {
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.55;
+  margin: 0 0 10px;
+  text-align: left;
+}
+
+.myra-modal-body-muted {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.myra-modal-sheet .secondary-btn-brand {
+  margin-top: 8px;
 }

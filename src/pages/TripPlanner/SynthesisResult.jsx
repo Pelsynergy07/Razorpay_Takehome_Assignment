@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   ChevronDown,
@@ -14,11 +14,12 @@ import {
   CheckCircle2,
   Check,
   MessageSquareQuote,
+  MessageSquarePlus,
+  Sparkles,
 } from 'lucide-react';
 import {
   blockVariants,
   BLOCK_STAGGER,
-  BLOCK_Y,
   EASE,
   sequenceDelays,
   peerContainerVariants,
@@ -27,9 +28,137 @@ import {
 import { mockInventory } from '../../lib/mockInventory';
 import { buildRecommendationFromInventoryItem } from '../../lib/synthesizeRecommendation';
 
-// The Edit -> options-swap transition reads better a bit slower than the
-// standard block entrance (BLOCK_DURATION) — it's a bigger jump in content.
-const SWAP_VIEW_DURATION = 1.15;
+// Edit <-> dashboard navigation reads as a screen push/pop — both directions
+// slide in from the right, not a vertical fade — so a shorter, snappier
+// duration than a content-reveal block suits it better.
+const SWAP_NAV_DURATION = 0.35;
+const SWAP_NAV_OFFSET_X = 28;
+
+// recState's swap category keys don't match openSections' keys 1:1
+// (plural "transports"/"stays" vs. singular "transport"/"stay", and
+// "dateOptions" vs. "dates") — this maps one to the other so opening a
+// swap can mark the right accordion to stay open once the user is back.
+const SWAP_CATEGORY_TO_SECTION = {
+  dateOptions: 'dates',
+  transports: 'transport',
+  stays: 'stay',
+  activities: 'activities',
+};
+
+// How long the small "checking how this affects your plan" beat sits before
+// revealing its result — long enough to read as real work, short enough not
+// to feel slow. Deliberately NOT the big mascot ProcessingScreen used for
+// the main synthesis — this is a small, inline, single-line loader scoped
+// to just the option being previewed.
+const IMPACT_CHECK_DELAY = 2100;
+
+// "Show more options" search beat — kept short and separate from
+// IMPACT_CHECK_DELAY since it's swapping the whole options list, not
+// previewing a single card.
+const MORE_OPTIONS_SEARCH_DELAY = 1500;
+
+/** Small inline loader — spinning sparkle + one line of text, no mascot/avatar. */
+const SwapInlineLoader = ({ text }) => (
+  <div className="swap-inline-loader">
+    <motion.span
+      className="swap-inline-loader-spinner"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1.1, ease: 'linear', repeat: Infinity }}
+    >
+      <Sparkles size={14} className="icon-blue" fill="currentColor" />
+    </motion.span>
+    <span className="swap-inline-loader-text">{text}</span>
+  </div>
+);
+
+// Free-text "show more options" search — scores the destination's curated
+// pool (see `morePool` in synthesizeRecommendation.js) against the words
+// typed, honest keyword matching rather than a real model call. Ties/no
+// matches still return the top `count` pool entries rather than nothing, so
+// the search never reads as broken.
+const findMoreOptions = (pool, query, excludeIds = [], count = 3) => {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return pool
+    .filter((opt) => !excludeIds.includes(opt.id))
+    .map((opt) => {
+      const haystack = `${opt.title} ${opt.desc || ''} ${(opt.tags || []).join(' ')}`.toLowerCase();
+      const score = words.reduce((s, w) => s + (haystack.includes(w) ? 1 : 0), 0);
+      return { opt, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, count)
+    .map((s) => s.opt);
+};
+
+// Parses "6:00 AM" / "9:40 PM" style strings (the only shape used in mock
+// transport data) into minutes-since-midnight, so the impact preview can
+// honestly say whether a new arrival time is earlier or later.
+const parseClockMinutes = (label) => {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec((label || '').trim());
+  if (!m) return null;
+  let hours = parseInt(m[1], 10) % 12;
+  if (/pm/i.test(m[3])) hours += 12;
+  return hours * 60 + parseInt(m[2], 10);
+};
+
+const joinWithAnd = (items) => (items.length > 1
+  ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
+  : items[0]);
+
+// The one wired dependency this feature covers: swapping the "Getting
+// there" transport changes Day 1's arrival time, which can push back
+// whichever Day 1 activities are flagged time-sensitive in the mock
+// itinerary data (see `timeSensitiveActivities` in synthesizeRecommendation.js).
+// No other category (stay/activities/dates) has a wired ripple — those
+// swaps only ever surface a cost delta, or honestly report no other change.
+const buildImpactBullets = (recState, categoryKey, option) => {
+  const currentActive = recState[categoryKey]?.find((o) => o.selected);
+  if (!currentActive || currentActive.id === option.id) return [];
+  const bullets = [];
+
+  if (categoryKey === 'transports' && currentActive.arrivalTime && option.arrivalTime && currentActive.arrivalTime !== option.arrivalTime) {
+    bullets.push({ text: `Arrival moves from ${currentActive.arrivalTime} to ${option.arrivalTime}` });
+
+    const day1 = recState.itinerary?.[0];
+    if (day1?.timeSensitiveActivities?.length) {
+      const oldMin = parseClockMinutes(currentActive.arrivalTime);
+      const newMin = parseClockMinutes(option.arrivalTime);
+      const direction = newMin != null && oldMin != null && newMin > oldMin ? 'later' : 'earlier';
+      bullets.push({ text: `Day 1's ${joinWithAnd(day1.timeSensitiveActivities)} may need to shift ${direction}` });
+    }
+  }
+
+  if (typeof currentActive.cost === 'number' && typeof option.cost === 'number') {
+    const delta = option.cost - currentActive.cost;
+    if (delta !== 0) {
+      bullets.push({ text: `Trip cost per person ${delta > 0 ? 'increases' : 'decreases'} by ₹${Math.abs(delta).toLocaleString('en-IN')}` });
+    }
+
+    // Budget check — swapping in a pricier option can push the whole
+    // per-person total past what the group actually asked for. Called out
+    // as its own emphasized bullet rather than folded into the cost-delta
+    // line above, since "went over budget" is a different order of concern
+    // than a routine price difference.
+    if (typeof recState.budgetPerPerson === 'number') {
+      const activeTransport = recState.transports?.find((t) => t.selected);
+      const activeStay = recState.stays?.find((s) => s.selected);
+      const activeActivity = recState.activities?.find((a) => a.selected);
+      const transportCost = categoryKey === 'transports' ? option.cost : activeTransport?.cost;
+      const stayCost = categoryKey === 'stays' ? option.cost : activeStay?.cost;
+      const activityCost = categoryKey === 'activities' ? option.cost : activeActivity?.cost;
+
+      if ([transportCost, stayCost, activityCost].every((c) => typeof c === 'number')) {
+        const newTotal = transportCost + stayCost + activityCost;
+        const over = newTotal - recState.budgetPerPerson;
+        if (over > 0) {
+          bullets.push({ text: `Exceeds your ₹${recState.budgetPerPerson.toLocaleString('en-IN')} per-person budget by ₹${over.toLocaleString('en-IN')}`, warning: true });
+        }
+      }
+    }
+  }
+
+  return bullets;
+};
 
 /**
  * Shared header row for every accordion card — icon + title/subtext on the
@@ -131,7 +260,25 @@ const TagBadge = ({ label, isOpen, onToggle, tooltipText, asSpan = false }) => {
  * approve button — reveal top to bottom, each waiting for the one above it
  * to finish before it starts.
  */
-const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, onChooseRiskOption, startDelay = 0, scrollContainerRef }) => {
+const SynthesisResult = ({
+  recommendation,
+  onUpdate,
+  onApprove,
+  onExtendRound,
+  onChooseRiskOption,
+  startDelay = 0,
+  scrollContainerRef,
+  // "Show more options" is driven through the real chat input, not an
+  // inline field in this screen — see AIChatbotWidget.jsx. `onMoreOptionsCategoryChange`
+  // tells the parent which category is waiting for the user's next chat
+  // message (or clears it with null); `moreOptionsActiveCategory` reflects
+  // that same value back so the button can show it's waiting;
+  // `moreOptionsQuery` is the parent handing back the submitted message
+  // once it arrives.
+  onMoreOptionsCategoryChange,
+  moreOptionsActiveCategory,
+  moreOptionsQuery,
+}) => {
   const [recState, setRecState] = useState(recommendation);
 
   const [openSections, setOpenSections] = useState({
@@ -150,6 +297,56 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
   // In-panel swap view — replaces the dashboard while active, instead of
   // a modal rendered outside the chat sheet.
   const [swapView, setSwapView] = useState(null); // { categoryKey, title, options } | null
+
+  // Tapping an option in the swap view previews it (impact panel below that
+  // option) rather than applying it immediately — nothing in recState
+  // changes until "Confirm this change" is pressed. `computingImpact` is the
+  // brief beat right after tapping, before the impact bullets are revealed.
+  const [pendingSwap, setPendingSwap] = useState(null); // { categoryKey, option } | null
+  const [computingImpact, setComputingImpact] = useState(false);
+
+  // Only manages the "checking" timer itself — computingImpact is set to
+  // true synchronously in handleTapOption (batched with setPendingSwap),
+  // not reactively here. That matters: the no-impact auto-apply effect
+  // further below also keys off computingImpact, and if it were set true
+  // only from this effect (a render behind pendingSwap), that effect would
+  // see a stale computingImpact=false on the very first render after a tap
+  // and could fire prematurely, before the checking beat even started.
+  useEffect(() => {
+    if (!pendingSwap) return;
+    const t = setTimeout(() => setComputingImpact(false), IMPACT_CHECK_DELAY);
+    return () => clearTimeout(t);
+  }, [pendingSwap]);
+
+  // "Show more options" — a free-text search scoped to whichever category's
+  // swap view is open, against that destination's curated `morePool` (see
+  // synthesizeRecommendation.js). Only Rishikesh's transports category has
+  // a populated pool right now. The query itself comes in from the real
+  // chat input via the `moreOptionsQuery` prop (see the effect below) —
+  // this component only owns the search phase/results, not any input UI.
+  const [moreSearchPhase, setMoreSearchPhase] = useState('idle'); // 'idle' | 'loading'
+  const [moreQueryText, setMoreQueryText] = useState('');
+  const [moreResults, setMoreResults] = useState(null); // null = showing the default options
+
+  useEffect(() => {
+    if (!moreOptionsQuery || !swapView || moreOptionsQuery.categoryKey !== swapView.categoryKey) return;
+    setPendingSwap(null);
+    setMoreQueryText(moreOptionsQuery.query);
+    setMoreSearchPhase('loading');
+    const t = setTimeout(() => {
+      const pool = recState.morePool?.[swapView.categoryKey] || [];
+      const excludeIds = swapView.options.map((o) => o.id);
+      setMoreResults(pool.length ? findMoreOptions(pool, moreOptionsQuery.query, excludeIds, 3) : []);
+      setMoreSearchPhase('idle');
+    }, MORE_OPTIONS_SEARCH_DELAY);
+    return () => clearTimeout(t);
+    // Intentionally keyed only on the query object (a fresh { ..., nonce }
+    // each time the user submits one via the chat bar) — swapView/recState
+    // are read from the closure at the moment a new query arrives, which is
+    // always current since this only fires in response to a genuinely new
+    // submission, not general re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moreOptionsQuery]);
 
   // Tapping a "Reconciled Effort" / "Top Vibe Match" style badge reveals who
   // it's attributed to, instead of just being static, unexplained text.
@@ -171,28 +368,141 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
   // Scroll position captured right before opening an Edit swap view, so
   // closing it (via Back or picking an option) can drop the user back
   // exactly where they were instead of wherever the swap view happened to
-  // leave the scroll.
+  // leave the scroll. Restored synchronously (useLayoutEffect, before
+  // paint) rather than via requestAnimationFrame — the swap view's own
+  // useLayoutEffect below forces the outer container to scrollTop 0 while
+  // it's open, and a deferred (rAF-based) restore let that land on screen
+  // for a frame first, reading as "scrolls to top, then jumps back down"
+  // instead of a clean cut straight to the dashboard where Edit was tapped.
   const savedScrollTopRef = useRef(null);
-  const swapBackRef = useRef(null);
 
-  useEffect(() => {
-    if (swapView) {
-      requestAnimationFrame(() => {
-        swapBackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    } else if (savedScrollTopRef.current != null && scrollContainerRef?.current) {
-      const savedTop = savedScrollTopRef.current;
+  useLayoutEffect(() => {
+    if (!swapView && savedScrollTopRef.current != null && scrollContainerRef?.current) {
+      scrollContainerRef.current.scrollTop = savedScrollTopRef.current;
       savedScrollTopRef.current = null;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = savedTop;
-        });
-      });
+    }
+  }, [swapView, scrollContainerRef]);
+
+  // The swap view is a position:absolute overlay anchored to the messages
+  // container's own coordinate space (see .synthesis-swap-view), not a
+  // block in the normal scroll flow — so if the conversation had been
+  // scrolled partway down before Edit was tapped, the overlay would
+  // otherwise render off the top of the visible viewport until the user
+  // scrolled back up themselves. Snapping scrollTop to 0 synchronously
+  // (useLayoutEffect, before paint) keeps it always in view the instant it
+  // opens, and its own internal scroll takes over from there — the
+  // surrounding chat is never reachable while it's open.
+  useLayoutEffect(() => {
+    if (swapView && scrollContainerRef?.current) {
+      scrollContainerRef.current.scrollTop = 0;
     }
   }, [swapView, scrollContainerRef]);
 
   const toggleSection = (key) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Moved above the scenario early-returns (rather than living next to
+  // renderOptionCard/the swap-view JSX below) because the auto-apply effect
+  // right after it is a hook, and hooks must run unconditionally on every
+  // render — these handlers don't touch anything (activeTransport etc.)
+  // that's only computed after those early returns, so relocating them here
+  // is free.
+  const resetSwapUiState = () => {
+    setPendingSwap(null);
+    setComputingImpact(false);
+    setMoreSearchPhase('idle');
+    setMoreQueryText('');
+    setMoreResults(null);
+    onMoreOptionsCategoryChange?.(null);
+  };
+
+  const handleOpenSwap = (categoryKey, title, options) => {
+    savedScrollTopRef.current = scrollContainerRef?.current?.scrollTop ?? null;
+    resetSwapUiState();
+    setSwapView({ categoryKey, title, options });
+    // Whatever accordion was just edited stays open on the way back —
+    // dropping the user back on a collapsed section they just changed
+    // would hide the very update they came from Edit to make.
+    const openSectionsKey = SWAP_CATEGORY_TO_SECTION[categoryKey];
+    if (openSectionsKey) {
+      setOpenSections((prev) => ({ ...prev, [openSectionsKey]: true }));
+    }
+  };
+
+  // Back always just returns to the dashboard, unchanged from before this
+  // feature — any not-yet-confirmed preview is discarded silently, no
+  // ripple text, no loading state.
+  const handleCloseSwap = () => {
+    resetSwapUiState();
+    setSwapView(null);
+  };
+
+  // Tapping an option previews it, kicking off the brief "checking how this
+  // affects your plan" beat — pendingSwap and computingImpact are set
+  // together here (batched into one render) rather than computingImpact
+  // being set reactively off pendingSwap, so they're never inconsistent on
+  // the render right after a tap (see the no-impact auto-apply effect
+  // above, which depends on that consistency). Tapping the currently-active
+  // option, or re-tapping the option already being previewed, backs out of
+  // the preview instead of applying anything.
+  const handleTapOption = (opt) => {
+    if (!swapView) return;
+    const currentActive = swapView.options.find((o) => o.selected);
+    if (currentActive?.id === opt.id || pendingSwap?.option.id === opt.id) {
+      setPendingSwap(null);
+      setComputingImpact(false);
+      return;
+    }
+    setPendingSwap({ categoryKey: swapView.categoryKey, option: opt });
+    setComputingImpact(true);
+  };
+
+  // Applies the swap — the loading beat already happened right after the
+  // option was tapped (computingImpact above), not here. Includes the one
+  // wired downstream effect (transport -> Day 1 arrival + timing note).
+  // Options that came from a "show more options" search aren't already in
+  // recState[categoryKey], so they're appended rather than matched by id.
+  const handleConfirmChange = () => {
+    if (!pendingSwap) return;
+    const { categoryKey, option } = pendingSwap;
+
+    setRecState((prev) => {
+      const prevActive = prev[categoryKey].find((o) => o.selected);
+      const alreadyKnown = prev[categoryKey].some((o) => o.id === option.id);
+      const updatedList = alreadyKnown
+        ? prev[categoryKey].map((opt) => ({ ...opt, selected: opt.id === option.id }))
+        : [...prev[categoryKey].map((opt) => ({ ...opt, selected: false })), { ...option, selected: true }];
+      const updated = { ...prev, [categoryKey]: updatedList };
+
+      if (categoryKey === 'dateOptions') {
+        updated.dates = updatedList.find((opt) => opt.id === option.id)?.title ?? prev.dates;
+      }
+
+      if (categoryKey === 'transports' && prev.itinerary?.length) {
+        const day1 = prev.itinerary[0];
+        const arrivalChanged = prevActive?.arrivalTime && option.arrivalTime && prevActive.arrivalTime !== option.arrivalTime;
+        updated.itinerary = prev.itinerary.map((day, idx) => {
+          if (idx !== 0) return day;
+          const nextDay = { ...day, transportMode: option.title };
+          if (arrivalChanged && day.timeSensitiveActivities?.length) {
+            const oldMin = parseClockMinutes(prevActive.arrivalTime);
+            const newMin = parseClockMinutes(option.arrivalTime);
+            const direction = newMin != null && oldMin != null && newMin > oldMin ? 'later' : 'earlier';
+            nextDay.timingNote = `Arrival now ${option.arrivalTime} — the ${joinWithAnd(day.timeSensitiveActivities)} shifted ${direction} to match.`;
+          } else {
+            delete nextDay.timingNote;
+          }
+          return nextDay;
+        });
+      }
+
+      onUpdate?.(updated);
+      return updated;
+    });
+
+    resetSwapUiState();
+    setSwapView(null);
   };
 
   // ── EDGE CASE — everyone deferred ("you decide for me") ──────────────
@@ -209,6 +519,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
           `You picked ${item.destination} (${item.hotel}) yourself since no one had a strong preference.`,
           `Fits within your ₹${budgetLabel} per-person budget.`,
         ],
+        budgetPerPerson: recState.budgetPerPerson,
       });
       setRecState(rec);
       onUpdate?.(rec);
@@ -321,110 +632,184 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
 
   const totalCost = activeTransport.cost + activeStay.cost + activeActivity.cost;
 
-  const handleOpenSwap = (categoryKey, title, options) => {
-    savedScrollTopRef.current = scrollContainerRef?.current?.scrollTop ?? null;
-    setSwapView({ categoryKey, title, options });
-  };
-
-  const handleCloseSwap = () => setSwapView(null);
-
-  const handleSelectOption = (optionId) => {
-    if (!swapView) return;
-    const { categoryKey } = swapView;
-    setRecState((prev) => {
-      const updatedList = prev[categoryKey].map((opt) => ({ ...opt, selected: opt.id === optionId }));
-      const updated = { ...prev, [categoryKey]: updatedList };
-      if (categoryKey === 'dateOptions') {
-        updated.dates = updatedList.find((opt) => opt.id === optionId)?.title ?? prev.dates;
-      }
-      onUpdate?.(updated);
-      return updated;
-    });
-    handleCloseSwap();
-  };
-
   // hero, confidence, 6 accordions, then the approve button.
   const [heroDelay, confidenceDelay, datesDelay, transportDelay, stayDelay, activitiesDelay, resolvedDelay, evidenceDelay] =
     sequenceDelays(Array(8).fill(BLOCK_STAGGER), startDelay);
   const approveDelay = startDelay + 8 * BLOCK_STAGGER;
 
+  // Renders one option card — used for both the main swap list and any
+  // "show more options" search results, so both go through the exact same
+  // preview -> impact-check -> confirm flow.
+  const renderOptionCard = (opt) => {
+    const isSelected = !!opt.selected;
+    const isPending = pendingSwap?.option.id === opt.id;
+    const isChecking = isPending && computingImpact;
+    const impactBullets = isPending && !computingImpact ? buildImpactBullets(recState, swapView.categoryKey, opt) : [];
+
+    return (
+      <React.Fragment key={opt.id}>
+        <motion.button
+          type="button"
+          variants={peerItemVariants}
+          className={`synthesis-swap-option ${isSelected ? 'selected' : ''} ${isPending ? 'pending' : ''}`}
+          onClick={() => handleTapOption(opt)}
+        >
+          {opt.image && (
+            <img src={opt.image} alt={opt.title} className="synthesis-swap-option-img" />
+          )}
+          <div className="synthesis-swap-option-body">
+            <div className="synthesis-swap-option-top">
+              <h4 className="synthesis-swap-option-title">{opt.title}</h4>
+              {isSelected && (
+                <span className="synthesis-swap-active-pill">
+                  <Check size={12} /> Active
+                </span>
+              )}
+              {!isSelected && isPending && (
+                <span className="synthesis-swap-pending-pill">Previewing</span>
+              )}
+            </div>
+            {opt.badge && (
+              <TagBadge
+                label={opt.badge}
+                asSpan
+                isOpen={openSwapBadgeId === opt.id}
+                onToggle={() => setOpenSwapBadgeId((id) => (id === opt.id ? null : opt.id))}
+                tooltipText={votedByNames ? `Voted by ${votedByNames}` : 'No individual votes recorded for this trip yet.'}
+              />
+            )}
+            {opt.type && <span className="synthesis-swap-option-type">{opt.type} • {opt.rating}</span>}
+            {opt.desc && <p className="active-item-desc">{opt.desc}</p>}
+            {opt.arrivalTime && <p className="active-item-desc">Arrives {opt.arrivalTime}</p>}
+            {opt.items && (
+              <ul className="activity-list-items">
+                {opt.items.map((item, idx) => (
+                  <li key={idx}>• {item}</li>
+                ))}
+              </ul>
+            )}
+            <div className="synthesis-swap-option-footer">
+              {typeof opt.cost === 'number' && (
+                <span className="active-item-price">₹{opt.cost.toLocaleString('en-IN')} / person</span>
+              )}
+              <span className={`synthesis-swap-select-hint ${isSelected ? 'selected' : ''}`}>
+                {isSelected ? 'Selected' : isPending ? 'Previewing — confirm below' : 'Select option'}
+              </span>
+            </div>
+          </div>
+        </motion.button>
+
+        {isPending && (
+          <motion.div
+            className="swap-impact-preview"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: EASE }}
+          >
+            {isChecking ? (
+              <SwapInlineLoader text="Checking how this affects your plan…" />
+            ) : (
+              <>
+                <span className="swap-impact-header">Here's what changes</span>
+                {impactBullets.length > 0 ? (
+                  <ul className="swap-impact-list">
+                    {impactBullets.map((bullet, idx) => (
+                      <li key={idx} className={bullet.warning ? 'swap-impact-warning' : undefined}>{bullet.text}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="swap-impact-honest">No other changes needed, everything else in your plan stays the same.</p>
+                )}
+                <button type="button" className="btn-secondary swap-impact-confirm-btn" onClick={handleConfirmChange}>
+                  Confirm this change
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </React.Fragment>
+    );
+  };
+
   if (swapView) {
+    const morePoolSize = recState.morePool?.[swapView.categoryKey]?.length ?? 0;
+    const awaitingMoreOptionsQuery = moreOptionsActiveCategory === swapView.categoryKey;
+    const showingMoreResults = moreResults != null;
+
     return (
       <motion.div
         className="synthesis-swap-view"
-        initial={{ opacity: 0, y: BLOCK_Y }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: SWAP_VIEW_DURATION, ease: EASE }}
+        initial={{ opacity: 0, x: SWAP_NAV_OFFSET_X }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: SWAP_NAV_DURATION, ease: EASE }}
       >
-        <button type="button" ref={swapBackRef} className="synthesis-swap-back" onClick={handleCloseSwap}>
-          <ArrowLeft size={16} /> Back
-        </button>
+        <div className="synthesis-swap-sticky-header">
+          <button type="button" className="synthesis-swap-back" onClick={handleCloseSwap}>
+            <ArrowLeft size={16} /> Back
+          </button>
 
-        <div className="synthesis-swap-heading">
-          <h3 className="synthesis-swap-title">Change {swapView.title}</h3>
-          <p className="synthesis-swap-subtitle">Select an alternative option considered by Myra</p>
+          <div className="synthesis-swap-heading">
+            <h3 className="synthesis-swap-title">Change {swapView.title}</h3>
+            <p className="synthesis-swap-subtitle">Select an alternative option considered by Myra</p>
+          </div>
         </div>
 
-        <motion.div className="synthesis-swap-list" variants={peerContainerVariants(0.15)} initial="hidden" animate="visible">
-          {swapView.options.map((opt) => {
-            const isSelected = opt.selected;
-            return (
-              <motion.button
-                key={opt.id}
-                type="button"
-                variants={peerItemVariants}
-                className={`synthesis-swap-option ${isSelected ? 'selected' : ''}`}
-                onClick={() => handleSelectOption(opt.id)}
-              >
-                {opt.image && (
-                  <img src={opt.image} alt={opt.title} className="synthesis-swap-option-img" />
-                )}
-                <div className="synthesis-swap-option-body">
-                  <div className="synthesis-swap-option-top">
-                    <h4 className="synthesis-swap-option-title">{opt.title}</h4>
-                    {isSelected && (
-                      <span className="synthesis-swap-active-pill">
-                        <Check size={12} /> Active
-                      </span>
-                    )}
-                  </div>
-                  {opt.badge && (
-                    <TagBadge
-                      label={opt.badge}
-                      asSpan
-                      isOpen={openSwapBadgeId === opt.id}
-                      onToggle={() => setOpenSwapBadgeId((id) => (id === opt.id ? null : opt.id))}
-                      tooltipText={votedByNames ? `Voted by ${votedByNames}` : 'No individual votes recorded for this trip yet.'}
-                    />
-                  )}
-                  {opt.type && <span className="synthesis-swap-option-type">{opt.type} • {opt.rating}</span>}
-                  {opt.desc && <p className="active-item-desc">{opt.desc}</p>}
-                  {opt.items && (
-                    <ul className="activity-list-items">
-                      {opt.items.map((item, idx) => (
-                        <li key={idx}>• {item}</li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="synthesis-swap-option-footer">
-                    {typeof opt.cost === 'number' && (
-                      <span className="active-item-price">₹{opt.cost.toLocaleString('en-IN')} / person</span>
-                    )}
-                    <span className={`synthesis-swap-select-hint ${isSelected ? 'selected' : ''}`}>
-                      {isSelected ? 'Selected' : 'Select option'}
-                    </span>
-                  </div>
-                </div>
-              </motion.button>
-            );
-          })}
-        </motion.div>
+        <AnimatePresence mode="wait">
+          {moreSearchPhase === 'loading' ? (
+            <motion.div
+              key="more-loading"
+              className="swap-more-options-loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <SwapInlineLoader text={`Finding options for "${moreQueryText}"…`} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={showingMoreResults ? 'more-results' : 'default-options'}
+              className="synthesis-swap-list"
+              variants={peerContainerVariants(0.1)}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            >
+              {showingMoreResults && moreResults.length === 0 ? (
+                <p className="swap-more-options-empty">
+                  {morePoolSize > 0
+                    ? "Didn't find a close match — try different words in the chat bar below."
+                    : 'No more options to search for this category in this demo yet.'}
+                </p>
+              ) : (
+                (showingMoreResults ? moreResults : swapView.options).map(renderOptionCard)
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {onMoreOptionsCategoryChange && (
+          <button
+            type="button"
+            className="btn-secondary swap-more-options-btn"
+            disabled={awaitingMoreOptionsQuery || moreSearchPhase === 'loading'}
+            onClick={() => onMoreOptionsCategoryChange(swapView.categoryKey)}
+          >
+            <MessageSquarePlus size={14} />
+            {awaitingMoreOptionsQuery ? 'Type what you want in the chat bar below…' : 'Show more options'}
+          </button>
+        )}
       </motion.div>
     );
   }
 
   return (
-    <div className="synthesis-revamped-dashboard">
+    <motion.div
+      className="synthesis-revamped-dashboard"
+      initial={hasShownDashboardRef.current ? { opacity: 0, x: SWAP_NAV_OFFSET_X } : false}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: SWAP_NAV_DURATION, ease: EASE }}
+    >
       {/* ── HERO HEADER ────────────────────────── */}
       <motion.div className="synthesis-hero-banner" variants={blockVariants} custom={heroDelay} initial={entranceInitial} animate="visible">
         <img src={recState.heroImage} alt={recState.destination} className="synthesis-hero-img" />
@@ -509,6 +894,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
                 </div>
                 <h4 className="active-item-title">{activeTransport.title}</h4>
                 <p className="active-item-desc">{activeTransport.desc} ({activeTransport.duration})</p>
+                {activeTransport.arrivalTime && <p className="active-item-desc">Arrives {activeTransport.arrivalTime}</p>}
               </div>
             </AccordionBody>
           )}
@@ -657,7 +1043,7 @@ const SynthesisResult = ({ recommendation, onUpdate, onApprove, onExtendRound, o
           Approve itinerary
         </button>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 

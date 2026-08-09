@@ -55,6 +55,7 @@ const OrganizerEntry = () => {
     handleConfirmEmptyProceedNo,
     handleCompleteSynthesis,
     handleApprove,
+    handleEditAfterApprove,
     handleExtendRound,
     handleChooseRiskOption,
     handleCompleteRiskChoiceResolution,
@@ -124,7 +125,14 @@ const OrganizerEntry = () => {
                 )}
                 {msg.kind === 'share' && flow.session && (
                   <FollowUpReveal text={msg.text}>
-                    <LinkShareCard joinUrl={joinUrl} onEnterHub={handleEnterHub} />
+                    <LinkShareCard joinUrl={joinUrl} />
+                  </FollowUpReveal>
+                )}
+                {msg.kind === 'self_ack' && (
+                  <FollowUpReveal text={msg.text}>
+                    <GradientSweepButton onClick={handleEnterHub} className="link-share-hub-btn">
+                      Look at the live responses
+                    </GradientSweepButton>
                   </FollowUpReveal>
                 )}
                 {msg.kind === 'hub' && (
@@ -156,7 +164,7 @@ const OrganizerEntry = () => {
                 )}
                 {msg.kind === 'closed' && (
                   <FollowUpReveal text={msg.text}>
-                    <TripSummaryCard recommendation={flow.recommendation} />
+                    <TripSummaryCard recommendation={flow.recommendation} onEdit={handleEditAfterApprove} />
                   </FollowUpReveal>
                 )}
               </>

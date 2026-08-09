@@ -8,9 +8,12 @@ import { blockVariants, BLOCK_STAGGER } from '../../components/AIChatbot/motionC
 
 /**
  * Screen 2.1 — shareable link card with sonner toast notification and
- * AI-moment gradient sweep button.
+ * AI-moment gradient sweep button. Also opens the organizer's own copy of
+ * the participant form (same /join page, ?self=1 marker so it prefills
+ * their name) in a new tab — their submission comes back to this chat via
+ * tripApi's cross-tab response subscription, no embedding needed.
  */
-const LinkShareCard = ({ joinUrl, onEnterHub, startDelay = 0 }) => {
+const LinkShareCard = ({ joinUrl, startDelay = 0 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -21,6 +24,12 @@ const LinkShareCard = ({ joinUrl, onEnterHub, startDelay = 0 }) => {
       style: toastStyle,
     });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleFillOwnPreferences = () => {
+    if (!joinUrl) return;
+    const selfUrl = `${joinUrl}${joinUrl.includes('?') ? '&' : '?'}self=1`;
+    window.open(selfUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -39,15 +48,25 @@ const LinkShareCard = ({ joinUrl, onEnterHub, startDelay = 0 }) => {
           </button>
         </div>
       </motion.div>
-      <GradientSweepButton
-        type="button"
-        className="link-share-hub-btn"
-        onClick={onEnterHub}
-        startDelay={startDelay + BLOCK_STAGGER}
+
+      <motion.div
+        className="link-share-self-prompt"
+        variants={blockVariants}
+        custom={startDelay + BLOCK_STAGGER}
+        initial="hidden"
+        animate="visible"
       >
-        Peek at the live responses
-        <ArrowRight size={16} />
-      </GradientSweepButton>
+        <span className="link-share-self-text">You're part of this trip too!</span>
+        <GradientSweepButton
+          type="button"
+          className="link-share-hub-btn"
+          onClick={handleFillOwnPreferences}
+          startDelay={startDelay + BLOCK_STAGGER}
+        >
+          Fill in your preferences
+          <ArrowRight size={16} />
+        </GradientSweepButton>
+      </motion.div>
     </div>
   );
 };

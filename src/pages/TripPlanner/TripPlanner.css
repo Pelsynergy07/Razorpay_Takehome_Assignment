@@ -238,11 +238,19 @@
 
 .intent-form-row {
   display: flex;
+  flex-direction: column;
   gap: var(--space-md);
 }
 
 .intent-form-row .intent-form-field {
   flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 480px) {
+  .intent-form-row {
+    flex-direction: row;
+  }
 }
 
 .intent-form-field label {
@@ -355,6 +363,18 @@
   justify-content: center;
   flex-shrink: 0;
   box-shadow: var(--shadow-xs);
+}
+
+.link-share-self-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.link-share-self-text {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--mmt-text-secondary);
 }
 
 /* ===== Screens 2.2-2.6 — participant flow ===== */
@@ -1335,6 +1355,19 @@
   margin-bottom: var(--space-sm);
 }
 
+/* Set only when a swap on the synthesis dashboard (SynthesisResult.jsx)
+   actually rippled into this day's timing — e.g. a transport swap pushing
+   back Day 1's arrival. Keeps that downstream effect visible here, not just
+   mentioned once in the swap-confirm preview and then forgotten. */
+.itinerary-day-timing-note {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  font-style: italic;
+  color: var(--mmt-text-tertiary);
+  line-height: var(--leading-base);
+  margin: calc(-1 * var(--space-2xs)) 0 var(--space-sm);
+}
+
 .itinerary-day-details {
   display: flex;
   flex-wrap: wrap;
@@ -1388,12 +1421,14 @@
 
 .itinerary-footer-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   padding: var(--space-md);
 }
 
 .itinerary-footer-btn {
-  flex: 1;
+  flex: 1 1 90px;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1490,13 +1525,45 @@
    raw color per category, and editing a category slides in a swap view
    in place of the dashboard — no fixed/full-viewport modal — so it stays
    inside the chat panel's own bounds. */
-.synthesis-revamped-dashboard,
-.synthesis-swap-view {
+.synthesis-revamped-dashboard {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
   width: 100%;
   padding-bottom: var(--space-xl);
+}
+
+/* The edit/swap screen is a self-contained overlay covering just the
+   messages viewport (.chat-sheet-messages, made position:relative for this)
+   — not another block in the same scroll flow. That's what stops it from
+   scrolling to reveal the surrounding chat above/below it. It owns its own
+   internal scroll, and the Back button + heading are sticky within that
+   scroll so they never scroll out of view either. */
+.synthesis-swap-view {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  height: 100%;
+  background: var(--mmt-white);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--space-md) var(--space-xl);
+}
+
+.synthesis-swap-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--mmt-white);
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-2xs);
 }
 
 .synthesis-hero-banner {
@@ -2007,6 +2074,20 @@
   background: var(--mmt-blue-tint);
 }
 
+/* Tapped-but-not-yet-confirmed preview state — visually distinct from the
+   solid-fill "selected"/Active state so it never reads as already applied.
+   Bottom border/radius are dropped here specifically so the attached
+   .swap-impact-preview panel below reads as a continuation of this same
+   card (matching side/bottom borders, no gap) instead of a separate card
+   of its own — see .swap-impact-preview. */
+.synthesis-swap-option.pending {
+  border-color: var(--mmt-blue);
+  border-style: dashed;
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .synthesis-swap-option-img {
   width: 72px;
   height: 72px;
@@ -2073,6 +2154,138 @@
 
 .synthesis-swap-select-hint.selected {
   color: var(--mmt-blue);
+}
+
+.synthesis-swap-pending-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  background: var(--mmt-white);
+  color: var(--mmt-blue);
+  border: 1.5px dashed var(--mmt-blue);
+  padding: 1px var(--space-xs);
+  border-radius: var(--radius-pill);
+}
+
+/* Impact-preview panel — visually fused to the bottom of the option card
+   it belongs to (.synthesis-swap-option.pending, above), not a separate
+   floating card. Same white background as the card itself, matching dashed
+   blue side/bottom borders continuing straight down from the option button,
+   only rounded on the bottom two corners since the button owns the top two.
+   The subtle border-top is just an internal divider (same dashed-neutral
+   language as .synthesis-swap-option-footer's own divider), not a card
+   edge. */
+.swap-impact-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  background: var(--mmt-white);
+  border: 1.5px dashed var(--mmt-blue);
+  border-top: 1px dashed var(--mmt-border);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+
+.swap-impact-header {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  color: var(--mmt-text-primary);
+}
+
+.swap-impact-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.swap-impact-list li {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--mmt-text-secondary);
+  line-height: var(--leading-base);
+  padding-left: var(--space-md);
+  position: relative;
+}
+
+.swap-impact-list li::before {
+  content: '•';
+  position: absolute;
+  left: var(--space-2xs);
+  color: var(--mmt-blue);
+}
+
+/* Budget-exceeded bullet — same amber warning language as .risk-flag,
+   set apart from the routine cost-delta bullet above it. */
+.swap-impact-list li.swap-impact-warning {
+  color: #92400e;
+  font-weight: var(--fw-bold);
+  background: #fff1e0;
+  border-radius: var(--radius-xs);
+  padding-top: var(--space-3xs);
+  padding-bottom: var(--space-3xs);
+  padding-right: var(--space-xs);
+}
+
+.swap-impact-list li.swap-impact-warning::before {
+  content: '⚠';
+  color: #92400e;
+}
+
+.swap-impact-honest {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--mmt-text-tertiary);
+  line-height: var(--leading-base);
+  margin: 0;
+}
+
+.swap-impact-confirm-btn {
+  align-self: flex-start;
+}
+
+/* Small inline loader — deliberately NOT the mascot ProcessingScreen used
+   for the main synthesis. A single spinning icon + one line of text, scoped
+   to just the option card it sits under. Same token language as
+   .typing-indicator-spinner/-text (blue, italic) without the bot-avatar row. */
+.swap-inline-loader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.swap-inline-loader-spinner {
+  display: inline-flex;
+  line-height: 1;
+}
+
+.swap-inline-loader-text {
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--mmt-blue);
+}
+
+/* "Show more options" — free-text search scoped to the open swap category,
+   entered via the real chat input bar (see .chat-input-tooltip in
+   AIChatbotWidget.css), not a field of its own here. */
+.swap-more-options-btn {
+  align-self: flex-start;
+  margin-top: var(--space-xs);
+}
+
+.swap-more-options-loading {
+  padding: var(--space-sm) 0;
+}
+
+.swap-more-options-empty {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--mmt-text-tertiary);
+  margin: 0;
 }
 
 /* Evidence & sourcing accordion — same neutral treatment as every other

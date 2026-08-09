@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { toastStyle } from './toastStyle';
 import {
@@ -36,9 +36,11 @@ const AnimatedWords = ({ text, delay = 0 }) => (
 );
 
 /**
- * Screen 5.1 — final screen, nothing after this. Day-by-day itinerary with
- * key details (dates, transport mode) per day, book actions where
- * applicable, and download/share for the finished plan.
+ * Screen 5.1 — the "final" screen, though not necessarily the true end:
+ * the organizer can still catch a mistake here and loop back to editing via
+ * `onEdit`. Day-by-day itinerary with key details (dates, transport mode)
+ * per day, book actions where applicable, and download/share/edit for the
+ * finished plan.
  *
  * Entrance: hero, then each day in order — dot, title (word-by-word),
  * description (word-by-word), then activities/chips/image/actions
@@ -46,7 +48,7 @@ const AnimatedWords = ({ text, delay = 0 }) => (
  * these overlaps with a short stagger rather than waiting for the previous
  * one to completely finish. Footer actions come last.
  */
-const TripSummaryCard = ({ recommendation, startDelay = 0 }) => {
+const TripSummaryCard = ({ recommendation, startDelay = 0, onEdit }) => {
   const { destination, dates, estimatedCost, heroImage, weather, itinerary = [] } = recommendation;
   const [weatherTemp, weatherAqi] = (weather || '').split('|').map((s) => s.trim());
   const generatedOn = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -146,6 +148,8 @@ const TripSummaryCard = ({ recommendation, startDelay = 0 }) => {
                     </ul>
                   )}
 
+                  {d.timingNote && <p className="itinerary-day-timing-note">{d.timingNote}</p>}
+
                   <div className="itinerary-day-details">
                     <span className="itinerary-day-detail-chip">{d.dateLabel}</span>
                     {d.transportMode && <span className="itinerary-day-detail-chip">{d.transportMode}</span>}
@@ -191,6 +195,11 @@ const TripSummaryCard = ({ recommendation, startDelay = 0 }) => {
         <button type="button" className="btn-secondary itinerary-footer-btn" onClick={handleShare}>
           <Share2 size={16} /> Share
         </button>
+        {onEdit && (
+          <button type="button" className="btn-secondary itinerary-footer-btn" onClick={onEdit}>
+            <Pencil size={16} /> Edit
+          </button>
+        )}
       </motion.div>
 
       {/* Print-only footer, mirrors the letterhead above. */}

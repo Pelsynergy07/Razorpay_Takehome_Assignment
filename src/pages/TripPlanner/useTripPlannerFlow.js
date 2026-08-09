@@ -107,14 +107,23 @@ export function useTripPlannerFlow() {
           ],
       riskFlag: isFlaggedChoice ? item.riskFlag : null,
       extraEvidence: isFlaggedChoice && item.riskEvidence ? [item.riskEvidence] : [],
+      budgetPerPerson: session.budget_per_person,
     });
     setRecommendation(rec);
     setPendingRiskChoice(null);
     return rec;
   };
 
-  // Screen 5.1 — final screen, nothing after this.
+  // Screen 5.1 — final screen. Not necessarily the true end though: the
+  // organizer can still catch a mistake here and loop back via reopenForEdit.
   const approve = () => setTripStep('closed');
+
+  // Edit-after-approve loop — organizer spotted something wrong on the
+  // final itinerary and wants to fix it. `recommendation` itself is left
+  // untouched, so SynthesisResult reopens showing exactly what was approved;
+  // onUpdate/onApprove from there work exactly as they did the first time,
+  // so this can loop as many times as needed.
+  const reopenForEdit = () => setTripStep('result');
 
   // Exit-flow edge case — drops the organizer's in-progress session and
   // takes the step machine back to its pre-launch state, so the chat can
@@ -163,6 +172,7 @@ export function useTripPlannerFlow() {
     startRiskChoiceResolution,
     completeRiskChoiceResolution,
     approve,
+    reopenForEdit,
     restore,
     reset,
   };

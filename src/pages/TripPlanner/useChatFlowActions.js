@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { smoothScrollTo, smoothScrollToBottom } from '../../lib/smoothScroll';
+import { getResponses, subscribeToResponses } from '../../lib/tripApi';
 
 /**
  * Chat-turn choreography shared by the homepage's floating Myra widget
@@ -65,6 +66,54 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     advanceThen(flow.enterHub, { [kindField]: 'hub', text: "Here's the live hub — I'll update this as responses come in.", sessionId: flow.session?.id }, 600);
   };
 
+  // The "Fill in your preferences" button on the share screen opens the
+  // organizer's own copy of the /join page in a new tab — there's no
+  // in-page callback for that, so instead this watches the same cross-tab
+  // response feed LiveAggregationHub uses (Supabase Realtime, or the
+  // localStorage `storage` event as an offline fallback) and reacts the
+  // moment the first new response for this session lands, exactly as if
+  // the organizer had reported back in.
+  useEffect(() => {
+    if (flow.tripStep !== 'share' || !flow.session?.id) return;
+    const sessionId = flow.session.id;
+    let active = true;
+    let baseline = null;
+    let fired = false;
+
+    const maybeFire = (responses) => {
+      if (!active || fired) return;
+      if (baseline === null) {
+        baseline = responses.length;
+        return;
+      }
+      if (responses.length > baseline) {
+        fired = true;
+        thinkThen(
+          {
+            [kindField]: 'self_ack',
+            text: "Thanks for adding your own preferences! I'll keep this link live for the next 3 hours so the rest of the group can chime in too.",
+            sessionId,
+          },
+          700
+        );
+      }
+    };
+
+    const unsubscribe = subscribeToResponses(sessionId, maybeFire);
+    // Belt-and-suspenders baseline fetch for setups where subscribeToResponses
+    // doesn't fire an initial callback on its own (localStorage-only mode) —
+    // whichever of these two resolves first wins, the other is a no-op.
+    getResponses(sessionId).then((initial) => {
+      if (active && baseline === null) baseline = Array.isArray(initial) ? initial.length : 0;
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flow.tripStep, flow.session?.id]);
+
   const handleProceedToSynthesis = () => {
     echoUser('Proceed to synthesis now');
     advanceThen(flow.startSynthesis, { [kindField]: 'processing', sessionId: flow.session?.id }, 600);
@@ -97,6 +146,15 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
   const handleApprove = () => {
     echoUser('Approve itinerary');
     advanceThen(flow.approve, { [kindField]: 'closed', text: "You're all set! Here's your itinerary:", sessionId: flow.session?.id }, 750);
+  };
+
+  // Edit-after-approve loop — lets the organizer catch a mistake even after
+  // confirming. Re-sends the same "here's what I've put together" turn
+  // (recommendation state is untouched), so onApprove can fire again and
+  // this can loop as many times as needed.
+  const handleEditAfterApprove = () => {
+    echoUser('Edit itinerary');
+    advanceThen(flow.reopenForEdit, { [kindField]: 'result', text: "Sure, let's fix that up. Here's the plan again:", sessionId: flow.session?.id }, 600);
   };
 
   // Everyone-deferred edge case's "give it more time" path — drops the
@@ -135,6 +193,7 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     handleConfirmEmptyProceedNo,
     handleCompleteSynthesis,
     handleApprove,
+    handleEditAfterApprove,
     handleExtendRound,
     handleChooseRiskOption,
     handleCompleteRiskChoiceResolution,

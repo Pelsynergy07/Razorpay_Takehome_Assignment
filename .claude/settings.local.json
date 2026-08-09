@@ -6,7 +6,11 @@
       "Skill(impeccable)",
       "Bash(node *)",
       "Bash(xargs grep -l -i \"Where do you\\\\|Cheapest flight\\\\|relaxing getaway\")",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npm run *)"
     ]
   }
 }
