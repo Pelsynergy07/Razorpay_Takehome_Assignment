@@ -356,7 +356,7 @@ const DEFAULT_EVIDENCE_SOURCES = [
     platform: 'Reddit (r/IndiaTravel)',
     platformType: 'reddit',
     quote: '"If you\'re 4-6 friends going to Rishikesh, Backpackers Hostel + Shivpuri 16km rafting package is the undisputed best value. Clean decks, zero middleman markup."',
-    author: 'u/wanderlust_delhi • 84 upvotes'
+    author: 'u/wanderlust_delhi'
   },
   {
     platform: 'Google Reviews',

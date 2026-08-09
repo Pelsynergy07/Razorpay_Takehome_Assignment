@@ -867,18 +867,17 @@
 }
 
 .hub-wait-spinner {
-  width: 15px;
-  height: 15px;
+  width: 9px;
+  height: 9px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 2px solid var(--mmt-border);
-  border-top-color: var(--mmt-blue);
-  animation: hubSpinnerRotate 1.5s linear infinite;
+  background: var(--mmt-blue);
+  animation: hubDotPulse 1.4s ease-in-out infinite;
 }
 
-@keyframes hubSpinnerRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes hubDotPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 .hub-vibe-pills {
@@ -2158,15 +2157,16 @@
 
 .synthesis-swap-pending-pill {
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   flex-shrink: 0;
   font-size: var(--text-xs);
   font-weight: var(--fw-black);
-  background: var(--mmt-white);
-  color: var(--mmt-blue);
-  border: 1.5px dashed var(--mmt-blue);
-  padding: 1px var(--space-xs);
+  background: var(--mmt-blue-tint);
+  color: var(--mmt-blue-deep);
+  padding: var(--space-3xs) var(--space-sm);
   border-radius: var(--radius-pill);
+  margin: var(--space-3xs) 0 var(--space-2xs);
 }
 
 /* Impact-preview panel — visually fused to the bottom of the option card

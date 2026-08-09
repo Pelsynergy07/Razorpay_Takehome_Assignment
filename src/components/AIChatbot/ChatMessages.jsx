@@ -32,6 +32,18 @@ export const FollowUpReveal = ({ children, className }) => {
   return <div className={className}>{React.cloneElement(child, { startDelay: BLOCK_STAGGER })}</div>;
 };
 
+/**
+ * A Yes/No (or similar) confirm button row used as a FollowUpReveal child —
+ * exists so `startDelay` (cloned in by FollowUpReveal above) lands on a
+ * `motion.div` that actually consumes it instead of a plain `<div>`, which
+ * would otherwise forward the unrecognized prop straight onto the DOM node.
+ */
+export const ConfirmActions = ({ children, startDelay = 0 }) => (
+  <motion.div className="chat-confirm-actions" variants={blockVariants} custom={startDelay} initial="hidden" animate="visible">
+    {children}
+  </motion.div>
+);
+
 const AnimatedBotText = ({ text, startDelay = 0 }) => {
   const sanitizedText = String(text || '')
     .replace(/\[LAUNCH_SYNC_MODE\]/gi, '')

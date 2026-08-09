@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, X, MapPin, Clock, TrendingUp } from 'lucide-react';
+import { Search, X, MapPin, TrendingUp } from 'lucide-react';
 import './CitySelectorModal.css';
 
 const CitySelectorModal = ({ title, cities, selectedCity, onSelect, onClose }) => {

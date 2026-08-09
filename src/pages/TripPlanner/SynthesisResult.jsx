@@ -467,40 +467,42 @@ const SynthesisResult = ({
     if (!pendingSwap) return;
     const { categoryKey, option } = pendingSwap;
 
-    setRecState((prev) => {
-      const prevActive = prev[categoryKey].find((o) => o.selected);
-      const alreadyKnown = prev[categoryKey].some((o) => o.id === option.id);
-      const updatedList = alreadyKnown
-        ? prev[categoryKey].map((opt) => ({ ...opt, selected: opt.id === option.id }))
-        : [...prev[categoryKey].map((opt) => ({ ...opt, selected: false })), { ...option, selected: true }];
-      const updated = { ...prev, [categoryKey]: updatedList };
+    // Built from `recState` directly (not the setRecState functional-updater
+    // form) so `updated` exists as a plain value here — onUpdate?.(updated)
+    // needs to run as its own state update on the parent, not from inside
+    // this component's own updater callback, which fires during React's
+    // render phase and would try to update the parent mid-render.
+    const prev = recState;
+    const prevActive = prev[categoryKey].find((o) => o.selected);
+    const alreadyKnown = prev[categoryKey].some((o) => o.id === option.id);
+    const updatedList = alreadyKnown
+      ? prev[categoryKey].map((opt) => ({ ...opt, selected: opt.id === option.id }))
+      : [...prev[categoryKey].map((opt) => ({ ...opt, selected: false })), { ...option, selected: true }];
+    const updated = { ...prev, [categoryKey]: updatedList };
 
-      if (categoryKey === 'dateOptions') {
-        updated.dates = updatedList.find((opt) => opt.id === option.id)?.title ?? prev.dates;
-      }
+    if (categoryKey === 'dateOptions') {
+      updated.dates = updatedList.find((opt) => opt.id === option.id)?.title ?? prev.dates;
+    }
 
-      if (categoryKey === 'transports' && prev.itinerary?.length) {
-        const day1 = prev.itinerary[0];
-        const arrivalChanged = prevActive?.arrivalTime && option.arrivalTime && prevActive.arrivalTime !== option.arrivalTime;
-        updated.itinerary = prev.itinerary.map((day, idx) => {
-          if (idx !== 0) return day;
-          const nextDay = { ...day, transportMode: option.title };
-          if (arrivalChanged && day.timeSensitiveActivities?.length) {
-            const oldMin = parseClockMinutes(prevActive.arrivalTime);
-            const newMin = parseClockMinutes(option.arrivalTime);
-            const direction = newMin != null && oldMin != null && newMin > oldMin ? 'later' : 'earlier';
-            nextDay.timingNote = `Arrival now ${option.arrivalTime} — the ${joinWithAnd(day.timeSensitiveActivities)} shifted ${direction} to match.`;
-          } else {
-            delete nextDay.timingNote;
-          }
-          return nextDay;
-        });
-      }
+    if (categoryKey === 'transports' && prev.itinerary?.length) {
+      const arrivalChanged = prevActive?.arrivalTime && option.arrivalTime && prevActive.arrivalTime !== option.arrivalTime;
+      updated.itinerary = prev.itinerary.map((day, idx) => {
+        if (idx !== 0) return day;
+        const nextDay = { ...day, transportMode: option.title };
+        if (arrivalChanged && day.timeSensitiveActivities?.length) {
+          const oldMin = parseClockMinutes(prevActive.arrivalTime);
+          const newMin = parseClockMinutes(option.arrivalTime);
+          const direction = newMin != null && oldMin != null && newMin > oldMin ? 'later' : 'earlier';
+          nextDay.timingNote = `Arrival now ${option.arrivalTime} — the ${joinWithAnd(day.timeSensitiveActivities)} shifted ${direction} to match.`;
+        } else {
+          delete nextDay.timingNote;
+        }
+        return nextDay;
+      });
+    }
 
-      onUpdate?.(updated);
-      return updated;
-    });
-
+    setRecState(updated);
+    onUpdate?.(updated);
     resetSwapUiState();
     setSwapView(null);
   };
@@ -665,10 +667,10 @@ const SynthesisResult = ({
                   <Check size={12} /> Active
                 </span>
               )}
-              {!isSelected && isPending && (
-                <span className="synthesis-swap-pending-pill">Previewing</span>
-              )}
             </div>
+            {!isSelected && isPending && (
+              <span className="synthesis-swap-pending-pill">Previewing — confirm below</span>
+            )}
             {opt.badge && (
               <TagBadge
                 label={opt.badge}
@@ -692,9 +694,11 @@ const SynthesisResult = ({
               {typeof opt.cost === 'number' && (
                 <span className="active-item-price">₹{opt.cost.toLocaleString('en-IN')} / person</span>
               )}
-              <span className={`synthesis-swap-select-hint ${isSelected ? 'selected' : ''}`}>
-                {isSelected ? 'Selected' : isPending ? 'Previewing — confirm below' : 'Select option'}
-              </span>
+              {!isPending && (
+                <span className={`synthesis-swap-select-hint ${isSelected ? 'selected' : ''}`}>
+                  {isSelected ? 'Selected' : 'Select option'}
+                </span>
+              )}
             </div>
           </div>
         </motion.button>

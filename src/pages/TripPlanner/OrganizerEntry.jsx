@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatFlowShell from '../../components/AIChatbot/ChatFlowShell';
-import { UserBubble, BotTextResponse, MessageBlock, FollowUpReveal } from '../../components/AIChatbot/ChatMessages';
+import { UserBubble, BotTextResponse, MessageBlock, FollowUpReveal, ConfirmActions } from '../../components/AIChatbot/ChatMessages';
 import TypingIndicator from '../../components/AIChatbot/TypingIndicator';
 import ChatInputBar from '../../components/AIChatbot/ChatInputBar';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
@@ -105,10 +105,10 @@ const OrganizerEntry = () => {
                 {msg.kind !== 'processing' && msg.kind !== 'risk_processing' && <BotTextResponse text={msg.text} />}
                 {msg.kind === 'zero_response_confirm' && (
                   <FollowUpReveal text={msg.text}>
-                    <div className="chat-confirm-actions">
+                    <ConfirmActions>
                       <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedYes}>Yes, continue</button>
                       <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedNo}>No, wait</button>
-                    </div>
+                    </ConfirmActions>
                   </FollowUpReveal>
                 )}
                 {msg.kind === 'launch' && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, RefreshCw, X } from 'lucide-react';
+import { Lock, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 /**

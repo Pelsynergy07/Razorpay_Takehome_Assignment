@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Users2, PartyPopper } from 'lucide-react';
+import { Check, PartyPopper } from 'lucide-react';
 import { getResponses, subscribeToResponses } from '../../lib/tripApi';
 import GradientSweepButton from '../../components/AIChatbot/GradientSweepButton';
 import {

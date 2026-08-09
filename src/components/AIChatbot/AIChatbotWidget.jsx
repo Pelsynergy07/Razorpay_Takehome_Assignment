@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
 import { EASE } from './motionConfig';
 import ChatFlowShell from './ChatFlowShell';
-import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock, FollowUpReveal } from './ChatMessages';
+import { UserBubble, BotTextResponse, DestinationCarousel, MessageActions, MessageBlock, FollowUpReveal, ConfirmActions } from './ChatMessages';
 import TypingIndicator from './TypingIndicator';
 import ChatInputBar from './ChatInputBar';
 import GradientSweepButton from './GradientSweepButton';
@@ -390,18 +390,18 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       {msg.type !== 'processing' && msg.type !== 'risk_processing' && <BotTextResponse text={msg.text} />}
                       {msg.type === 'zero_response_confirm' && (
                         <FollowUpReveal text={msg.text}>
-                          <div className="chat-confirm-actions">
+                          <ConfirmActions>
                             <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedYes}>Yes, continue</button>
                             <button type="button" className="btn-secondary" onClick={handleConfirmEmptyProceedNo}>No, wait</button>
-                          </div>
+                          </ConfirmActions>
                         </FollowUpReveal>
                       )}
                       {msg.type === 'exit_confirm' && (
                         <FollowUpReveal text={msg.text}>
-                          <div className="chat-confirm-actions">
+                          <ConfirmActions>
                             <button type="button" className="btn-secondary" onClick={handleConfirmExitYes}>Yes, exit</button>
                             <button type="button" className="btn-secondary" onClick={handleConfirmExitNo}>No, stay</button>
-                          </div>
+                          </ConfirmActions>
                         </FollowUpReveal>
                       )}
                       {msg.type === 'destinations' && msg.destinations && (

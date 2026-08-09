@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plane, Clock, ArrowRight, Filter, ChevronDown, ArrowUpDown } from 'lucide-react';
+import { X, ArrowRight, Filter, ChevronDown, ArrowUpDown } from 'lucide-react';
 import './FlightResultsModal.css';
 
 const mockFlights = [
