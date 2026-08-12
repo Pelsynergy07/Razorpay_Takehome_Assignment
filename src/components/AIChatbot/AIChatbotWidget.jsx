@@ -129,7 +129,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     setActiveConversationId(id);
     setMessages(conv.messages);
     setSyncStage('idle');
-    setSyncExited(false);
   };
 
   const handleClearHistory = () => {
@@ -141,7 +140,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     setMessages([]);
     setActiveConversationId(null);
     setSyncStage('idle');
-    setSyncExited(false);
   };
 
   // Action buttons (Launch sync mode, Create trip session, Enter hub) echo
@@ -169,10 +167,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
   } = useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, kindField: 'type' });
 
   const [syncStage, setSyncStage] = useState('idle'); // 'idle' | 'awaiting_confirmation' | 'confirmed'
-  // Once true, Group Sync mode was exited on purpose — the chat stays open
-  // (nothing is cleared), but any further input gets the generic demo
-  // prompt instead of re-detecting trip intent and re-offering sync mode.
-  const [syncExited, setSyncExited] = useState(false);
 
   // "Show more options" (SynthesisResult.jsx's edit/swap screen) is driven
   // through this real chat input rather than a field of its own — tapping
@@ -203,7 +197,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     setTimeout(() => {
       flow.reset();
       setSyncStage('idle');
-      setSyncExited(true);
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'bot',
@@ -262,16 +255,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
         await new Promise((resolve) => setTimeout(resolve, minThinkingMs - elapsed));
       }
     };
-
-    // Post-exit demo dead-end — once Group Sync mode has been exited on
-    // purpose, keep replying with the generic prompt instead of letting the
-    // AI or offline intent-detection silently re-launch sync mode.
-    if (syncExited) {
-      await waitOutMinThinkTime();
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'bot', type: 'text', text: GENERIC_PROMPT_MESSAGE }]);
-      setIsTyping(false);
-      return;
-    }
 
     // 1. Deterministic Smart Fallback Engine runs FIRST for state-machine
     // transitions. Trip-intent/confirmation keywords must reliably open
@@ -363,12 +346,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     // conversation so far is already persisted, so nothing is lost.
     setMessages([]);
     setActiveConversationId(null);
-    // Reset the intent-detection state machine too — otherwise a chat that
-    // was exited-on-purpose earlier this browser session leaves syncExited
-    // stuck true, and the next fresh conversation silently gets the generic
-    // prompt for everything typed, no matter how obviously trip-related.
     setSyncStage('idle');
-    setSyncExited(false);
     if (onClose) onClose();
   };
 
