@@ -18,15 +18,15 @@ const inr = (n) => `₹${n.toLocaleString('en-IN')}`;
 
 const cheapestOverall = () => mockInventory.slice().sort((a, b) => a.costPerPerson - b.costPerPerson)[0];
 
-const topVibes = (responses, n = 2) => {
-  const counts = {};
-  responses.forEach((r) => { if (r.vibe) counts[r.vibe] = (counts[r.vibe] || 0) + 1; });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, n).map(([vibe]) => vibe);
-};
-
-const bestMatchForVibe = (vibe, maxBudget) => {
-  const candidates = mockInventory.filter((i) => i.vibe === vibe);
-  const pool = candidates.length ? candidates : mockInventory;
+// This is a scripted demo, not a live recommendation engine — the actual
+// participant intake form doesn't even collect a `vibe` field, so there's
+// no real per-friend preference data to synthesize from. The destination
+// is simply whatever the organizer typed at intake; Rishikesh is the
+// hardcoded fallback when they left it for the group to decide.
+const bestMatchForDestination = (destinationName, maxBudget) => {
+  const target = (destinationName || '').trim().toLowerCase();
+  const candidates = mockInventory.filter((i) => i.destination.toLowerCase() === target);
+  const pool = candidates.length ? candidates : mockInventory.filter((i) => i.destination === 'Rishikesh');
   const withinBudget = pool.filter((i) => i.costPerPerson <= maxBudget);
   const shortlist = withinBudget.length ? withinBudget : pool;
   return shortlist.slice().sort((a, b) => a.costPerPerson - b.costPerPerson)[0];
@@ -425,35 +425,41 @@ export function synthesizeRecommendation(session, responses) {
     };
   }
 
-  const [primaryVibe] = topVibes(responses, 2);
-  const fallbackVibe = primaryVibe || 'offbeat';
-
-  const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
-
-  // Risk-override edge case — only for sessions where useTripPlannerFlow's
-  // submitForm actually armed this (real dates were picked at intake).
-  // Never fires for a normal session just because its real, unsteered vibe
-  // tally happens to land on a risk-flagged pick by coincidence.
-  if (session.risk_demo_armed && best.riskFlag) {
-    return { scenario: 'risk_override_pending', flaggedPick: best, saferAlternative: findSaferAlternative(best) };
+  // Risk-override edge case — only for sessions useTripPlannerFlow's
+  // submitForm actually armed (real dates were picked at intake). Always
+  // resolves to Rishikesh, the one scripted risk destination, regardless
+  // of whatever the organizer typed — this is a canned demo beat, not a
+  // real per-destination check.
+  if (session.risk_demo_armed) {
+    const flaggedPick = bestMatchForDestination('Rishikesh', session.budget_per_person);
+    if (flaggedPick?.riskFlag) {
+      return { scenario: 'risk_override_pending', flaggedPick, saferAlternative: findSaferAlternative(flaggedPick) };
+    }
   }
+
+  // Normal path — not a real synthesis. The destination is whatever the
+  // organizer typed at intake; Rishikesh is the hardcoded fallback when
+  // they left it for the group to decide.
+  const destinationName = (session.destination || '').trim() || 'Rishikesh';
+  const best = bestMatchForDestination(destinationName, session.budget_per_person);
+  const vibeLabel = VIBE_LABELS[best.vibe] || best.vibe;
 
   const whyItFits = scenario === 'partial'
     ? [
         `${responses.length} of ${session.group_size} friends have replied so far`,
-        `${VIBE_LABELS[fallbackVibe]} is the top pick right now`,
+        `${vibeLabel} is the top pick right now`,
         `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
         `This could change once everyone's answered`,
       ]
     : [
-        `${VIBE_LABELS[fallbackVibe]} was the clear favorite for your group`,
+        `${vibeLabel} was the clear favorite for your group`,
         `${best.destination} (${best.hotel}) fits your ${inr(session.budget_per_person)} per-person budget`,
       ];
 
   return assembleRecommendation(best, {
     scenario,
     whyItFits,
-    attributions: buildAttributions(responses, fallbackVibe),
+    attributions: buildAttributions(responses, best.vibe),
     riskFlag: scenario === 'budget_ceiling' ? 'Option is close to per-person budget limit.' : null,
     confidenceLevel: scenario === 'partial' ? 'moderate' : 'high',
     budgetPerPerson: session.budget_per_person,
