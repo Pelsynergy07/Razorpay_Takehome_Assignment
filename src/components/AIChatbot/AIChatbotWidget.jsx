@@ -129,6 +129,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     setActiveConversationId(id);
     setMessages(conv.messages);
     setSyncStage('idle');
+    setSyncExited(false);
   };
 
   const handleClearHistory = () => {
@@ -360,6 +361,12 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     // conversation so far is already persisted, so nothing is lost.
     setMessages([]);
     setActiveConversationId(null);
+    // Reset the intent-detection state machine too — otherwise a chat that
+    // was exited-on-purpose earlier this browser session leaves syncExited
+    // stuck true, and the next fresh conversation silently gets the generic
+    // prompt for everything typed, no matter how obviously trip-related.
+    setSyncStage('idle');
+    setSyncExited(false);
     if (onClose) onClose();
   };
 
