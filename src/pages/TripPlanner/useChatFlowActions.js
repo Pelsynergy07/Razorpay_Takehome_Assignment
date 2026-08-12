@@ -88,6 +88,11 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
       }
       if (responses.length > baseline) {
         fired = true;
+        // Hand the response list this watcher already fetched straight to
+        // the hub screen's initial paint, instead of it re-fetching the
+        // same data on mount and showing a stale "0 of N" until that
+        // round-trip (real against Supabase) resolves.
+        flow.setCachedResponses?.(responses);
         thinkThen(
           {
             [kindField]: 'self_ack',

@@ -137,7 +137,7 @@ const OrganizerEntry = () => {
                 )}
                 {msg.kind === 'hub' && (
                   <FollowUpReveal text={msg.text}>
-                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} />
+                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} initialResponses={flow.cachedResponses} />
                   </FollowUpReveal>
                 )}
                 {msg.kind === 'processing' && (

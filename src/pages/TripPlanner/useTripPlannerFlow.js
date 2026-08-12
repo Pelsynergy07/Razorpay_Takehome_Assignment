@@ -11,6 +11,12 @@ export function useTripPlannerFlow() {
   const [tripStep, setTripStep] = useState('intro'); // intro|form|share|hub|processing|result
   const [session, setSession] = useState(null);
   const [recommendation, setRecommendation] = useState(null);
+  // Latest responses already known by the time the organizer reaches the
+  // hub — set by the self-ack watcher the moment it sees the organizer's
+  // own response land, so LiveAggregationHub can paint with that count on
+  // its very first render instead of starting at 0 and waiting on its own
+  // fetch (which, against a real Supabase backend, is a visible delay).
+  const [cachedResponses, setCachedResponses] = useState([]);
 
   // Broad intent detection for offline fallback — triggers whenever the user
   // mentions trips, group travel, vacations, flight/hotel planning, or friends.
@@ -156,6 +162,7 @@ export function useTripPlannerFlow() {
     setSession(null);
     setRecommendation(null);
     setPendingRiskChoice(null);
+    setCachedResponses([]);
   };
 
   // Re-hydrates `session`/`recommendation` after switching back to a
@@ -174,6 +181,9 @@ export function useTripPlannerFlow() {
     if (restoredStep === 'result' || restoredStep === 'closed') {
       const responses = await getResponses(sessionId);
       setRecommendation(synthesizeRecommendation(restoredSession, responses));
+    } else if (restoredStep === 'hub') {
+      const responses = await getResponses(sessionId);
+      if (Array.isArray(responses)) setCachedResponses(responses);
     }
 
     setTripStep(restoredStep || 'share');
@@ -183,6 +193,8 @@ export function useTripPlannerFlow() {
     tripStep,
     session,
     recommendation,
+    cachedResponses,
+    setCachedResponses,
     detectsTripIntent,
     launchMessage,
     nudgeMessage,

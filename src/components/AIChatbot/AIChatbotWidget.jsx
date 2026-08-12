@@ -447,7 +447,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       {msg.type === 'hub' && (
                         <FollowUpReveal text={msg.text}>
                           {flow.session ? (
-                            <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} />
+                            <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} initialResponses={flow.cachedResponses} />
                           ) : (
                             <BotTextResponse text="This trip session couldn't be restored — it may have been cleared from this browser." />
                           )}
