@@ -46,28 +46,19 @@ export function useTripPlannerFlow() {
       dateWindow,
       budgetPerPerson,
     });
-    // Raw chosen dates ride along on the session object (client-side only,
-    // not written to the backend) so that even when the organizer hasn't
-    // named a destination yet, a later synthesis run can still check
-    // whatever destination the group's votes land on against these same
-    // dates — see synthesizeRecommendation's deferred risk-override check.
-    const sessionWithDates = startDate && endDate ? { ...created, start_date: startDate, end_date: endDate } : created;
-    setSession(sessionWithDates);
+    setSession(created);
 
-    // Risk-override edge case — fires immediately here only when the
-    // organizer has BOTH named a destination and locked in real calendar
-    // dates (not just a day count), before any share link goes out to the
-    // group. If the destination isn't known yet, this can't be checked
-    // until synthesis actually picks one (handled deferred, see above).
-    const riskOverride = destination && startDate && endDate
-      ? checkRiskOverride({ destination, startDate, endDate })
-      : null;
+    // Scripted demo edge case — picking real calendar dates (not just a day
+    // count), on its own, always surfaces the Rishikesh risk-flagged pick
+    // vs. a safer alternative right here at intake, before any share link
+    // goes out. Not a real per-destination check — this is a canned beat
+    // for walking an interviewer through the risk-override flow on demand.
+    const riskOverride = startDate && endDate ? checkRiskOverride() : null;
 
     if (riskOverride) {
-      // Demo convenience: the group's responses auto-fill here so the live
-      // hub reads as fully collected if the organizer ever looks at it,
-      // instead of sitting at "waiting for responses" — same convenience
-      // the old end-of-flow risk check relied on, just triggered earlier now.
+      // All group responses are faked in immediately so the live hub reads
+      // as fully collected if anyone looks at it, instead of "waiting for
+      // responses" — this path is a scripted demo, not a real group flow.
       await Promise.all(
         Array.from({ length: groupSize }, (_, i) =>
           submitResponse(created.id, { participantName: `Friend ${i + 1}`, deferred: false })
@@ -76,7 +67,7 @@ export function useTripPlannerFlow() {
       setRecommendation({ scenario: 'risk_override_pending', ...riskOverride });
       setTripStep('result');
       return {
-        session: sessionWithDates,
+        session: created,
         message: {
           kind: 'result',
           text: "Hold on — before I send this to your group, there's something worth flagging about your dates.",
@@ -86,7 +77,7 @@ export function useTripPlannerFlow() {
 
     setTripStep('share');
     return {
-      session: sessionWithDates,
+      session: created,
       message: {
         kind: 'share',
         text: "Alright, we're set. Drop this link in your group chat, they'll take 2 minutes to fill it in, no signup, no app install, promise.",

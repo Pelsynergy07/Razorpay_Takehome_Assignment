@@ -37,18 +37,6 @@ const buildAttributions = (responses, vibe) => responses
   .filter(({ r }) => r.vibe === vibe)
   .map(({ i }) => ({ text: `Wants a ${VIBE_LABELS[vibe] || vibe} trip`, sourceParticipant: `Friend ${i + 1}` }));
 
-// Finds a mock inventory entry whose destination matches whatever the
-// organizer typed on the intake form's "Where to?" field, restricted to
-// entries carrying a riskFlag — but only once the organizer has actually
-// locked in real travel dates (not just a day count). Destination alone
-// isn't enough to fire this: naming Rishikesh before saying when doesn't
-// tell us anything about the trip's actual travel window yet.
-const findRiskOverrideMatch = ({ destination, startDate, endDate }) => {
-  const target = (destination || '').trim().toLowerCase();
-  if (!target || !startDate || !endDate) return null;
-  return mockInventory.find((i) => i.riskFlag && i.destination.toLowerCase() === target) || null;
-};
-
 // Cheapest same-vibe entry with no riskFlag, as the "safer alternative"
 // offered alongside a flagged popular pick.
 const findSaferAlternative = (flaggedItem) => {
@@ -57,11 +45,14 @@ const findSaferAlternative = (flaggedItem) => {
   return pool.slice().sort((a, b) => a.costPerPerson - b.costPerPerson)[0];
 };
 
+// Scripted demo edge case, not a real per-destination/date check — the
+// interview demo just needs "picking real travel dates always surfaces the
+// risk-flagged Rishikesh pick vs. a safer alternative" as a canned beat.
 // Checked once, right at intake-form submission (see useTripPlannerFlow's
 // submitForm) — before a share link ever goes out to the group — instead of
 // waiting until synthesis at the very end of the flow to surface it.
-export function checkRiskOverride({ destination, startDate, endDate }) {
-  const flaggedPick = findRiskOverrideMatch({ destination, startDate, endDate });
+export function checkRiskOverride() {
+  const flaggedPick = mockInventory.find((i) => i.riskFlag) || null;
   if (!flaggedPick) return null;
   return { flaggedPick, saferAlternative: findSaferAlternative(flaggedPick) };
 }
@@ -428,24 +419,6 @@ export function synthesizeRecommendation(session, responses) {
   const fallbackVibe = primaryVibe || 'offbeat';
 
   const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
-
-  // Risk-override edge case, deferred version — for the "I haven't decided
-  // on a destination yet" intake path, there was nothing to check against
-  // at form-submit time (see useTripPlannerFlow's submitForm for the case
-  // where the organizer *did* name a destination, checked immediately
-  // there instead). Now that the group's vibe votes have actually picked
-  // one, check it here — but only using dates the organizer already locked
-  // in at intake (session.start_date/end_date), never inventing a window.
-  if (session.start_date && session.end_date) {
-    const deferredRiskOverride = checkRiskOverride({
-      destination: best.destination,
-      startDate: session.start_date,
-      endDate: session.end_date,
-    });
-    if (deferredRiskOverride) {
-      return { scenario: 'risk_override_pending', ...deferredRiskOverride };
-    }
-  }
 
   const whyItFits = scenario === 'partial'
     ? [
