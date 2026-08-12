@@ -488,7 +488,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                               className="myra-suggestion-pill"
                               onClick={() => handleSend('plan trip with friends')}
                             >
-                              <span className="myra-suggestion-icon"><Sparkles size={14} /></span>
                               <span className="myra-suggestion-text">Plan trip with friends</span>
                             </button>
                           </ConfirmActions>
