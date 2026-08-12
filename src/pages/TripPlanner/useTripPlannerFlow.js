@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { createSession, getSession, getResponses, submitResponse } from '../../lib/tripApi';
-import { synthesizeRecommendation, hasRiskFlagForDestination, buildRecommendationFromInventoryItem } from '../../lib/synthesizeRecommendation';
+import { createSession, getSession, getResponses } from '../../lib/tripApi';
+import { synthesizeRecommendation, checkRiskOverride, buildRecommendationFromInventoryItem } from '../../lib/synthesizeRecommendation';
 
 /**
  * Shared organizer-flow logic (Screens 1.1 through 4.2) so both the
@@ -32,7 +32,7 @@ export function useTripPlannerFlow() {
     return { kind: 'form', text: 'Great — a few quick details:' };
   };
 
-  const submitForm = async ({ groupSize, destination, dateWindow, budgetPerPerson }) => {
+  const submitForm = async ({ groupSize, destination, dateWindow, budgetPerPerson, startDate, endDate }) => {
     const created = await createSession({
       organizerName: 'Organizer',
       groupSize,
@@ -42,17 +42,24 @@ export function useTripPlannerFlow() {
     });
     setSession(created);
 
-    // Demo convenience for the risk-override edge case: a destination
-    // that's already known to carry a real-world risk flag auto-fills the
-    // group's responses, so the flow can be walked through end to end
-    // right away instead of needing group_size real participants to
-    // actually open the join link first.
-    if (destination && hasRiskFlagForDestination(destination)) {
-      await Promise.all(
-        Array.from({ length: groupSize }, (_, i) =>
-          submitResponse(created.id, { participantName: `Friend ${i + 1}`, deferred: false })
-        )
-      );
+    // Risk-override edge case — only fires once the organizer has locked in
+    // real calendar dates (not just a day count) and those dates actually
+    // overlap a known risky window for the named destination. Checked right
+    // here, before any share link goes out to the group, instead of at the
+    // very end after everyone's already responded — the organizer resolves
+    // it before involving anyone else.
+    const riskOverride = startDate && endDate ? checkRiskOverride({ destination, startDate, endDate }) : null;
+
+    if (riskOverride) {
+      setRecommendation({ scenario: 'risk_override_pending', ...riskOverride });
+      setTripStep('result');
+      return {
+        session: created,
+        message: {
+          kind: 'result',
+          text: "Hold on — before I send this to your group, there's something worth flagging about your dates.",
+        },
+      };
     }
 
     setTripStep('share');

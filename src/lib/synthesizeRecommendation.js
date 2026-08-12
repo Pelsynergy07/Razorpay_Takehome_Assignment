@@ -37,24 +37,47 @@ const buildAttributions = (responses, vibe) => responses
   .filter(({ r }) => r.vibe === vibe)
   .map(({ i }) => ({ text: `Wants a ${VIBE_LABELS[vibe] || vibe} trip`, sourceParticipant: `Friend ${i + 1}` }));
 
-// Finds a mock inventory entry whose destination matches whatever the
-// organizer typed on the intake form's "Where to?" field, restricted to
-// entries carrying a riskFlag. This (rather than vibe tally) is the signal
-// used for the risk-override edge case, since the participant flow's real
-// question fields don't currently populate `vibe` on submitted responses.
-const findRiskOverrideMatch = (session) => {
-  const target = (session.destination || '').trim().toLowerCase();
-  if (!target) return null;
-  return mockInventory.find((i) => i.riskFlag && i.destination.toLowerCase() === target) || null;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// "Dec 20-24" -> { month: 11, startDay: 20, endDay: 24 }
+const parseMockDateRange = (str) => {
+  const match = /^([A-Za-z]{3})\s+(\d{1,2})\s*-\s*(\d{1,2})$/.exec((str || '').trim());
+  if (!match) return null;
+  const month = MONTHS.indexOf(match[1]);
+  if (month === -1) return null;
+  return { month, startDay: Number(match[2]), endDay: Number(match[3]) };
 };
 
-// Lets the intake form flow check, right when the organizer names a
-// destination, whether it's one that carries a risk flag — used to
-// auto-fill the group's responses so the risk-override edge case can be
-// demoed end to end without needing group_size real participants to join.
-export function hasRiskFlagForDestination(destination) {
-  return Boolean(findRiskOverrideMatch({ destination }));
-}
+// Compares month + day-of-month only (the mock inventory's `dates` field
+// carries no year), so this recognizes an overlap regardless of which year
+// the organizer actually picked on the date input.
+const overlapsMonthDayRange = (startIso, endIso, monthDayRange) => {
+  if (!startIso || !endIso || !monthDayRange) return false;
+  const start = new Date(`${startIso}T00:00:00`);
+  const end = new Date(`${endIso}T00:00:00`);
+  const asOrdinal = (month, day) => month * 100 + day;
+  const uStart = asOrdinal(start.getMonth(), start.getDate());
+  const uEnd = asOrdinal(end.getMonth(), end.getDate());
+  const iStart = asOrdinal(monthDayRange.month, monthDayRange.startDay);
+  const iEnd = asOrdinal(monthDayRange.month, monthDayRange.endDay);
+  return uStart <= iEnd && iStart <= uEnd;
+};
+
+// Finds a mock inventory entry whose destination matches whatever the
+// organizer typed on the intake form's "Where to?" field AND whose known
+// risky window overlaps the organizer's actual chosen travel dates.
+// Destination alone isn't enough — the risk is date-specific ("seasonal
+// road closure... during this window"), so naming Manali with dates outside
+// that window is a normal pick, not a flagged one.
+const findRiskOverrideMatch = ({ destination, startDate, endDate }) => {
+  const target = (destination || '').trim().toLowerCase();
+  if (!target || !startDate || !endDate) return null;
+  return mockInventory.find((i) =>
+    i.riskFlag &&
+    i.destination.toLowerCase() === target &&
+    overlapsMonthDayRange(startDate, endDate, parseMockDateRange(i.dates))
+  ) || null;
+};
 
 // Cheapest same-vibe entry with no riskFlag, as the "safer alternative"
 // offered alongside a flagged popular pick.
@@ -64,11 +87,18 @@ const findSaferAlternative = (flaggedItem) => {
   return pool.slice().sort((a, b) => a.costPerPerson - b.costPerPerson)[0];
 };
 
+// Checked once, right at intake-form submission (see useTripPlannerFlow's
+// submitForm) — before a share link ever goes out to the group — instead of
+// waiting until synthesis at the very end of the flow to surface it.
+export function checkRiskOverride({ destination, startDate, endDate }) {
+  const flaggedPick = findRiskOverrideMatch({ destination, startDate, endDate });
+  if (!flaggedPick) return null;
+  return { flaggedPick, saferAlternative: findSaferAlternative(flaggedPick) };
+}
+
 const determineScenario = (session, responses) => {
   if (responses.length > 0 && responses.every((r) => r.deferred)) return 'all_deferred';
   if (responses.length < session.group_size) return 'partial';
-
-  if (findRiskOverrideMatch(session)) return 'risk_override_pending';
 
   const counts = Object.values(
     responses.reduce((acc, r) => {
@@ -422,15 +452,6 @@ export function synthesizeRecommendation(session, responses) {
       respondedCount: responses.length,
       budgetPerPerson: session.budget_per_person,
     };
-  }
-
-  // Edge case — the organizer's named destination is a known risk-flagged
-  // pick. Also short-circuits before assembling a dashboard: the organizer
-  // has to choose between the flagged pick and a safer alternative first.
-  if (scenario === 'risk_override_pending') {
-    const flaggedPick = findRiskOverrideMatch(session);
-    const saferAlternative = findSaferAlternative(flaggedPick);
-    return { scenario, flaggedPick, saferAlternative };
   }
 
   const [primaryVibe] = topVibes(responses, 2);

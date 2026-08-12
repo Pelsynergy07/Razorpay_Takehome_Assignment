@@ -92,6 +92,11 @@ const IntentFormCard = ({ onSubmit, startDelay = 0 }) => {
         ? formatDateRange(startDate, endDate)
         : `${numberOfDays} day${Number(numberOfDays) === 1 ? '' : 's'}`,
       budgetPerPerson: budget,
+      // Raw ISO dates, only when the organizer actually picked calendar
+      // dates (not just a day count) — lets downstream logic check whether
+      // those specific dates overlap a known risky travel window.
+      startDate: knowsDates ? startDate : null,
+      endDate: knowsDates ? endDate : null,
     });
   };
 
