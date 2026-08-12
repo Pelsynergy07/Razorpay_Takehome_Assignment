@@ -429,6 +429,24 @@ export function synthesizeRecommendation(session, responses) {
 
   const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
 
+  // Risk-override edge case, deferred version — for the "I haven't decided
+  // on a destination yet" intake path, there was nothing to check against
+  // at form-submit time (see useTripPlannerFlow's submitForm for the case
+  // where the organizer *did* name a destination, checked immediately
+  // there instead). Now that the group's vibe votes have actually picked
+  // one, check it here — but only using dates the organizer already locked
+  // in at intake (session.start_date/end_date), never inventing a window.
+  if (session.start_date && session.end_date) {
+    const deferredRiskOverride = checkRiskOverride({
+      destination: best.destination,
+      startDate: session.start_date,
+      endDate: session.end_date,
+    });
+    if (deferredRiskOverride) {
+      return { scenario: 'risk_override_pending', ...deferredRiskOverride };
+    }
+  }
+
   const whyItFits = scenario === 'partial'
     ? [
         `${responses.length} of ${session.group_size} friends have replied so far`,

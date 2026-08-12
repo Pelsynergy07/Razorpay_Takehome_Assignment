@@ -40,15 +40,22 @@ export function useTripPlannerFlow() {
       dateWindow,
       budgetPerPerson,
     });
-    setSession(created);
+    // Raw chosen dates ride along on the session object (client-side only,
+    // not written to the backend) so that even when the organizer hasn't
+    // named a destination yet, a later synthesis run can still check
+    // whatever destination the group's votes land on against these same
+    // dates — see synthesizeRecommendation's deferred risk-override check.
+    const sessionWithDates = startDate && endDate ? { ...created, start_date: startDate, end_date: endDate } : created;
+    setSession(sessionWithDates);
 
-    // Risk-override edge case — only fires once the organizer has locked in
-    // real calendar dates (not just a day count) and those dates actually
-    // overlap a known risky window for the named destination. Checked right
-    // here, before any share link goes out to the group, instead of at the
-    // very end after everyone's already responded — the organizer resolves
-    // it before involving anyone else.
-    const riskOverride = startDate && endDate ? checkRiskOverride({ destination, startDate, endDate }) : null;
+    // Risk-override edge case — fires immediately here only when the
+    // organizer has BOTH named a destination and locked in real calendar
+    // dates (not just a day count), before any share link goes out to the
+    // group. If the destination isn't known yet, this can't be checked
+    // until synthesis actually picks one (handled deferred, see above).
+    const riskOverride = destination && startDate && endDate
+      ? checkRiskOverride({ destination, startDate, endDate })
+      : null;
 
     if (riskOverride) {
       // Demo convenience: the group's responses auto-fill here so the live
@@ -63,7 +70,7 @@ export function useTripPlannerFlow() {
       setRecommendation({ scenario: 'risk_override_pending', ...riskOverride });
       setTripStep('result');
       return {
-        session: created,
+        session: sessionWithDates,
         message: {
           kind: 'result',
           text: "Hold on — before I send this to your group, there's something worth flagging about your dates.",
@@ -73,7 +80,7 @@ export function useTripPlannerFlow() {
 
     setTripStep('share');
     return {
-      session: created,
+      session: sessionWithDates,
       message: {
         kind: 'share',
         text: "Alright, we're set. Drop this link in your group chat, they'll take 2 minutes to fill it in, no signup, no app install, promise.",
