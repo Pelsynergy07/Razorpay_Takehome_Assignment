@@ -46,18 +46,23 @@ export function useTripPlannerFlow() {
       dateWindow,
       budgetPerPerson,
     });
-    setSession(created);
-
     // Scripted demo edge case — picking real calendar dates (not just a day
     // count) arms the Rishikesh risk-flagged edge case: every "friend" but
     // one is faked in immediately, all leaning toward the flagged pick's
     // vibe, so the group's tally is guaranteed to land there once synthesis
-    // runs (see synthesizeRecommendation's post-synthesis risk check). One
-    // real slot is deliberately left open so "fill in your preferences" ->
-    // live hub still plays out through the real join page and self-ack
-    // flow, instead of skipping straight to a result — looks like the real
-    // product, even though the outcome is hardcoded.
+    // runs. One real slot is deliberately left open so "fill in your
+    // preferences" -> live hub still plays out through the real join page
+    // and self-ack flow, instead of skipping straight to a result — looks
+    // like the real product, even though the outcome is hardcoded.
+    //
+    // `risk_demo_armed` rides on the session (client-side only) so
+    // synthesizeRecommendation's post-synthesis check only ever fires for
+    // THIS session — never for a normal flow where no dates were picked
+    // and the group's real, unsteered vibe votes just happen to land on
+    // Rishikesh by coincidence.
     const riskOverride = startDate && endDate ? checkRiskOverride() : null;
+    const sessionArmed = riskOverride ? { ...created, risk_demo_armed: true } : created;
+    setSession(sessionArmed);
 
     if (riskOverride) {
       const fakeResponses = await Promise.all(
@@ -74,7 +79,7 @@ export function useTripPlannerFlow() {
 
     setTripStep('share');
     return {
-      session: created,
+      session: sessionArmed,
       message: {
         kind: 'share',
         text: "Alright, we're set. Drop this link in your group chat, they'll take 2 minutes to fill it in, no signup, no app install, promise.",

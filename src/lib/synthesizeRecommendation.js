@@ -420,11 +420,11 @@ export function synthesizeRecommendation(session, responses) {
 
   const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
 
-  // Risk-override edge case — the group's actual vibe-matched pick turned
-  // out to be a risk-flagged one. Surfaced here, after synthesis has run
-  // on real responses, instead of guessed at intake: this is the point
-  // where "most leaned toward X" is an honest claim about the group.
-  if (best.riskFlag) {
+  // Risk-override edge case — only for sessions where useTripPlannerFlow's
+  // submitForm actually armed this (real dates were picked at intake).
+  // Never fires for a normal session just because its real, unsteered vibe
+  // tally happens to land on a risk-flagged pick by coincidence.
+  if (session.risk_demo_armed && best.riskFlag) {
     return { scenario: 'risk_override_pending', flaggedPick: best, saferAlternative: findSaferAlternative(best) };
   }
 
