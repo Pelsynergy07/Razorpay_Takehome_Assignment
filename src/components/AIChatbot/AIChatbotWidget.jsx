@@ -480,23 +480,23 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                           )}
                         </FollowUpReveal>
                       )}
-                      {!['launch', 'form', 'share', 'self_ack', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm', 'exit_confirm'].includes(msg.type) && (
-                        <FollowUpReveal text={msg.text}>
-                          <MessageActions />
-                        </FollowUpReveal>
-                      )}
                       {msg.type === 'off_topic_prompt' && (
                         <FollowUpReveal>
                           <ConfirmActions>
                             <button
                               type="button"
                               className="myra-suggestion-pill"
-                              onClick={() => handleSend('plan with friends')}
+                              onClick={() => handleSend('plan trip with friends')}
                             >
                               <span className="myra-suggestion-icon"><Sparkles size={14} /></span>
                               <span className="myra-suggestion-text">Plan trip with friends</span>
                             </button>
                           </ConfirmActions>
+                        </FollowUpReveal>
+                      )}
+                      {!['launch', 'form', 'share', 'self_ack', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm', 'exit_confirm'].includes(msg.type) && (
+                        <FollowUpReveal text={msg.text}>
+                          <MessageActions />
                         </FollowUpReveal>
                       )}
                     </>
