@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createSession, getSession, getResponses } from '../../lib/tripApi';
+import { createSession, getSession, getResponses, submitResponse } from '../../lib/tripApi';
 import { synthesizeRecommendation, checkRiskOverride, buildRecommendationFromInventoryItem } from '../../lib/synthesizeRecommendation';
 
 /**
@@ -51,6 +51,15 @@ export function useTripPlannerFlow() {
     const riskOverride = startDate && endDate ? checkRiskOverride({ destination, startDate, endDate }) : null;
 
     if (riskOverride) {
+      // Demo convenience: the group's responses auto-fill here so the live
+      // hub reads as fully collected if the organizer ever looks at it,
+      // instead of sitting at "waiting for responses" — same convenience
+      // the old end-of-flow risk check relied on, just triggered earlier now.
+      await Promise.all(
+        Array.from({ length: groupSize }, (_, i) =>
+          submitResponse(created.id, { participantName: `Friend ${i + 1}`, deferred: false })
+        )
+      );
       setRecommendation({ scenario: 'risk_override_pending', ...riskOverride });
       setTripStep('result');
       return {

@@ -37,46 +37,16 @@ const buildAttributions = (responses, vibe) => responses
   .filter(({ r }) => r.vibe === vibe)
   .map(({ i }) => ({ text: `Wants a ${VIBE_LABELS[vibe] || vibe} trip`, sourceParticipant: `Friend ${i + 1}` }));
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// "Dec 20-24" -> { month: 11, startDay: 20, endDay: 24 }
-const parseMockDateRange = (str) => {
-  const match = /^([A-Za-z]{3})\s+(\d{1,2})\s*-\s*(\d{1,2})$/.exec((str || '').trim());
-  if (!match) return null;
-  const month = MONTHS.indexOf(match[1]);
-  if (month === -1) return null;
-  return { month, startDay: Number(match[2]), endDay: Number(match[3]) };
-};
-
-// Compares month + day-of-month only (the mock inventory's `dates` field
-// carries no year), so this recognizes an overlap regardless of which year
-// the organizer actually picked on the date input.
-const overlapsMonthDayRange = (startIso, endIso, monthDayRange) => {
-  if (!startIso || !endIso || !monthDayRange) return false;
-  const start = new Date(`${startIso}T00:00:00`);
-  const end = new Date(`${endIso}T00:00:00`);
-  const asOrdinal = (month, day) => month * 100 + day;
-  const uStart = asOrdinal(start.getMonth(), start.getDate());
-  const uEnd = asOrdinal(end.getMonth(), end.getDate());
-  const iStart = asOrdinal(monthDayRange.month, monthDayRange.startDay);
-  const iEnd = asOrdinal(monthDayRange.month, monthDayRange.endDay);
-  return uStart <= iEnd && iStart <= uEnd;
-};
-
 // Finds a mock inventory entry whose destination matches whatever the
-// organizer typed on the intake form's "Where to?" field AND whose known
-// risky window overlaps the organizer's actual chosen travel dates.
-// Destination alone isn't enough — the risk is date-specific ("seasonal
-// road closure... during this window"), so naming Manali with dates outside
-// that window is a normal pick, not a flagged one.
+// organizer typed on the intake form's "Where to?" field, restricted to
+// entries carrying a riskFlag — but only once the organizer has actually
+// locked in real travel dates (not just a day count). Destination alone
+// isn't enough to fire this: naming Rishikesh before saying when doesn't
+// tell us anything about the trip's actual travel window yet.
 const findRiskOverrideMatch = ({ destination, startDate, endDate }) => {
   const target = (destination || '').trim().toLowerCase();
   if (!target || !startDate || !endDate) return null;
-  return mockInventory.find((i) =>
-    i.riskFlag &&
-    i.destination.toLowerCase() === target &&
-    overlapsMonthDayRange(startDate, endDate, parseMockDateRange(i.dates))
-  ) || null;
+  return mockInventory.find((i) => i.riskFlag && i.destination.toLowerCase() === target) || null;
 };
 
 // Cheapest same-vibe entry with no riskFlag, as the "safer alternative"
@@ -165,6 +135,7 @@ const DESTINATION_OPTIONS = {
       { label: 'Group vibe', detail: '3 of 4 friends wanted an offbeat, relaxed pace, 1 wanted high activity' },
       { label: 'Budget fit', detail: 'Shivpuri rafting + hostel stay keeps the trip under ₹20,000 per person' },
       { label: 'Dates', detail: 'Most of the group had flexible dates, which made Dec 19-22 work for everyone' },
+      { label: 'Risk note', detail: 'The Shivpuri rafting stretch is dam-release-dependent this time of year — flagged separately before this pick was confirmed' },
     ],
     itinerary: [
       {
@@ -325,7 +296,6 @@ const DESTINATION_OPTIONS = {
     resolvedSummary: [
       { label: 'Group vibe', detail: 'Mountains was the strongest signal, with a calm, chill pace preferred' },
       { label: 'Budget fit', detail: 'The Himalayan stay + Solang Valley day keeps the trip within a comfortable per-person budget' },
-      { label: 'Risk note', detail: 'The Rohtang Pass corridor is weather-dependent this time of year — flagged separately before this pick was confirmed' },
     ],
     itinerary: [
       {
