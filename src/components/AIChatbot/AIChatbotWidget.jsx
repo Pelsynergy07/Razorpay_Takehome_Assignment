@@ -270,7 +270,46 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
       return;
     }
 
-    // 1. Try OpenRouter AI first
+    // 1. Deterministic Smart Fallback Engine runs FIRST for state-machine
+    // transitions. Trip-intent/confirmation keywords must reliably open
+    // Group Sync Mode — the AI can't be trusted on the critical path here:
+    // cheap free models sometimes misjudge a mid-flow reply (e.g. the user
+    // repeating "trip"/"friends"/"squad" instead of a crisp "yes") as
+    // off-topic and echo the generic welcome text back, trapping the user
+    // in a loop. Keyword matching has no such failure mode.
+    // Step 2: user confirms (or simply repeats trip-related words) after
+    // being asked to try sync mode.
+    if (syncStage === 'awaiting_confirmation' && (isConfirmationReply(msg) || isTripIntent(msg))) {
+      setSyncStage('confirmed');
+      await waitOutMinThinkTime();
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'bot',
+        type: 'text',
+        text: "Awesome! Let's set up your group trip session...",
+      }]);
+      const { kind, text: launchText } = flow.launchMessage();
+      thinkThen({ type: kind, text: launchText }, minThinkingMs);
+      return;
+    }
+
+    // Step 1: user expresses trip intent for the first time.
+    if (syncStage === 'idle' && isTripIntent(msg)) {
+      setSyncStage('awaiting_confirmation');
+      await waitOutMinThinkTime();
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'bot',
+        type: 'text',
+        text: "Group trips are fantastic, but coordinating budgets, dates, and preferences across everyone can be tricky! 🏖️\n\nWould you like to enable **Group Sync Mode** so your friends can easily share their preferences via a quick 2-minute share link?",
+      }]);
+      setIsTyping(false);
+      return;
+    }
+
+    // 2. Neither deterministic check matched (genuinely open-ended or
+    // off-topic message) — try OpenRouter AI for a nicer conversational
+    // reply, with instant fallback to the generic prompt below.
     const aiResult = await generateMyraAIResponse(msg, messages);
 
     if (aiResult) {
@@ -285,36 +324,6 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
       } else if (aiResult.isAwaitingConfirmation) {
         setSyncStage('awaiting_confirmation');
       }
-      return;
-    }
-
-    // 2. Offline Smart Fallback Engine
-    // Step 2: User confirms after AI asked to try sync mode
-    if (syncStage === 'awaiting_confirmation' && isConfirmationReply(msg)) {
-      setSyncStage('confirmed');
-      await waitOutMinThinkTime();
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: 'bot',
-        type: 'text',
-        text: "Awesome! Let's set up your group trip session...",
-      }]);
-      const { kind, text: launchText } = flow.launchMessage();
-      thinkThen({ type: kind, text: launchText }, minThinkingMs);
-      return;
-    }
-
-    // Step 1: User expresses trip intent
-    if (syncStage === 'idle' && isTripIntent(msg)) {
-      setSyncStage('awaiting_confirmation');
-      await waitOutMinThinkTime();
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: 'bot',
-        type: 'text',
-        text: "Group trips are fantastic, but coordinating budgets, dates, and preferences across everyone can be tricky! 🏖️\n\nWould you like to enable **Group Sync Mode** so your friends can easily share their preferences via a quick 2-minute share link?",
-      }]);
-      setIsTyping(false);
       return;
     }
 
