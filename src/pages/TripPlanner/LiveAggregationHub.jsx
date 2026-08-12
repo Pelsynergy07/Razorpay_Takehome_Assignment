@@ -26,23 +26,6 @@ const getTimeLeftLabel = (createdAt) => {
   return `${mins}m left`;
 };
 
-const VIBE_META = {
-  mountains: { label: 'Mountains', emoji: '⛰️' },
-  beach: { label: 'Beach', emoji: '🏖️' },
-  party: { label: 'Party', emoji: '🎉' },
-  offbeat: { label: 'Offbeat & relaxed', emoji: '🌿' },
-};
-
-const summarizeVibes = (responses) => {
-  const withVibe = responses.filter((r) => r.vibe);
-  if (withVibe.length === 0) return [];
-  const counts = {};
-  withVibe.forEach((r) => { counts[r.vibe] = (counts[r.vibe] || 0) + 1; });
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([vibe, count]) => ({ vibe, count, ...(VIBE_META[vibe] || { label: vibe, emoji: '✨' }) }));
-};
-
 // Gender-neutral critter avatars — real emoji glyphs, a different one per friend, on a colorful filled backdrop.
 const FUN_AVATAR_ICONS = ['🐶', '🐱', '🦊', '🐼', '🐨', '🦁', '🐯', '🐵', '🐰', '🐻'];
 const FUN_AVATAR_COLORS = [
@@ -69,9 +52,9 @@ const FunAvatarFace = ({ index = 0, muted = false }) => {
  * "realtime" so it updates the moment a participant submits, without a
  * page refresh.
  *
- * Entrance: header, progress bar, avatar row, status row, and vibe pills
- * reveal top to bottom, each waiting for the one above it to finish before
- * it starts — then the CTA at the very end.
+ * Entrance: header, progress bar, avatar row, and status row reveal top to
+ * bottom, each waiting for the one above it to finish before it starts —
+ * then the CTA at the very end.
  */
 const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDelay = 0, initialResponses = [] }) => {
   // Seeded from whatever the caller already knew (e.g. the self-ack watcher
@@ -98,7 +81,6 @@ const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDe
   const respondedCount = responses.length;
   const pendingCount = Math.max(0, session.group_size - respondedCount);
   const progressPct = session.group_size > 0 ? Math.min(100, Math.round((respondedCount / session.group_size) * 100)) : 0;
-  const vibeTally = summarizeVibes(responses);
   const timeLeftLabel = getTimeLeftLabel(session?.created_at);
 
   const handleProceed = () => {
@@ -110,8 +92,8 @@ const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDe
     onProceed?.();
   };
 
-  const blockCount = 4 + (vibeTally.length > 0 ? 1 : 0); // header, progress, avatars, status, (vibes)
-  const [headerDelay, progressDelay, avatarDelay, statusDelay, vibeDelay] = sequenceDelays(
+  const blockCount = 4; // header, progress, avatars, status
+  const [headerDelay, progressDelay, avatarDelay, statusDelay] = sequenceDelays(
     Array(blockCount).fill(BLOCK_STAGGER),
     startDelay,
   );
@@ -171,18 +153,6 @@ const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDe
         <motion.div className="hub-status-row hub-status-row--done" variants={blockVariants} custom={statusDelay} initial="hidden" animate="visible">
           <PartyPopper size={15} />
           <span className="hub-status-text">Everyone's in — nice!</span>
-        </motion.div>
-      )}
-
-      {vibeTally.length > 0 && (
-        <motion.div className="hub-vibe-pills" variants={peerContainerVariants(vibeDelay)} initial="hidden" animate="visible">
-          {vibeTally.map(({ vibe, count, label, emoji }) => (
-            <motion.span key={vibe} className="hub-vibe-pill" variants={peerItemVariants}>
-              <span className="hub-vibe-pill-emoji">{emoji}</span>
-              {label}
-              <span className="hub-vibe-pill-count">×{count}</span>
-            </motion.span>
-          ))}
         </motion.div>
       )}
 
