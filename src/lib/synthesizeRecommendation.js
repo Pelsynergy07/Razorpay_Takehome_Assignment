@@ -420,6 +420,14 @@ export function synthesizeRecommendation(session, responses) {
 
   const best = bestMatchForVibe(fallbackVibe, session.budget_per_person);
 
+  // Risk-override edge case — the group's actual vibe-matched pick turned
+  // out to be a risk-flagged one. Surfaced here, after synthesis has run
+  // on real responses, instead of guessed at intake: this is the point
+  // where "most leaned toward X" is an honest claim about the group.
+  if (best.riskFlag) {
+    return { scenario: 'risk_override_pending', flaggedPick: best, saferAlternative: findSaferAlternative(best) };
+  }
+
   const whyItFits = scenario === 'partial'
     ? [
         `${responses.length} of ${session.group_size} friends have replied so far`,

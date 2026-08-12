@@ -49,30 +49,27 @@ export function useTripPlannerFlow() {
     setSession(created);
 
     // Scripted demo edge case — picking real calendar dates (not just a day
-    // count), on its own, always surfaces the Rishikesh risk-flagged pick
-    // vs. a safer alternative right here at intake, before any share link
-    // goes out. Not a real per-destination check — this is a canned beat
-    // for walking an interviewer through the risk-override flow on demand.
+    // count) arms the Rishikesh risk-flagged edge case: every "friend" but
+    // one is faked in immediately, all leaning toward the flagged pick's
+    // vibe, so the group's tally is guaranteed to land there once synthesis
+    // runs (see synthesizeRecommendation's post-synthesis risk check). One
+    // real slot is deliberately left open so "fill in your preferences" ->
+    // live hub still plays out through the real join page and self-ack
+    // flow, instead of skipping straight to a result — looks like the real
+    // product, even though the outcome is hardcoded.
     const riskOverride = startDate && endDate ? checkRiskOverride() : null;
 
     if (riskOverride) {
-      // All group responses are faked in immediately so the live hub reads
-      // as fully collected if anyone looks at it, instead of "waiting for
-      // responses" — this path is a scripted demo, not a real group flow.
-      await Promise.all(
-        Array.from({ length: groupSize }, (_, i) =>
-          submitResponse(created.id, { participantName: `Friend ${i + 1}`, deferred: false })
+      const fakeResponses = await Promise.all(
+        Array.from({ length: groupSize - 1 }, (_, i) =>
+          submitResponse(created.id, {
+            participantName: `Friend ${i + 1}`,
+            vibe: riskOverride.flaggedPick.vibe,
+            deferred: false,
+          })
         )
       );
-      setRecommendation({ scenario: 'risk_override_pending', ...riskOverride });
-      setTripStep('result');
-      return {
-        session: created,
-        message: {
-          kind: 'result',
-          text: "Hold on — before I send this to your group, there's something worth flagging about your dates.",
-        },
-      };
+      setCachedResponses(fakeResponses);
     }
 
     setTripStep('share');
