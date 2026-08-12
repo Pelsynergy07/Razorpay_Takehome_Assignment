@@ -75,6 +75,12 @@ export function useTripPlannerFlow() {
         )
       );
       setCachedResponses(fakeResponses);
+    } else {
+      // Clear out whatever a previous session (in this same browser tab)
+      // left behind — otherwise a brand-new, non-armed session's hub could
+      // briefly show a prior session's fake responses until its own fetch
+      // corrects it.
+      setCachedResponses([]);
     }
 
     setTripStep('share');
@@ -105,8 +111,8 @@ export function useTripPlannerFlow() {
   // Risk-override edge case — the organizer picked one of the two choice
   // cards (the flagged pick or the safer alternative). Kept separate from
   // completeSynthesis since re-running synthesizeRecommendation here would
-  // just land back on risk_override_pending (session.destination hasn't
-  // changed); this builds straight from the chosen inventory item instead.
+  // just land back on risk_override_pending (session.risk_demo_armed is
+  // still set); this builds straight from the chosen inventory item instead.
   const [pendingRiskChoice, setPendingRiskChoice] = useState(null);
 
   const startRiskChoiceResolution = (item, isFlaggedChoice, flaggedPick) => {

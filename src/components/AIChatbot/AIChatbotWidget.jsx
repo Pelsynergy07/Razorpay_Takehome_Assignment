@@ -140,6 +140,8 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     setConversations([]);
     setMessages([]);
     setActiveConversationId(null);
+    setSyncStage('idle');
+    setSyncExited(false);
   };
 
   // Action buttons (Launch sync mode, Create trip session, Enter hub) echo

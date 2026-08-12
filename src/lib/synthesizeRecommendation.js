@@ -376,6 +376,16 @@ const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], att
     customData.stays.find((s) => s.selected).cost +
     customData.activities.find((a) => a.selected).cost;
 
+  // Rishikesh's static resolvedSummary carries a "Risk note" line, but that
+  // claim ("flagged separately before this pick was confirmed") is only
+  // true when this recommendation actually came out of resolving the risk
+  // panel. A coincidental normal match, or a manual pick from the
+  // "everyone deferred" edge case, never showed that panel — drop the line
+  // rather than claim a risk callout that never happened.
+  const resolvedSummary = scenario === 'risk_override_resolved'
+    ? customData.resolvedSummary
+    : (customData.resolvedSummary || []).filter((s) => s.label !== 'Risk note');
+
   return {
     scenario,
     destination: item.destination,
@@ -388,7 +398,7 @@ const assembleRecommendation = (item, { scenario = 'normal', whyItFits = [], att
     transports: customData.transports,
     stays: customData.stays,
     activities: customData.activities,
-    resolvedSummary: customData.resolvedSummary,
+    resolvedSummary,
     itinerary: customData.itinerary,
     morePool: customData.morePool || {},
     whyItFits,
