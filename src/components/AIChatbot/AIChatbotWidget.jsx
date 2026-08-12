@@ -313,12 +313,14 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
       return;
     }
 
-    // Off-topic / Irrelevant prompt fallback
+    // Off-topic / Irrelevant prompt fallback — carries its own quick-reply
+    // chip (see msg.type === 'off_topic_prompt' below) so there's a
+    // one-click way into the demo besides retyping a trip message.
     await waitOutMinThinkTime();
     setMessages(prev => [...prev, {
       id: crypto.randomUUID(),
       role: 'bot',
-      type: 'text',
+      type: 'off_topic_prompt',
       text: GENERIC_PROMPT_MESSAGE,
     }]);
     setIsTyping(false);
@@ -481,6 +483,20 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       {!['launch', 'form', 'share', 'self_ack', 'hub', 'processing', 'risk_processing', 'result', 'closed', 'zero_response_confirm', 'exit_confirm'].includes(msg.type) && (
                         <FollowUpReveal text={msg.text}>
                           <MessageActions />
+                        </FollowUpReveal>
+                      )}
+                      {msg.type === 'off_topic_prompt' && (
+                        <FollowUpReveal>
+                          <ConfirmActions>
+                            <button
+                              type="button"
+                              className="myra-suggestion-pill"
+                              onClick={() => handleSend('plan with friends')}
+                            >
+                              <span className="myra-suggestion-icon"><Sparkles size={14} /></span>
+                              <span className="myra-suggestion-text">Plan trip with friends</span>
+                            </button>
+                          </ConfirmActions>
                         </FollowUpReveal>
                       )}
                     </>
