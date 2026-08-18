@@ -8,8 +8,8 @@ export const participantCards = [
   {
     key: 'destinationPick',
     field: 'destination',
-    title: 'Based on your dates and budget, these are the best fits',
-    subtitle: '4 days, Sept 18 to 21 · ₹5,000 per head. Swipe and pick the one that speaks to you.',
+    title: 'Based on your trip duration and budget, these are the best fits',
+    subtitle: '4 days · ₹5,000 per head. Swipe and pick the one that speaks to you.',
     icon: 'MapPin',
     type: 'carousel',
     options: [

@@ -158,6 +158,9 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
     handleEmptyProceedAttempt,
     handleConfirmEmptyProceedYes,
     handleConfirmEmptyProceedNo,
+    handlePartialProceedAttempt,
+    handleConfirmPartialProceedYes,
+    handleConfirmPartialProceedNo,
     handleCompleteSynthesis,
     handleApprove,
     handleEditAfterApprove,
@@ -394,6 +397,14 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                           </ConfirmActions>
                         </FollowUpReveal>
                       )}
+                      {msg.type === 'partial_response_confirm' && (
+                        <FollowUpReveal text={msg.text}>
+                          <ConfirmActions>
+                            <button type="button" className="btn-secondary" onClick={handleConfirmPartialProceedYes}>Yes, continue</button>
+                            <button type="button" className="btn-secondary" onClick={handleConfirmPartialProceedNo}>No, wait</button>
+                          </ConfirmActions>
+                        </FollowUpReveal>
+                      )}
                       {msg.type === 'exit_confirm' && (
                         <FollowUpReveal text={msg.text}>
                           <ConfirmActions>
@@ -436,7 +447,7 @@ const AIChatbotWidget = ({ isOpen, onClose, onOpen, isMobile }) => {
                       {msg.type === 'hub' && (
                         <FollowUpReveal text={msg.text}>
                           {flow.session ? (
-                            <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} initialResponses={flow.cachedResponses} />
+                            <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} onPartialProceedAttempt={handlePartialProceedAttempt} initialResponses={flow.cachedResponses} />
                           ) : (
                             <BotTextResponse text="This trip session couldn't be restored — it may have been cleared from this browser." />
                           )}

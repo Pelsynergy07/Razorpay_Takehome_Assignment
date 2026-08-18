@@ -53,6 +53,9 @@ const OrganizerEntry = () => {
     handleEmptyProceedAttempt,
     handleConfirmEmptyProceedYes,
     handleConfirmEmptyProceedNo,
+    handlePartialProceedAttempt,
+    handleConfirmPartialProceedYes,
+    handleConfirmPartialProceedNo,
     handleCompleteSynthesis,
     handleApprove,
     handleEditAfterApprove,
@@ -111,6 +114,14 @@ const OrganizerEntry = () => {
                     </ConfirmActions>
                   </FollowUpReveal>
                 )}
+                {msg.kind === 'partial_response_confirm' && (
+                  <FollowUpReveal text={msg.text}>
+                    <ConfirmActions>
+                      <button type="button" className="btn-secondary" onClick={handleConfirmPartialProceedYes}>Yes, continue</button>
+                      <button type="button" className="btn-secondary" onClick={handleConfirmPartialProceedNo}>No, wait</button>
+                    </ConfirmActions>
+                  </FollowUpReveal>
+                )}
                 {msg.kind === 'launch' && (
                   <FollowUpReveal text={msg.text}>
                     <GradientSweepButton onClick={handleLaunchSyncMode} className="launch-sync-btn">
@@ -137,7 +148,7 @@ const OrganizerEntry = () => {
                 )}
                 {msg.kind === 'hub' && (
                   <FollowUpReveal text={msg.text}>
-                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} initialResponses={flow.cachedResponses} />
+                    <LiveAggregationHub session={flow.session} onProceed={handleProceedToSynthesis} onEmptyProceedAttempt={handleEmptyProceedAttempt} onPartialProceedAttempt={handlePartialProceedAttempt} initialResponses={flow.cachedResponses} />
                   </FollowUpReveal>
                 )}
                 {msg.kind === 'processing' && (

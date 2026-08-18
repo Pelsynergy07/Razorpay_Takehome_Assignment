@@ -56,7 +56,7 @@ const FunAvatarFace = ({ index = 0, muted = false }) => {
  * bottom, each waiting for the one above it to finish before it starts —
  * then the CTA at the very end.
  */
-const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDelay = 0, initialResponses = [] }) => {
+const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, onPartialProceedAttempt, startDelay = 0, initialResponses = [] }) => {
   // Seeded from whatever the caller already knew (e.g. the self-ack watcher
   // that saw the organizer's own response land) so the very first paint
   // shows the right count instead of 0 while this component's own fetch
@@ -86,6 +86,10 @@ const LiveAggregationHub = ({ session, onProceed, onEmptyProceedAttempt, startDe
   const handleProceed = () => {
     if (respondedCount === 0) {
       onEmptyProceedAttempt?.();
+      return;
+    }
+    if (pendingCount > 0) {
+      onPartialProceedAttempt?.(respondedCount, session.group_size);
       return;
     }
     setProceeded(true);

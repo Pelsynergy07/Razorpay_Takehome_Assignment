@@ -125,7 +125,7 @@ const DESTINATION_OPTIONS = {
     resolvedSummary: [
       { label: 'Group vibe', detail: '3 of 4 friends wanted an offbeat, relaxed pace, 1 wanted high activity' },
       { label: 'Budget fit', detail: 'Shivpuri rafting + hostel stay keeps the trip under ₹20,000 per person' },
-      { label: 'Dates', detail: 'Most of the group had flexible dates, which made Dec 19-22 work for everyone' },
+      { label: 'Compromise', detail: "Abhishek's vibe leaned different, but was adjusted to fit the group." },
       { label: 'Risk note', detail: 'The Shivpuri rafting stretch is dam-release-dependent this time of year — flagged separately before this pick was confirmed' },
     ],
     itinerary: [

@@ -143,6 +143,27 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     thinkThen({ [kindField]: 'text', text: "No worries — I'll keep the hub open above. Let me know when you're ready to try again." }, 600);
   };
 
+  // Partial-responses edge case — some but not all of the group has
+  // responded. Clicking proceed asks whether to continue with what's in
+  // so far, with the same Yes/No choice as the zero-responses case,
+  // instead of silently synthesizing from an incomplete set.
+  const handlePartialProceedAttempt = (respondedCount, groupSize) => {
+    echoUser('Proceed to synthesis now');
+    const pending = Math.max(0, (groupSize ?? 0) - (respondedCount ?? 0));
+    const who = pending === 1 ? '1 friend hasn\'t' : `${pending} friends haven't`;
+    thinkThen({ [kindField]: 'partial_response_confirm', text: `Heads up — ${who} responded yet. Want to continue anyway?` }, 700);
+  };
+
+  const handleConfirmPartialProceedYes = () => {
+    echoUser('Yes, continue anyway');
+    advanceThen(flow.startSynthesis, { [kindField]: 'processing', sessionId: flow.session?.id }, 600);
+  };
+
+  const handleConfirmPartialProceedNo = () => {
+    echoUser("No, I'll wait");
+    thinkThen({ [kindField]: 'text', text: "No worries — I'll keep the hub open above. Let me know when you're ready to try again." }, 600);
+  };
+
   const handleCompleteSynthesis = async () => {
     await flow.completeSynthesis();
     pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:", sessionId: flow.session?.id });
@@ -196,6 +217,9 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
     handleEmptyProceedAttempt,
     handleConfirmEmptyProceedYes,
     handleConfirmEmptyProceedNo,
+    handlePartialProceedAttempt,
+    handleConfirmPartialProceedYes,
+    handleConfirmPartialProceedNo,
     handleCompleteSynthesis,
     handleApprove,
     handleEditAfterApprove,

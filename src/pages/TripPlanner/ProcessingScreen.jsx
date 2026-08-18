@@ -9,6 +9,7 @@ const DEFAULT_STAGES = [
   'Wrapping it all up in a bow 🎀',
 ];
 const DEFAULT_STAGE_DELAY = 1520;
+const FINAL_STAGE_DELAY = 1000;
 
 /**
  * Screen 4.1 — processing state. Cycles quirky micro-copy while the mock
@@ -43,7 +44,7 @@ const ProcessingScreen = ({ onComplete, stages = DEFAULT_STAGES, stageDelay = DE
       } else {
         setStageIndex((i) => i + 1);
       }
-    }, stageDelay);
+    }, isLastStage ? FINAL_STAGE_DELAY : stageDelay);
     return () => clearTimeout(t);
   }, [stageIndex, stages.length, stageDelay]);
 
