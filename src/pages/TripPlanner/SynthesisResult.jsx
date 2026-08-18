@@ -824,10 +824,7 @@ const SynthesisResult = ({
           </div>
           <h1 className="synthesis-hero-title">{recState.destination}</h1>
           <div className="synthesis-hero-meta">
-            <span className="hero-meta-pill">
-              {activeDate.title}
-              <span className="hero-meta-pill-note"> · Proposed</span>
-            </span>
+            <span className="hero-meta-pill">{activeDate.title}</span>
             <span className="hero-meta-pill font-bold">₹{totalCost.toLocaleString('en-IN')} / person</span>
             {recState.weather && <span className="hero-meta-pill">{recState.weather}</span>}
           </div>

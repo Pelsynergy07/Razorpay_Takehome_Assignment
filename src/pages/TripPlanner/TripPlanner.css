@@ -1635,12 +1635,6 @@
   border-radius: var(--radius-xs);
 }
 
-.hero-meta-pill-note {
-  font-size: var(--text-xs);
-  font-style: italic;
-  opacity: 0.75;
-}
-
 .hero-weather-badge {
   font-size: var(--text-xs);
   background: var(--mmt-blue);

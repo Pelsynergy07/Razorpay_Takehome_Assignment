@@ -166,7 +166,7 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
 
   const handleCompleteSynthesis = async () => {
     await flow.completeSynthesis();
-    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:", sessionId: flow.session?.id });
+    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:\nJust a heads-up — the dates below are proposed, not locked in yet.", sessionId: flow.session?.id });
   };
 
   const handleApprove = () => {
@@ -205,7 +205,7 @@ export function useChatFlowActions({ flow, setMessages, setIsTyping, echoUser, k
 
   const handleCompleteRiskChoiceResolution = () => {
     flow.completeRiskChoiceResolution();
-    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:", sessionId: flow.session?.id });
+    pushMessage({ role: 'bot', [kindField]: 'result', text: "Here's what I've put together:\nJust a heads-up — the dates below are proposed, not locked in yet.", sessionId: flow.session?.id });
   };
 
   return {
